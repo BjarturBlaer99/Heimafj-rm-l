@@ -1,0 +1,11 @@
+.next
+node_modules
+next-5173.log
+next-5173.err.log
+next-dev.log
+next-dev.err.log
+tsconfig.tsbuildinfo
+.env
+.env.local
+data
+dist
