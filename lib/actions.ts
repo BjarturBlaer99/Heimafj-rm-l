@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
+import { billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
 
 async function userId() {
   const supabase = await createClient();
@@ -105,6 +105,100 @@ export async function deleteBudget(formData: FormData) {
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/budgets");
   revalidatePath("/expenses");
+}
+
+export async function saveBill(formData: FormData) {
+  const { supabase, userId: id } = await userId();
+  const data = billSchema.parse(formDataObject(formData));
+  const payload = {
+    user_id: id,
+    name: data.name,
+    amount: data.amount,
+    due_day: data.due_day,
+    category_id: data.category_id || null,
+    is_active: data.is_active
+  };
+  const result = data.id
+    ? await supabase.from("bills").update(payload).eq("id", data.id).eq("user_id", id)
+    : await supabase.from("bills").insert(payload);
+  if (result.error) throw new Error(result.error.message);
+  revalidatePath("/bills");
+}
+
+export async function deleteBill(formData: FormData) {
+  const { supabase, userId: id } = await userId();
+  const result = await supabase.from("bills").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
+  if (result.error) throw new Error(result.error.message);
+  revalidatePath("/bills");
+}
+
+export async function markBillPaid(formData: FormData) {
+  const { supabase, userId: id } = await userId();
+  const data = billPaymentSchema.parse(formDataObject(formData));
+  const { data: bill, error: billError } = await supabase
+    .from("bills")
+    .select("id, name, category_id, due_day")
+    .eq("id", data.bill_id)
+    .eq("user_id", id)
+    .single();
+  if (billError) throw new Error(billError.message);
+
+  const [year, month] = data.month.split("-").map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  const paidDate = `${data.month}-${String(Math.min(Number(bill.due_day), lastDay)).padStart(2, "0")}`;
+  const transactionResult = await supabase
+    .from("transactions")
+    .insert({
+      user_id: id,
+      category_id: bill.category_id,
+      amount: data.amount,
+      type: "expense",
+      date: paidDate,
+      note: bill.name
+    })
+    .select("id")
+    .single();
+  if (transactionResult.error) throw new Error(transactionResult.error.message);
+
+  const paymentResult = await supabase.from("bill_payments").insert({
+    user_id: id,
+    bill_id: data.bill_id,
+    transaction_id: transactionResult.data.id,
+    month: `${data.month}-01`,
+    amount: data.amount,
+    paid_at: paidDate
+  });
+  if (paymentResult.error) {
+    await supabase.from("transactions").delete().eq("id", transactionResult.data.id).eq("user_id", id);
+    throw new Error(paymentResult.error.message);
+  }
+  revalidatePath("/bills");
+  revalidatePath("/dashboard");
+  revalidatePath("/expenses");
+  revalidatePath("/transactions");
+  revalidatePath("/analytics");
+}
+
+export async function deleteBillPayment(formData: FormData) {
+  const { supabase, userId: id } = await userId();
+  const { data: payment, error } = await supabase
+    .from("bill_payments")
+    .select("id, transaction_id")
+    .eq("id", String(formData.get("id")))
+    .eq("user_id", id)
+    .single();
+  if (error) throw new Error(error.message);
+  if (payment.transaction_id) {
+    const transactionResult = await supabase.from("transactions").delete().eq("id", payment.transaction_id).eq("user_id", id);
+    if (transactionResult.error) throw new Error(transactionResult.error.message);
+  }
+  const paymentResult = await supabase.from("bill_payments").delete().eq("id", payment.id).eq("user_id", id);
+  if (paymentResult.error) throw new Error(paymentResult.error.message);
+  revalidatePath("/bills");
+  revalidatePath("/dashboard");
+  revalidatePath("/expenses");
+  revalidatePath("/transactions");
+  revalidatePath("/analytics");
 }
 
 export async function saveMonthlyIncome(formData: FormData) {

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { currentMonth, monthStart } from "@/lib/format";
 import { fallbackSavingsBuckets, mergeSavingsBuckets } from "@/lib/savings-buckets";
 import { createClient } from "@/lib/supabase/server";
-import type { Budget, Category, Profile, SavingsBucket, SavingsContribution, SavingsGoal, Transaction } from "@/lib/types";
+import type { BillPayment, BillWithPayment, Budget, Category, Profile, SavingsBucket, SavingsContribution, SavingsGoal, Transaction } from "@/lib/types";
 
 export async function getAuthed() {
   const supabase = await createClient();
@@ -21,6 +21,12 @@ async function ensureSystemCategories() {
         {
           user_id: user.id,
           name: "Áskriftir",
+          type: "expense",
+          is_default: true
+        },
+        {
+          user_id: user.id,
+          name: "Reikningar",
           type: "expense",
           is_default: true
         }
@@ -76,6 +82,24 @@ export async function getAllBudgets() {
   const { supabase } = await getAuthed();
   const { data } = await supabase.from("budgets").select("*, categories(id, name, type)").order("month", { ascending: false }).order("created_at");
   return (data ?? []) as Budget[];
+}
+
+export async function getBillsForMonth(month = currentMonth()) {
+  const { supabase } = await getAuthed();
+  const monthDate = monthStart(month);
+  const [billsResult, paymentsResult] = await Promise.all([
+    supabase.from("bills").select("*, categories(id, name, type)").order("is_active", { ascending: false }).order("due_day").order("name"),
+    supabase.from("bill_payments").select("*").eq("month", monthDate)
+  ]);
+
+  const paymentsByBill = new Map((paymentsResult.data ?? []).map((payment) => [payment.bill_id, payment as BillPayment]));
+  return {
+    schemaReady: !billsResult.error && !paymentsResult.error,
+    bills: ((billsResult.data ?? []) as BillWithPayment[]).map((bill) => ({
+      ...bill,
+      payment: paymentsByBill.get(bill.id) ?? null
+    }))
+  };
 }
 
 export async function getSavingsGoals() {

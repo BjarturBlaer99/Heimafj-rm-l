@@ -8,3 +8,6 @@ dist
 .DS_Store
 
 .vercel
+next-*.log
+next-*.err.log
+tsconfig.tsbuildinfo

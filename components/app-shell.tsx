@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Goal, LayoutDashboard, LogOut, ReceiptText, Settings, TrendingDown, TrendingUp } from "lucide-react";
+import { BarChart3, FileText, Goal, LayoutDashboard, LogOut, ReceiptText, Settings, TrendingDown, TrendingUp } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/lib/actions";
 
@@ -8,6 +8,7 @@ const nav = [
   { href: "/income", label: "Tekjur", icon: TrendingUp },
   { href: "/transactions", label: "Færslur", icon: ReceiptText },
   { href: "/expenses", label: "Útgjöld", icon: TrendingDown },
+  { href: "/bills", label: "Reikningar", icon: FileText },
   { href: "/savings-goals", label: "Sparnaður", icon: Goal },
   { href: "/analytics", label: "Greining", icon: BarChart3 },
   { href: "/settings", label: "Stillingar", icon: Settings }
@@ -27,7 +28,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
           </div>
           <ThemeToggle />
         </div>
-        <nav className="grid grid-cols-7 gap-1 p-2 md:block md:space-y-1 md:px-4">
+        <nav className="grid grid-cols-4 gap-1 p-2 sm:grid-cols-8 md:block md:space-y-1 md:px-4">
           {nav.map((item) => {
             const Icon = item.icon;
             return (
@@ -53,7 +54,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
           </form>
         </div>
       </aside>
-      <main className="pb-24 md:ml-64 md:pb-0">
+      <main className="pb-32 sm:pb-24 md:ml-64 md:pb-0">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-4 flex justify-end md:hidden">
             <ThemeToggle />

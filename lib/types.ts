@@ -71,3 +71,31 @@ export type SavingsBucket = {
   created_at: string;
   updated_at: string;
 };
+
+export type Bill = {
+  id: string;
+  user_id: string;
+  category_id: string | null;
+  name: string;
+  amount: number;
+  due_day: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  categories?: Pick<Category, "id" | "name" | "type"> | null;
+};
+
+export type BillPayment = {
+  id: string;
+  user_id: string;
+  bill_id: string;
+  transaction_id: string | null;
+  month: string;
+  amount: number;
+  paid_at: string;
+  created_at: string;
+};
+
+export type BillWithPayment = Bill & {
+  payment: BillPayment | null;
+};
