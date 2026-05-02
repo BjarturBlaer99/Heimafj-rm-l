@@ -23,7 +23,7 @@ export const importTransactionSchema = z.object({
   note: z.string().trim().max(500).nullable().optional()
 });
 
-export const importTransactionsSchema = z.array(importTransactionSchema).min(1).max(500);
+export const importTransactionsSchema = z.array(importTransactionSchema).min(1).max(1000);
 
 export const categorySchema = z.object({
   id: z.string().uuid().optional(),

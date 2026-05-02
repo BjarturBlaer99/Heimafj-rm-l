@@ -14,6 +14,8 @@ type ImportRow = {
   category_id: string | null;
 };
 
+const maxImportRows = 1000;
+
 const sampleCsv = `Dagsetning;Lýsing;Tegund;Upphæð
 2026-04-01;Bónus;Grocery Stores, Supermarkets;-8234
 2026-04-02;Greiðsla inn á kort;;620000
@@ -471,7 +473,7 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
     credit: creditColumn || detectHeader(headers, ["kredit", "credit", "innborgun", "deposit", "greidsla", "payment"])
   };
 
-  const importRows = parsed.rows
+  const detectedRows = parsed.rows
     .map((row): ImportRow | null => {
       const date = parseDate(row[selected.date] ?? "");
       const note = row[selected.note]?.trim() || "Innflutt færsla";
@@ -494,6 +496,7 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
       };
     })
     .filter((row): row is ImportRow => Boolean(row));
+  const importRows = detectedRows.slice(0, maxImportRows);
 
   const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
   const categorySummary = importRows.reduce<Record<string, { name: string; count: number; total: number }>>((summary, row) => {
@@ -608,6 +611,11 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
             </Button>
           </form>
         </div>
+        {detectedRows.length > maxImportRows ? (
+          <div className="mb-4 rounded-lg border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">
+            Skráin inniheldur {detectedRows.length} gildar færslur. Fyrstu {maxImportRows} færslurnar verða fluttar inn í einu.
+          </div>
+        ) : null}
         {importRows.length ? (
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="text-ink/55">
