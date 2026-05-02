@@ -159,6 +159,57 @@ export async function getDashboardData() {
   };
 }
 
+export async function getMonthlyOverviewData(month = currentMonth()) {
+  const [transactions, budgets, billsResult, contributions] = await Promise.all([
+    getTransactions({ month }),
+    getBudgets(month),
+    getBillsForMonth(month),
+    getSavingsContributions()
+  ]);
+  const incomeTransactions = transactions.filter((item) => item.type === "income");
+  const expenseTransactions = transactions.filter((item) => item.type === "expense");
+  const income = incomeTransactions.reduce((sum, item) => sum + Number(item.amount), 0);
+  const expenses = expenseTransactions.reduce((sum, item) => sum + Number(item.amount), 0);
+  const budgeted = budgets.reduce((sum, item) => sum + Number(item.amount), 0);
+  const overallBudget = budgets.find((budget) => budget.category_id === null) ?? null;
+  const paidBills = billsResult.bills.filter((bill) => bill.payment);
+  const unpaidBills = billsResult.bills.filter((bill) => bill.is_active && !bill.payment);
+  const savingsContributions = contributions.filter((item) => item.date.startsWith(month));
+  const savingsContributed = savingsContributions.reduce((sum, item) => sum + Number(item.amount), 0);
+
+  return {
+    month,
+    transactions,
+    incomeTransactions,
+    expenseTransactions,
+    budgets,
+    overallBudget,
+    income,
+    expenses,
+    savings: income - expenses,
+    budgeted,
+    spendingByCategory: categoryTotals(expenseTransactions),
+    incomeByCategory: categoryTotals(incomeTransactions),
+    billsReady: billsResult.schemaReady,
+    bills: billsResult.bills,
+    paidBills,
+    unpaidBills,
+    paidBillsTotal: paidBills.reduce((sum, bill) => sum + Number(bill.payment?.amount ?? 0), 0),
+    unpaidBillsTotal: unpaidBills.reduce((sum, bill) => sum + Number(bill.amount), 0),
+    savingsContributions,
+    savingsContributed
+  };
+}
+
+export async function getOverviewMonths(limit = 18) {
+  const [transactions, budgets, contributions] = await Promise.all([getTransactions(), getAllBudgets(), getSavingsContributions()]);
+  const months = new Set<string>([currentMonth()]);
+  transactions.forEach((item) => months.add(item.date.slice(0, 7)));
+  budgets.forEach((item) => months.add(item.month.slice(0, 7)));
+  contributions.forEach((item) => months.add(item.date.slice(0, 7)));
+  return [...months].sort((left, right) => right.localeCompare(left)).slice(0, limit);
+}
+
 export async function monthlyTrend(months = 8) {
   const start = startOfMonth(subMonths(new Date(), months - 1));
   const transactions = await getTransactions({ from: format(start, "yyyy-MM-dd") });
