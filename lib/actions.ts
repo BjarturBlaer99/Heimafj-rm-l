@@ -60,11 +60,15 @@ export async function importTransactions(formData: FormData) {
     note: row.note || null,
     category_id: row.category_id || null
   }));
-  const result = await supabase.from("transactions").insert(payload);
-  if (result.error) throw new Error(result.error.message);
+  for (let index = 0; index < payload.length; index += 100) {
+    const result = await supabase.from("transactions").insert(payload.slice(index, index + 100));
+    if (result.error) throw new Error(result.error.message);
+  }
   revalidatePath("/import");
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  revalidatePath("/expenses");
+  revalidatePath("/analytics");
   redirect("/transactions");
 }
 
