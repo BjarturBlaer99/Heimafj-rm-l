@@ -16,6 +16,10 @@ function formDataObject(formData: FormData) {
   return Object.fromEntries(formData.entries());
 }
 
+function firstMonthFromRows(rows: Array<{ date: string }>) {
+  return rows[0]?.date.slice(0, 7) ?? "";
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
@@ -69,7 +73,8 @@ export async function importTransactions(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/expenses");
   revalidatePath("/analytics");
-  redirect("/transactions");
+  const importedMonth = firstMonthFromRows(rows);
+  redirect(`/transactions?success=imported${importedMonth ? `&month=${importedMonth}` : ""}`);
 }
 
 export async function saveCategory(formData: FormData) {
@@ -181,6 +186,7 @@ export async function markBillPaid(formData: FormData) {
   revalidatePath("/expenses");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
+  redirect(`/bills?month=${data.month}&success=bill_paid`);
 }
 
 export async function deleteBillPayment(formData: FormData) {
@@ -330,6 +336,7 @@ export async function addSavingsBucketAmount(formData: FormData) {
   revalidatePath("/savings-goals");
   revalidatePath("/dashboard");
   revalidatePath("/monthly-overview");
+  redirect("/savings-goals?success=savings_added");
 }
 
 export async function deleteSavingsBucket(formData: FormData) {

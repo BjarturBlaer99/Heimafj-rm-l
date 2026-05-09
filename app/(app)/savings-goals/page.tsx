@@ -1,11 +1,13 @@
 import { Plus, Trash2 } from "lucide-react";
 import { ConfirmButton } from "@/components/confirm-button";
+import { FlashMessage } from "@/components/flash-message";
 import { Button, Card, EmptyState, PageHeader, ProgressBar, inputClass } from "@/components/ui";
 import { addSavingsBucketAmount, deleteSavingsGoal, saveSavingsBucket, saveSavingsGoal } from "@/lib/actions";
 import { getSavingsBucketEntries, getSavingsBuckets, getSavingsGoals } from "@/lib/data";
 import { isoDate, money, percent } from "@/lib/format";
 
-export default async function SavingsGoalsPage() {
+export default async function SavingsGoalsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const params = await searchParams;
   const [goals, savingsBucketsResult, savingsEntriesResult] = await Promise.all([getSavingsGoals(), getSavingsBuckets(), getSavingsBucketEntries()]);
   const currency = "ISK";
   const latestEntriesByBucket = new Map(savingsEntriesResult.entries.map((entry) => [entry.bucket_type, entry]));
@@ -23,6 +25,8 @@ export default async function SavingsGoalsPage() {
   return (
     <>
       <PageHeader title="Sparnaður" />
+
+      <FlashMessage code={params.success} />
 
       {!savingsBucketsResult.schemaReady ? (
         <Card className="mb-5 border-gold/60 bg-gold/10">

@@ -1,5 +1,6 @@
 import { CheckCircle2, Circle, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { ConfirmButton } from "@/components/confirm-button";
+import { FlashMessage } from "@/components/flash-message";
 import { Button, Card, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";
 import { deleteBill, deleteBillPayment, markBillPaid, saveBill } from "@/lib/actions";
 import { getBillsForMonth, getCategories } from "@/lib/data";
@@ -25,6 +26,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="Reikningar" />
+      <FlashMessage code={params.success} />
 
       {!billsResult.schemaReady ? (
         <Card>

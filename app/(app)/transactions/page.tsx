@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { ConfirmButton } from "@/components/confirm-button";
 import { CsvImporter } from "@/components/csv-importer";
+import { FlashMessage } from "@/components/flash-message";
 import { Button, Card, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";
 import { deleteAllTransactions, deleteTransaction, saveTransaction } from "@/lib/actions";
 import { getCategories, getTransactions } from "@/lib/data";
@@ -41,6 +42,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           ) : null
         }
       />
+      <FlashMessage code={params.success} />
 
       <Card className="mb-5">
         <form action={saveTransaction} className="grid gap-3 md:grid-cols-[1fr_130px_140px_140px_1fr_auto]">
