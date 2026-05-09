@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { ConfirmButton } from "@/components/confirm-button";
 import { Button, Card, EmptyState, PageHeader, ProgressBar, inputClass } from "@/components/ui";
 import { addSavingsBucketAmount, deleteSavingsGoal, saveSavingsBucket, saveSavingsGoal } from "@/lib/actions";
 import { getSavingsBucketEntries, getSavingsBuckets, getSavingsGoals } from "@/lib/data";
@@ -161,9 +162,14 @@ export default async function SavingsGoalsPage() {
                 </div>
                 <form action={deleteSavingsGoal}>
                   <input type="hidden" name="id" value={totalGoal.id} />
-                  <Button variant="danger" className="h-9 w-9 p-0" title="Eyða markmiði">
+                  <ConfirmButton
+                    variant="danger"
+                    className="h-9 w-9 p-0"
+                    title="Eyða markmiði"
+                    confirmMessage={`Ertu viss um að þú viljir eyða sparnaðarmarkmiðinu "${totalGoal.title}"?`}
+                  >
                     <Trash2 size={16} />
-                  </Button>
+                  </ConfirmButton>
                 </form>
               </div>
 

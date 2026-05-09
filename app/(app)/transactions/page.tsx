@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { ConfirmButton } from "@/components/confirm-button";
 import { CsvImporter } from "@/components/csv-importer";
 import { Button, Card, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";
 import { deleteAllTransactions, deleteTransaction, saveTransaction } from "@/lib/actions";
@@ -32,10 +33,10 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         action={
           transactions.length ? (
             <form action={deleteAllTransactions}>
-              <Button variant="danger">
+              <ConfirmButton variant="danger" confirmMessage="Ertu viss um að þú viljir eyða öllum færslum? Þetta er ekki hægt að afturkalla.">
                 <Trash2 size={16} />
                 Eyða öllum færslum
-              </Button>
+              </ConfirmButton>
             </form>
           ) : null
         }
