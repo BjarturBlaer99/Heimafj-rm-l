@@ -72,6 +72,17 @@ export type SavingsBucket = {
   updated_at: string;
 };
 
+export type SavingsBucketEntry = {
+  id: string;
+  user_id: string;
+  bucket_type: SavingsBucketType;
+  label: string;
+  amount: number;
+  date: string;
+  note: string | null;
+  created_at: string;
+};
+
 export type Bill = {
   id: string;
   user_id: string;

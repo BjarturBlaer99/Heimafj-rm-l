@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
+import { billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketEntrySchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
 
 async function userId() {
   const supabase = await createClient();
@@ -293,6 +293,43 @@ export async function saveSavingsBucket(formData: FormData) {
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/savings-goals");
   revalidatePath("/dashboard");
+}
+
+export async function addSavingsBucketAmount(formData: FormData) {
+  const { supabase, userId: id } = await userId();
+  const data = savingsBucketEntrySchema.parse(formDataObject(formData));
+  const { data: currentBucket, error: currentError } = await supabase
+    .from("savings_buckets")
+    .select("amount")
+    .eq("user_id", id)
+    .eq("bucket_type", data.bucket_type)
+    .maybeSingle();
+  if (currentError) throw new Error(currentError.message);
+
+  const nextAmount = Number(currentBucket?.amount ?? 0) + data.amount;
+  const bucketResult = await supabase.from("savings_buckets").upsert(
+    {
+      user_id: id,
+      bucket_type: data.bucket_type,
+      label: data.label,
+      amount: nextAmount
+    },
+    { onConflict: "user_id,bucket_type" }
+  );
+  if (bucketResult.error) throw new Error(bucketResult.error.message);
+
+  const entryResult = await supabase.from("savings_bucket_entries").insert({
+    user_id: id,
+    bucket_type: data.bucket_type,
+    label: data.label,
+    amount: data.amount,
+    date: data.date,
+    note: data.note || null
+  });
+  if (entryResult.error) throw new Error(entryResult.error.message);
+  revalidatePath("/savings-goals");
+  revalidatePath("/dashboard");
+  revalidatePath("/monthly-overview");
 }
 
 export async function deleteSavingsBucket(formData: FormData) {

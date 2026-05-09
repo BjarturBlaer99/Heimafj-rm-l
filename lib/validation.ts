@@ -82,6 +82,14 @@ export const savingsBucketSchema = z.object({
   amount: z.coerce.number().min(0)
 });
 
+export const savingsBucketEntrySchema = z.object({
+  bucket_type: z.enum(["serignarsparnadur", "husnaedisparnadur", "hlutabref", "sjodir"]),
+  label: z.string().trim().min(1).max(80),
+  amount: z.coerce.number().positive(),
+  date: z.string().min(10).max(10),
+  note: z.string().trim().max(500).nullable().optional()
+});
+
 export const profileSchema = z.object({
   full_name: z.string().trim().min(1).max(80),
   currency: z.string().trim().length(3).transform((value) => value.toUpperCase())

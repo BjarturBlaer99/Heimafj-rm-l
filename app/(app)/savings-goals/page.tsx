@@ -1,12 +1,13 @@
 import { Plus, Trash2 } from "lucide-react";
 import { Button, Card, EmptyState, PageHeader, ProgressBar, inputClass } from "@/components/ui";
-import { deleteSavingsGoal, saveSavingsBucket, saveSavingsGoal } from "@/lib/actions";
-import { getSavingsBuckets, getSavingsGoals } from "@/lib/data";
-import { money, percent } from "@/lib/format";
+import { addSavingsBucketAmount, deleteSavingsGoal, saveSavingsBucket, saveSavingsGoal } from "@/lib/actions";
+import { getSavingsBucketEntries, getSavingsBuckets, getSavingsGoals } from "@/lib/data";
+import { isoDate, money, percent } from "@/lib/format";
 
 export default async function SavingsGoalsPage() {
-  const [goals, savingsBucketsResult] = await Promise.all([getSavingsGoals(), getSavingsBuckets()]);
+  const [goals, savingsBucketsResult, savingsEntriesResult] = await Promise.all([getSavingsGoals(), getSavingsBuckets(), getSavingsBucketEntries()]);
   const currency = "ISK";
+  const latestEntriesByBucket = new Map(savingsEntriesResult.entries.map((entry) => [entry.bucket_type, entry]));
   const totalSavings = savingsBucketsResult.buckets.reduce((sum, bucket) => sum + Number(bucket.amount), 0);
   const housingBuckets = savingsBucketsResult.buckets.filter(
     (bucket) => bucket.bucket_type === "serignarsparnadur" || bucket.bucket_type === "husnaedisparnadur"
@@ -45,17 +46,67 @@ export default async function SavingsGoalsPage() {
             <div key={bucket.bucket_type} className="rounded-lg border border-line/10 bg-surface/70 p-4">
               <p className="text-sm font-semibold text-ink/60">{bucket.label}</p>
               <p className="mt-2 text-xl font-bold">{money(Number(bucket.amount), currency)}</p>
-              <form action={saveSavingsBucket} className="mt-4">
+              {savingsEntriesResult.schemaReady ? (
+                <p className="mt-1 text-xs text-ink/55">
+                  Síðast bætt við:{" "}
+                  {latestEntriesByBucket.get(bucket.bucket_type)
+                    ? `${money(Number(latestEntriesByBucket.get(bucket.bucket_type)?.amount ?? 0), currency)} þann ${latestEntriesByBucket.get(bucket.bucket_type)?.date}`
+                    : "ekkert skráð enn"}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-coral">Keyrðu `supabase/savings-bucket-entries-update.sql` til að sjá síðustu skráningu.</p>
+              )}
+              <form action={addSavingsBucketAmount} className="mt-4 grid gap-2">
                 <input type="hidden" name="bucket_type" value={bucket.bucket_type} />
                 <input type="hidden" name="label" value={bucket.label} />
-                <input className={`${inputClass} w-full`} name="amount" type="number" min="0" step="1" defaultValue={Number(bucket.amount)} disabled={!savingsBucketsResult.schemaReady} />
-                <Button type="submit" variant="secondary" className="mt-3 w-full" disabled={!savingsBucketsResult.schemaReady}>
-                  Vista upphæð
+                <input className={inputClass} name="amount" type="number" min="1" step="1" placeholder="Upphæð til að bæta við" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} required />
+                <input className={inputClass} name="date" type="date" defaultValue={isoDate()} disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} required />
+                <input className={inputClass} name="note" placeholder="Athugasemd (valfrjálst)" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} />
+                <Button type="submit" variant="secondary" className="w-full" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady}>
+                  <Plus size={17} />
+                  Bæta við sparnað
                 </Button>
               </form>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm font-semibold text-moss">Leiðrétta heildarupphæð</summary>
+                <form action={saveSavingsBucket} className="mt-3 grid gap-2">
+                  <input type="hidden" name="bucket_type" value={bucket.bucket_type} />
+                  <input type="hidden" name="label" value={bucket.label} />
+                  <input className={inputClass} name="amount" type="number" min="0" step="1" defaultValue={Number(bucket.amount)} disabled={!savingsBucketsResult.schemaReady} />
+                  <Button type="submit" variant="secondary" className="w-full" disabled={!savingsBucketsResult.schemaReady}>
+                    Vista heildarupphæð
+                  </Button>
+                </form>
+              </details>
             </div>
           ))}
         </div>
+      </Card>
+
+      <Card className="mb-5">
+        <h2 className="mb-4 text-lg font-bold">Síðustu sparnaðarskráningar</h2>
+        {savingsEntriesResult.schemaReady ? (
+          savingsEntriesResult.entries.length ? (
+            <div className="divide-y divide-line/10">
+              {savingsEntriesResult.entries.slice(0, 8).map((entry) => (
+                <div key={entry.id} className="flex flex-col gap-1 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="font-semibold">{entry.label}</p>
+                    <p className="text-ink/55">
+                      {entry.date}
+                      {entry.note ? ` · ${entry.note}` : ""}
+                    </p>
+                  </div>
+                  <p className="font-bold text-moss">{money(Number(entry.amount), currency)}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState>Engar sparnaðarskráningar enn.</EmptyState>
+          )
+        ) : (
+          <EmptyState>Keyrðu `supabase/savings-bucket-entries-update.sql` í Supabase til að virkja sparnaðarsögu.</EmptyState>
+        )}
       </Card>
 
       <Card className="mb-5">

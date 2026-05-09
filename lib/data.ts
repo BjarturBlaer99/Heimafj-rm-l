@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { currentMonth, monthStart } from "@/lib/format";
 import { fallbackSavingsBuckets, mergeSavingsBuckets } from "@/lib/savings-buckets";
 import { createClient } from "@/lib/supabase/server";
-import type { BillPayment, BillWithPayment, Budget, Category, Profile, SavingsBucket, SavingsContribution, SavingsGoal, Transaction } from "@/lib/types";
+import type { BillPayment, BillWithPayment, Budget, Category, Profile, SavingsBucket, SavingsBucketEntry, SavingsContribution, SavingsGoal, Transaction } from "@/lib/types";
 
 export async function getAuthed() {
   const supabase = await createClient();
@@ -121,6 +121,15 @@ export async function getSavingsBuckets() {
   return {
     schemaReady: !error,
     buckets: !error ? mergeSavingsBuckets(user.id, (data ?? []) as SavingsBucket[]) : fallbackSavingsBuckets(user.id)
+  };
+}
+
+export async function getSavingsBucketEntries(limit = 20) {
+  const { supabase } = await getAuthed();
+  const { data, error } = await supabase.from("savings_bucket_entries").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }).limit(limit);
+  return {
+    schemaReady: !error,
+    entries: !error ? ((data ?? []) as SavingsBucketEntry[]) : []
   };
 }
 
