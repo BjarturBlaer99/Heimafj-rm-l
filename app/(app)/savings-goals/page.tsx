@@ -107,7 +107,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
               ))}
             </div>
           ) : (
-            <EmptyState>Engar sparnaðarskráningar enn.</EmptyState>
+            <EmptyState>Engar sparnaðarskráningar enn. Bættu við upphæð í sparnaðarflokk hér að ofan til að sjá síðustu skráningar.</EmptyState>
           )
         ) : (
           <EmptyState>Keyrðu `supabase/savings-bucket-entries-update.sql` í Supabase til að virkja sparnaðarsögu.</EmptyState>

@@ -178,7 +178,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             </tbody>
           </table>
         ) : (
-          <EmptyState>Engar færslur fundust.</EmptyState>
+          <EmptyState>Engar færslur fundust. Bættu við færslu handvirkt eða flyttu inn CSV/Excel skrá hér að ofan.</EmptyState>
         )}
       </Card>
     </>

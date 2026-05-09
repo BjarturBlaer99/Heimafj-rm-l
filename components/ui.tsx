@@ -47,7 +47,7 @@ export function PageHeader({ title, action }: { title: string; action?: React.Re
 }
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-dashed border-line/20 bg-surface/60 p-4 text-center text-sm text-ink/60 sm:p-8">{children}</div>;
+  return <div className="rounded-lg border border-dashed border-line/20 bg-surface/60 p-4 text-center text-sm leading-relaxed text-ink/60 sm:p-8">{children}</div>;
 }
 
 export function ProgressBar({ value }: { value: number }) {

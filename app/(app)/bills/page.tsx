@@ -170,7 +170,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                 </Card>
               ))
             ) : (
-              <EmptyState>Engir reikningar skráðir enn.</EmptyState>
+              <EmptyState>Engir reikningar skráðir enn. Bættu við fyrsta reikningnum hér að ofan og merktu hann svo greiddan fyrir mánuðinn.</EmptyState>
             )}
           </div>
         </>
