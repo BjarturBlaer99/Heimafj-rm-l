@@ -1,6 +1,8 @@
 import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { ConfirmButton } from "@/components/confirm-button";
 import { CsvImporter } from "@/components/csv-importer";
+import { FlashMessage } from "@/components/flash-message";
 import { Button, Card, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";
 import { deleteAllTransactions, deleteTransaction, saveTransaction } from "@/lib/actions";
 import { getCategories, getTransactions } from "@/lib/data";
@@ -32,14 +34,15 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         action={
           transactions.length ? (
             <form action={deleteAllTransactions}>
-              <Button variant="danger">
+              <ConfirmButton variant="danger" confirmMessage="Ertu viss um að þú viljir eyða öllum færslum? Þetta er ekki hægt að afturkalla.">
                 <Trash2 size={16} />
                 Eyða öllum færslum
-              </Button>
+              </ConfirmButton>
             </form>
           ) : null
         }
       />
+      <FlashMessage code={params.success} />
 
       <Card className="mb-5">
         <form action={saveTransaction} className="grid gap-3 md:grid-cols-[1fr_130px_140px_140px_1fr_auto]">
@@ -175,7 +178,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             </tbody>
           </table>
         ) : (
-          <EmptyState>Engar færslur fundust.</EmptyState>
+          <EmptyState>Engar færslur fundust. Bættu við færslu handvirkt eða flyttu inn CSV/Excel skrá hér að ofan.</EmptyState>
         )}
       </Card>
     </>

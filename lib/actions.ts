@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
+import { billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketEntrySchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
 
 async function userId() {
   const supabase = await createClient();
@@ -14,6 +14,10 @@ async function userId() {
 
 function formDataObject(formData: FormData) {
   return Object.fromEntries(formData.entries());
+}
+
+function firstMonthFromRows(rows: Array<{ date: string }>) {
+  return rows[0]?.date.slice(0, 7) ?? "";
 }
 
 export async function signOut() {
@@ -69,7 +73,8 @@ export async function importTransactions(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/expenses");
   revalidatePath("/analytics");
-  redirect("/transactions");
+  const importedMonth = firstMonthFromRows(rows);
+  redirect(`/transactions?success=imported${importedMonth ? `&month=${importedMonth}` : ""}`);
 }
 
 export async function saveCategory(formData: FormData) {
@@ -181,6 +186,7 @@ export async function markBillPaid(formData: FormData) {
   revalidatePath("/expenses");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
+  redirect(`/bills?month=${data.month}&success=bill_paid`);
 }
 
 export async function deleteBillPayment(formData: FormData) {
@@ -293,6 +299,44 @@ export async function saveSavingsBucket(formData: FormData) {
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/savings-goals");
   revalidatePath("/dashboard");
+}
+
+export async function addSavingsBucketAmount(formData: FormData) {
+  const { supabase, userId: id } = await userId();
+  const data = savingsBucketEntrySchema.parse(formDataObject(formData));
+  const { data: currentBucket, error: currentError } = await supabase
+    .from("savings_buckets")
+    .select("amount")
+    .eq("user_id", id)
+    .eq("bucket_type", data.bucket_type)
+    .maybeSingle();
+  if (currentError) throw new Error(currentError.message);
+
+  const nextAmount = Number(currentBucket?.amount ?? 0) + data.amount;
+  const bucketResult = await supabase.from("savings_buckets").upsert(
+    {
+      user_id: id,
+      bucket_type: data.bucket_type,
+      label: data.label,
+      amount: nextAmount
+    },
+    { onConflict: "user_id,bucket_type" }
+  );
+  if (bucketResult.error) throw new Error(bucketResult.error.message);
+
+  const entryResult = await supabase.from("savings_bucket_entries").insert({
+    user_id: id,
+    bucket_type: data.bucket_type,
+    label: data.label,
+    amount: data.amount,
+    date: data.date,
+    note: data.note || null
+  });
+  if (entryResult.error) throw new Error(entryResult.error.message);
+  revalidatePath("/savings-goals");
+  revalidatePath("/dashboard");
+  revalidatePath("/monthly-overview");
+  redirect("/savings-goals?success=savings_added");
 }
 
 export async function deleteSavingsBucket(formData: FormData) {

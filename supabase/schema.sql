@@ -2,6 +2,7 @@ create extension if not exists "pgcrypto";
 
 create type public.category_type as enum ('income', 'expense', 'both');
 create type public.transaction_type as enum ('income', 'expense');
+create type public.savings_bucket_type as enum ('serignarsparnadur', 'husnaedisparnadur', 'hlutabref', 'sjodir');
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -68,6 +69,28 @@ create table public.bill_payments (
   unique (user_id, bill_id, month)
 );
 
+create table public.savings_buckets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  bucket_type public.savings_bucket_type not null,
+  label text not null,
+  amount numeric(12,2) not null default 0 check (amount >= 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, bucket_type)
+);
+
+create table public.savings_bucket_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  bucket_type public.savings_bucket_type not null,
+  label text not null,
+  amount numeric(12,2) not null check (amount > 0),
+  date date not null default current_date,
+  note text,
+  created_at timestamptz not null default now()
+);
+
 create table public.savings_goals (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -98,6 +121,9 @@ create index bills_user_id_active_idx on public.bills(user_id, is_active);
 create index bill_payments_user_id_month_idx on public.bill_payments(user_id, month);
 create index bill_payments_bill_id_idx on public.bill_payments(bill_id);
 create index bill_payments_transaction_id_idx on public.bill_payments(transaction_id);
+create index savings_buckets_user_id_idx on public.savings_buckets(user_id);
+create index savings_bucket_entries_user_id_date_idx on public.savings_bucket_entries(user_id, date desc);
+create index savings_bucket_entries_user_id_bucket_idx on public.savings_bucket_entries(user_id, bucket_type);
 create index savings_goals_user_id_idx on public.savings_goals(user_id);
 create index savings_contributions_user_id_date_idx on public.savings_contributions(user_id, date desc);
 create index savings_contributions_goal_id_idx on public.savings_contributions(savings_goal_id);
@@ -116,6 +142,7 @@ create trigger profiles_updated_at before update on public.profiles for each row
 create trigger transactions_updated_at before update on public.transactions for each row execute function public.set_updated_at();
 create trigger budgets_updated_at before update on public.budgets for each row execute function public.set_updated_at();
 create trigger bills_updated_at before update on public.bills for each row execute function public.set_updated_at();
+create trigger savings_buckets_updated_at before update on public.savings_buckets for each row execute function public.set_updated_at();
 create trigger savings_goals_updated_at before update on public.savings_goals for each row execute function public.set_updated_at();
 
 create or replace function public.seed_default_categories(target_user_id uuid)
@@ -143,6 +170,24 @@ begin
 end;
 $$;
 
+create or replace function public.seed_savings_buckets(target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.savings_buckets (user_id, bucket_type, label, amount)
+  values
+    (target_user_id, 'serignarsparnadur', 'Séreignarsparnaður', 0),
+    (target_user_id, 'husnaedisparnadur', 'Húsnæðisparnaður', 0),
+    (target_user_id, 'hlutabref', 'Hlutabréf', 0),
+    (target_user_id, 'sjodir', 'Sjóðir', 0)
+  on conflict (user_id, bucket_type) do update
+    set label = excluded.label;
+end;
+$$;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -155,6 +200,7 @@ begin
   on conflict (id) do nothing;
 
   perform public.seed_default_categories(new.id);
+  perform public.seed_savings_buckets(new.id);
   return new;
 end;
 $$;
@@ -200,6 +246,8 @@ alter table public.transactions enable row level security;
 alter table public.budgets enable row level security;
 alter table public.bills enable row level security;
 alter table public.bill_payments enable row level security;
+alter table public.savings_buckets enable row level security;
+alter table public.savings_bucket_entries enable row level security;
 alter table public.savings_goals enable row level security;
 alter table public.savings_contributions enable row level security;
 
@@ -231,6 +279,16 @@ create policy "bill_payments_select_own" on public.bill_payments for select usin
 create policy "bill_payments_insert_own" on public.bill_payments for insert with check (auth.uid() = user_id);
 create policy "bill_payments_update_own" on public.bill_payments for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "bill_payments_delete_own" on public.bill_payments for delete using (auth.uid() = user_id);
+
+create policy "savings_buckets_select_own" on public.savings_buckets for select using (auth.uid() = user_id);
+create policy "savings_buckets_insert_own" on public.savings_buckets for insert with check (auth.uid() = user_id);
+create policy "savings_buckets_update_own" on public.savings_buckets for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "savings_buckets_delete_own" on public.savings_buckets for delete using (auth.uid() = user_id);
+
+create policy "savings_bucket_entries_select_own" on public.savings_bucket_entries for select using (auth.uid() = user_id);
+create policy "savings_bucket_entries_insert_own" on public.savings_bucket_entries for insert with check (auth.uid() = user_id);
+create policy "savings_bucket_entries_update_own" on public.savings_bucket_entries for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "savings_bucket_entries_delete_own" on public.savings_bucket_entries for delete using (auth.uid() = user_id);
 
 create policy "savings_goals_select_own" on public.savings_goals for select using (auth.uid() = user_id);
 create policy "savings_goals_insert_own" on public.savings_goals for insert with check (auth.uid() = user_id);

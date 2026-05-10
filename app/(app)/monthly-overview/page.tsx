@@ -46,7 +46,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
             </select>
           </Field>
           <div className="flex items-end">
-            <button className="focus-ring h-10 rounded-md border border-line/10 bg-surface px-4 text-sm font-semibold text-ink hover:bg-mint/35" type="submit">
+            <button className="focus-ring min-h-10 w-full rounded-md border border-line/10 bg-surface px-4 py-2 text-sm font-semibold text-ink hover:bg-mint/35 sm:w-auto" type="submit">
               Skoða
             </button>
           </div>

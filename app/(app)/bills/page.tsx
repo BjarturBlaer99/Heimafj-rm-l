@@ -1,4 +1,6 @@
 import { CheckCircle2, Circle, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { ConfirmButton } from "@/components/confirm-button";
+import { FlashMessage } from "@/components/flash-message";
 import { Button, Card, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";
 import { deleteBill, deleteBillPayment, markBillPaid, saveBill } from "@/lib/actions";
 import { getBillsForMonth, getCategories } from "@/lib/data";
@@ -24,6 +26,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="Reikningar" />
+      <FlashMessage code={params.success} />
 
       {!billsResult.schemaReady ? (
         <Card>
@@ -158,16 +161,16 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                     </form>
                     <form action={deleteBill} className="mt-2">
                       <input type="hidden" name="id" value={bill.id} />
-                      <Button variant="danger">
+                      <ConfirmButton variant="danger" confirmMessage={`Ertu viss um að þú viljir eyða reikningnum "${bill.name}"?`}>
                         <Trash2 size={16} />
                         Eyða reikningi
-                      </Button>
+                      </ConfirmButton>
                     </form>
                   </details>
                 </Card>
               ))
             ) : (
-              <EmptyState>Engir reikningar skráðir enn.</EmptyState>
+              <EmptyState>Engir reikningar skráðir enn. Bættu við fyrsta reikningnum hér að ofan og merktu hann svo greiddan fyrir mánuðinn.</EmptyState>
             )}
           </div>
         </>
