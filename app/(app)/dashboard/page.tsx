@@ -15,16 +15,17 @@ export default async function DashboardPage() {
   const currency = "ISK";
   const month = currentMonth();
   const stats = [
-    { label: "Tekjur", value: money(data.income, currency), icon: TrendingUp, valueClassName: "text-moss", iconClassName: "text-moss" },
-    { label: "Útgjöld", value: money(data.expenses, currency), icon: TrendingDown, valueClassName: "text-coral", iconClassName: "text-coral" },
+    { label: "Tekjur", value: money(data.income, currency), href: `/income?month=${month}`, icon: TrendingUp, valueClassName: "text-moss", iconClassName: "text-moss" },
+    { label: "Útgjöld", value: money(data.expenses, currency), href: `/expenses?month=${month}`, icon: TrendingDown, valueClassName: "text-coral", iconClassName: "text-coral" },
     {
       label: "Niðurstaða mánaðar",
       value: money(data.savings, currency),
+      href: `/monthly-overview?month=${month}`,
       icon: PiggyBank,
       valueClassName: data.savings >= 0 ? "text-moss" : "text-coral",
       iconClassName: data.savings >= 0 ? "text-moss" : "text-coral"
     },
-    { label: "Ógreiddir reikningar", value: money(data.unpaidBillsTotal, currency), icon: ReceiptText, valueClassName: "text-coral", iconClassName: "text-coral" }
+    { label: "Ógreiddir reikningar", value: money(data.unpaidBillsTotal, currency), href: `/bills?month=${month}`, icon: ReceiptText, valueClassName: "text-coral", iconClassName: "text-coral" }
   ];
   const categoryLinks = Object.values(
     data.transactions
@@ -64,46 +65,49 @@ export default async function DashboardPage() {
         }
       />
 
-      <Card className="mb-5">
+      <Card className="motion-card animate-rise mb-5">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <p className="text-sm font-semibold text-ink/55">{monthLabel(month)}</p>
             <h2 className="mt-1 text-xl font-bold">Staða mánaðarins</h2>
           </div>
           <div className="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[520px]">
-            <div className="rounded-lg border border-line/10 bg-mint/35 p-3">
+            <Link href={`/income?month=${month}`} className="rounded-lg border border-line/10 bg-mint/35 p-3 transition hover:border-line/20 hover:bg-mint/55">
               <p className="font-semibold text-ink/55">Tekjur</p>
               <p className="mt-1 font-bold text-moss">{money(data.income, currency)}</p>
-            </div>
-            <div className="rounded-lg border border-line/10 bg-surface/70 p-3">
+            </Link>
+            <Link href={`/expenses?month=${month}`} className="rounded-lg border border-line/10 bg-surface/70 p-3 transition hover:border-line/20 hover:bg-mint/35">
               <p className="font-semibold text-ink/55">Útgjöld</p>
               <p className="mt-1 font-bold text-coral">{money(data.expenses, currency)}</p>
-            </div>
-            <div className="rounded-lg border border-line/10 bg-surface/70 p-3">
+            </Link>
+            <Link href={`/monthly-overview?month=${month}`} className="rounded-lg border border-line/10 bg-surface/70 p-3 transition hover:border-line/20 hover:bg-mint/35">
               <p className="font-semibold text-ink/55">Eftir</p>
               <p className={`mt-1 font-bold ${data.savings >= 0 ? "text-moss" : "text-coral"}`}>{money(data.savings, currency)}</p>
-            </div>
+            </Link>
           </div>
         </div>
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => {
+        {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label}>
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-ink/55">{stat.label}</p>
-                <Icon className={stat.iconClassName} size={20} />
-              </div>
-              <p className={`mt-3 text-2xl font-bold ${stat.valueClassName}`}>{stat.value}</p>
-            </Card>
+            <Link key={stat.label} href={stat.href} className="block">
+              <Card className={`motion-card animate-rise animate-delay-${Math.min(index + 1, 4)} h-full transition hover:border-line/20 hover:bg-mint/20`}>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-ink/55">{stat.label}</p>
+                  <Icon className={stat.iconClassName} size={20} />
+                </div>
+                <p className={`mt-3 text-2xl font-bold ${stat.valueClassName}`}>{stat.value}</p>
+              </Card>
+            </Link>
           );
         })}
       </div>
 
-      <div className="mt-5">
-        <Card>
+      <div className="animate-rise animate-delay-2 mt-5">
+        <Link href="/savings-goals" className="block">
+        <Card className="motion-card transition hover:border-line/20 hover:bg-mint/20">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="font-bold">Heildarsparnaður</h2>
@@ -124,14 +128,17 @@ export default async function DashboardPage() {
             </div>
           )}
         </Card>
+        </Link>
       </div>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-        <Card>
-          <h2 className="mb-4 font-bold">Mánaðarlegar tekjur og útgjöld</h2>
-          <TrendChart data={data.trend} height={220} />
-        </Card>
-        <Card>
+      <div className="animate-rise animate-delay-3 mt-5 grid items-start gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <Link href={`/monthly-overview?month=${month}`} className="block">
+          <Card className="motion-card transition hover:border-line/20 hover:bg-mint/20">
+            <h2 className="mb-4 font-bold">Mánaðarlegar tekjur og útgjöld</h2>
+            <TrendChart data={data.trend} height={220} />
+          </Card>
+        </Link>
+        <Card className="motion-card">
           <h2 className="mb-4 font-bold">Útgjöld eftir flokkum</h2>
           {data.spendingByCategory.length ? (
             <div className="space-y-4">
@@ -162,8 +169,8 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <Card>
+      <div className="animate-rise animate-delay-4 mt-5 grid gap-5 lg:grid-cols-2">
+        <Card className="motion-card">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-bold">Reikningar mánaðarins</h2>
             <Link className="text-sm font-semibold text-moss underline-offset-2 hover:underline" href={`/bills?month=${month}`}>
@@ -209,7 +216,8 @@ export default async function DashboardPage() {
           )}
         </Card>
 
-        <Card>
+        <Link href="/savings-goals" className="block">
+        <Card className="motion-card h-full transition hover:border-line/20 hover:bg-mint/20">
           <h2 className="mb-4 font-bold">Staða sparnaðarmarkmiðs</h2>
           <div className="space-y-4">
             {data.goals.length ? (
@@ -237,10 +245,11 @@ export default async function DashboardPage() {
             )}
           </div>
         </Card>
+        </Link>
       </div>
 
-      <div className="mt-5">
-        <Card>
+      <div className="animate-rise animate-delay-4 mt-5">
+        <Card className="motion-card">
           <h2 className="mb-4 font-bold">Nýlegar færslur</h2>
           {data.transactions.length ? (
             <div className="divide-y divide-line/10">
