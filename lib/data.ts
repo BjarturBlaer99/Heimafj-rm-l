@@ -135,12 +135,13 @@ export async function getSavingsBucketEntries(limit = 20) {
 
 export async function getDashboardData() {
   const month = currentMonth();
-  const [profile, transactions, budgets, goals, savingsBucketsResult] = await Promise.all([
+  const [profile, transactions, budgets, goals, savingsBucketsResult, billsResult] = await Promise.all([
     getProfile(),
     getTransactions({ month }),
     getBudgets(month),
     getSavingsGoals(),
-    getSavingsBuckets()
+    getSavingsBuckets(),
+    getBillsForMonth(month)
   ]);
   const income = transactions.filter((item) => item.type === "income").reduce((sum, item) => sum + Number(item.amount), 0);
   const expenses = transactions.filter((item) => item.type === "expense").reduce((sum, item) => sum + Number(item.amount), 0);
@@ -150,6 +151,9 @@ export async function getDashboardData() {
   const spendingByCategory = categoryTotals(transactions.filter((item) => item.type === "expense"));
   const trend = await monthlyTrend(6);
   const totalSavingsBalance = savingsBucketsResult.buckets.reduce((sum, bucket) => sum + Number(bucket.amount), 0);
+  const activeBills = billsResult.bills.filter((bill) => bill.is_active);
+  const paidBills = activeBills.filter((bill) => bill.payment);
+  const unpaidBills = activeBills.filter((bill) => !bill.payment);
   return {
     profile,
     transactions,
@@ -164,7 +168,14 @@ export async function getDashboardData() {
     trend,
     savingsBuckets: savingsBucketsResult.buckets,
     savingsBucketsReady: savingsBucketsResult.schemaReady,
-    totalSavingsBalance
+    totalSavingsBalance,
+    billsReady: billsResult.schemaReady,
+    bills: billsResult.bills,
+    activeBills,
+    paidBills,
+    unpaidBills,
+    paidBillsTotal: paidBills.reduce((sum, bill) => sum + Number(bill.payment?.amount ?? 0), 0),
+    unpaidBillsTotal: unpaidBills.reduce((sum, bill) => sum + Number(bill.amount), 0)
   };
 }
 
