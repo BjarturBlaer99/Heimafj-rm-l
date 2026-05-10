@@ -1,7 +1,7 @@
-import { MoonStar, Plus, Trash2 } from "lucide-react";
+import { LogOut, MoonStar, Plus, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, Card, EmptyState, Field, inputClass, PageHeader } from "@/components/ui";
-import { deleteCategory, saveCategory, saveProfile } from "@/lib/actions";
+import { deleteCategory, saveCategory, saveProfile, signOut } from "@/lib/actions";
 import { getCategories, getProfile } from "@/lib/data";
 
 export default async function SettingsPage() {
@@ -32,6 +32,20 @@ export default async function SettingsPage() {
             </div>
             <p className="mb-4 text-sm text-ink/60">Skiptu á milli ljósrar og dökkrar útgáfu eftir því sem hentar þér best.</p>
             <ThemeToggle />
+          </Card>
+
+          <Card>
+            <div className="mb-4 flex items-center gap-2">
+              <LogOut size={18} className="text-coral" />
+              <h2 className="font-bold">Aðgangur</h2>
+            </div>
+            <p className="mb-4 text-sm text-ink/60">Skráðu þig út úr appinu á þessu tæki.</p>
+            <form action={signOut}>
+              <Button variant="secondary">
+                <LogOut size={17} />
+                Skrá út
+              </Button>
+            </form>
           </Card>
         </div>
 
