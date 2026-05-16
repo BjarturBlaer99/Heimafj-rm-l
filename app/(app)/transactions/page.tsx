@@ -42,7 +42,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           ) : null
         }
       />
-      <FlashMessage code={params.success} />
+      <FlashMessage code={params.success} imported={params.imported} skipped={params.skipped} />
 
       <Card className="mb-5">
         <form action={saveTransaction} className="grid gap-3 md:grid-cols-[1fr_130px_140px_140px_1fr_auto]">
