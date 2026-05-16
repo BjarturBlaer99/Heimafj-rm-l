@@ -20,6 +20,11 @@ function firstMonthFromRows(rows: Array<{ date: string }>) {
   return rows[0]?.date.slice(0, 7) ?? "";
 }
 
+function transactionImportKey(row: { date: string; type: string; amount: number; note?: string | null }) {
+  const note = (row.note ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+  return `${row.date}|${row.type}|${Number(row.amount).toFixed(2)}|${note}`;
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
@@ -58,7 +63,33 @@ export async function importTransactions(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const rawRows = String(formData.get("rows") ?? "[]");
   const rows = importTransactionsSchema.parse(JSON.parse(rawRows));
-  const payload = rows.map((row) => ({
+  const dates = rows.map((row) => row.date).sort();
+  const firstDate = dates[0];
+  const lastDate = dates[dates.length - 1];
+  const existingKeys = new Set<string>();
+
+  if (firstDate && lastDate) {
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("date,type,amount,note")
+      .eq("user_id", id)
+      .gte("date", firstDate)
+      .lte("date", lastDate);
+    if (error) throw new Error(error.message);
+    (data ?? []).forEach((row) => {
+      existingKeys.add(transactionImportKey(row));
+    });
+  }
+
+  const fileKeys = new Set<string>();
+  const uniqueRows = rows.filter((row) => {
+    const key = transactionImportKey(row);
+    if (existingKeys.has(key) || fileKeys.has(key)) return false;
+    fileKeys.add(key);
+    return true;
+  });
+  const skipped = rows.length - uniqueRows.length;
+  const payload = uniqueRows.map((row) => ({
     ...row,
     user_id: id,
     note: row.note || null,
@@ -74,7 +105,13 @@ export async function importTransactions(formData: FormData) {
   revalidatePath("/expenses");
   revalidatePath("/analytics");
   const importedMonth = firstMonthFromRows(rows);
-  redirect(`/transactions?success=imported${importedMonth ? `&month=${importedMonth}` : ""}`);
+  const params = new URLSearchParams({
+    success: payload.length > 0 ? (skipped > 0 ? "imported_partial" : "imported") : "imported_duplicates",
+    imported: String(payload.length),
+    skipped: String(skipped)
+  });
+  if (importedMonth) params.set("month", importedMonth);
+  redirect(`/transactions?${params.toString()}`);
 }
 
 export async function saveCategory(formData: FormData) {
