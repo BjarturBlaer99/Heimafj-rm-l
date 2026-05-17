@@ -60,6 +60,11 @@ export async function deleteAllTransactions() {
 }
 
 export async function importTransactions(formData: FormData) {
+  const result = await importTransactionsForClient(formData);
+  redirect(result.redirectTo);
+}
+
+export async function importTransactionsForClient(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const rawRows = String(formData.get("rows") ?? "[]");
   const rows = importTransactionsSchema.parse(JSON.parse(rawRows));
@@ -111,7 +116,7 @@ export async function importTransactions(formData: FormData) {
     skipped: String(skipped)
   });
   if (importedMonth) params.set("month", importedMonth);
-  redirect(`/transactions?${params.toString()}`);
+  return { redirectTo: `/transactions?${params.toString()}` };
 }
 
 export async function saveCategory(formData: FormData) {
