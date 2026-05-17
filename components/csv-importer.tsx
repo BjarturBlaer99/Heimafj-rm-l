@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Button, Card, EmptyState, Field, inputClass } from "@/components/ui";
-import { importTransactions } from "@/lib/actions";
+import { importTransactionsForClient } from "@/lib/actions";
 import { money } from "@/lib/format";
 import type { Category } from "@/lib/types";
 
@@ -454,6 +454,9 @@ function guessCategoryId(note: string, merchantType: string, categories: Categor
 export function CsvImporter({ categories }: { categories: Category[] }) {
   const [csvText, setCsvText] = useState(sampleCsv);
   const [fileName, setFileName] = useState("");
+  const [fileError, setFileError] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState("");
   const parsed = useMemo(() => parseCsv(csvText), [csvText]);
   const [dateColumn, setDateColumn] = useState("");
   const [noteColumn, setNoteColumn] = useState("");
@@ -524,13 +527,32 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
 
   async function loadFile(file: File | null) {
     if (!file) return;
-    setFileName(file.name);
-    if (file.name.toLowerCase().endsWith(".xlsx") || file.name.toLowerCase().endsWith(".xls")) {
-      const rows = await readXlsxRows(file);
-      setCsvText(rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(";")).join("\n"));
-      return;
+    try {
+      setFileError("");
+      setFileName(file.name);
+      if (file.name.toLowerCase().endsWith(".xlsx") || file.name.toLowerCase().endsWith(".xls")) {
+        const rows = await readXlsxRows(file);
+        setCsvText(rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(";")).join("\n"));
+        return;
+      }
+      setCsvText(await readCsvText(file));
+    } catch (error) {
+      setFileError(error instanceof Error ? error.message : "Ekki tókst að lesa skrána.");
     }
-    setCsvText(await readCsvText(file));
+  }
+
+  async function submitImport() {
+    try {
+      setIsImporting(true);
+      setImportError("");
+      const formData = new FormData();
+      formData.set("rows", JSON.stringify(importRows));
+      const result = await importTransactionsForClient(formData);
+      window.location.assign(result.redirectTo);
+    } catch (error) {
+      setIsImporting(false);
+      setImportError(error instanceof Error ? error.message : "Ekki tókst að flytja færslurnar inn.");
+    }
   }
 
   return (
@@ -546,6 +568,7 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
             />
           </Field>
           {fileName ? <p className="mt-2 text-sm text-ink/55">Skrá: {fileName}</p> : null}
+          {fileError ? <p className="mt-2 rounded-md bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">{fileError}</p> : null}
         </div>
         <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
           <Field label="Gögn til innflutnings">
@@ -604,13 +627,11 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
       <Card className="overflow-x-auto">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-bold">Forskoðun á kortaeyðslu</h2>
-          <form action={importTransactions}>
-            <input type="hidden" name="rows" value={JSON.stringify(importRows)} />
-            <Button type="submit" disabled={importRows.length === 0}>
-              Flytja inn {importRows.length} færslur
-            </Button>
-          </form>
+          <Button type="button" disabled={importRows.length === 0 || isImporting} onClick={() => void submitImport()}>
+            {isImporting ? "Flyt inn..." : `Flytja inn ${importRows.length} færslur`}
+          </Button>
         </div>
+        {importError ? <div className="mb-4 rounded-lg border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">{importError}</div> : null}
         {detectedRows.length > maxImportRows ? (
           <div className="mb-4 rounded-lg border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">
             Skráin inniheldur {detectedRows.length} gildar færslur. Fyrstu {maxImportRows} færslurnar verða fluttar inn í einu.
