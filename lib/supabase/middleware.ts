@@ -12,6 +12,11 @@ const publicRoutes = ["/login", "/signup", "/forgot-password", "/reset-password"
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+
+  if (path === "/") {
+    return response;
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,7 +36,6 @@ export async function updateSession(request: NextRequest) {
   );
 
   const { data } = await supabase.auth.getUser();
-  const path = request.nextUrl.pathname;
   const isPublic = publicRoutes.some((route) => path.startsWith(route));
 
   if (!data.user && !isPublic) {
