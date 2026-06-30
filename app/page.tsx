@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, LockKeyhole, Moon, ReceiptText, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRight, CheckCircle2, Moon, ReceiptText, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 const currency = new Intl.NumberFormat("is-IS", {
@@ -37,9 +37,6 @@ export default function HomePage() {
             <p className="font-bold leading-tight">Fjármál</p>
           </Link>
           <div className="flex items-center gap-2">
-            <Link className="focus-ring hidden rounded-md px-3 py-2 text-sm font-semibold text-ink/70 transition hover:bg-muted hover:text-ink sm:inline-flex" href="/dashboard">
-              Opna app
-            </Link>
             <Link className="focus-ring rounded-md px-3 py-2 text-sm font-semibold text-ink/70 transition hover:bg-muted hover:text-ink" href="/login">
               Innskráning
             </Link>
@@ -52,10 +49,6 @@ export default function HomePage() {
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:px-8 lg:py-14">
         <div className="max-w-2xl">
-          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-line/10 bg-surface px-3 py-1 text-sm font-semibold text-ink/65">
-            <LockKeyhole size={15} className="text-moss" />
-            Supabase innskráning og gögn á þínum aðgangi
-          </p>
           <h1 className="text-4xl font-bold leading-tight tracking-normal sm:text-5xl">Mín Fjármál</h1>
           <p className="mt-4 text-lg leading-8 text-ink/68">
             Persónulegt fjármálayfirlit á íslensku með færslum, reikningum, sparnaði, greiningu og mánaðarlegri stöðu.
