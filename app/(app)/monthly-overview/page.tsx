@@ -10,6 +10,11 @@ function monthLabel(month: string) {
   return new Intl.DateTimeFormat("is-IS", { month: "long", year: "numeric" }).format(date);
 }
 
+function daysInMonth(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  return new Date(year, monthNumber, 0).getDate();
+}
+
 export default async function MonthlyOverviewPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
   const month = params.month ?? currentMonth();
@@ -18,7 +23,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
   const budgetAmount = data.overallBudget ? Number(data.overallBudget.amount) : data.budgeted;
   const budgetUsage = budgetAmount > 0 ? (data.expenses / budgetAmount) * 100 : 0;
   const topExpenseCategory = data.spendingByCategory[0] ?? null;
-  const averageExpense = data.expenseTransactions.length ? data.expenses / data.expenseTransactions.length : 0;
+  const averageDailyExpense = data.expenses / daysInMonth(month);
   const categoryLinks = Object.fromEntries(
     data.expenseTransactions
       .filter((transaction) => transaction.category_id && transaction.categories?.name)
@@ -27,7 +32,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
   const stats = [
     { label: "Útgjöld", value: money(data.expenses, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
     { label: "Stærsti flokkur", value: topExpenseCategory?.name ?? "Enginn", href: "/expenses", icon: ReceiptText, color: "text-ink" },
-    { label: "Meðalútgjald", value: money(averageExpense, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
+    { label: "Meðalútgjöld á dag", value: money(averageDailyExpense, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
     { label: "Eftir mánuðinn", value: money(data.savings, currency), href: `/transactions?month=${month}`, icon: PiggyBank, color: data.savings >= 0 ? "text-moss" : "text-coral" }
   ];
 
@@ -92,8 +97,8 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
               <span className="font-bold">{data.expenseTransactions.length}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-ink/55">Meðalútgjald</span>
-              <span className="font-bold">{money(averageExpense, currency)}</span>
+              <span className="text-ink/55">Meðalútgjöld á dag</span>
+              <span className="font-bold">{money(averageDailyExpense, currency)}</span>
             </div>
             <div className="flex justify-between gap-4 border-t border-line/10 pt-3">
               <span className="text-ink/55">Eftir mánuðinn</span>
