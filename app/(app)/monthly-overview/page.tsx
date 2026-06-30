@@ -1,6 +1,6 @@
-import { CalendarDays, CheckCircle2, Circle, PiggyBank, ReceiptText, TrendingDown, TrendingUp } from "lucide-react";
+import { CalendarDays, CheckCircle2, Circle, PiggyBank, ReceiptText, TrendingDown } from "lucide-react";
 import Link from "next/link";
-import { CategoryBars, PieBreakdown } from "@/components/charts";
+import { PieBreakdown } from "@/components/charts";
 import { Card, EmptyState, Field, PageHeader, ProgressBar, inputClass } from "@/components/ui";
 import { getMonthlyOverviewData, getOverviewMonths } from "@/lib/data";
 import { currentMonth, money, percent } from "@/lib/format";
@@ -17,16 +17,18 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
   const currency = "ISK";
   const budgetAmount = data.overallBudget ? Number(data.overallBudget.amount) : data.budgeted;
   const budgetUsage = budgetAmount > 0 ? (data.expenses / budgetAmount) * 100 : 0;
+  const topExpenseCategory = data.spendingByCategory[0] ?? null;
+  const averageExpense = data.expenseTransactions.length ? data.expenses / data.expenseTransactions.length : 0;
   const categoryLinks = Object.fromEntries(
     data.expenseTransactions
       .filter((transaction) => transaction.category_id && transaction.categories?.name)
       .map((transaction) => [transaction.categories?.name, `/transactions/category/${transaction.category_id}?month=${month}&type=expense`])
   );
   const stats = [
-    { label: "Tekjur", value: money(data.income, currency), icon: TrendingUp, color: "text-moss" },
-    { label: "Útgjöld", value: money(data.expenses, currency), icon: TrendingDown, color: "text-coral" },
-    { label: "Niðurstaða", value: money(data.savings, currency), icon: PiggyBank, color: data.savings >= 0 ? "text-moss" : "text-coral" },
-    { label: "Færslur", value: String(data.transactions.length), icon: ReceiptText, color: "text-ink" }
+    { label: "Útgjöld", value: money(data.expenses, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
+    { label: "Stærsti flokkur", value: topExpenseCategory?.name ?? "Enginn", href: "/expenses", icon: ReceiptText, color: "text-ink" },
+    { label: "Meðalútgjald", value: money(averageExpense, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
+    { label: "Eftir mánuðinn", value: money(data.savings, currency), href: `/transactions?month=${month}`, icon: PiggyBank, color: data.savings >= 0 ? "text-moss" : "text-coral" }
   ];
 
   return (
@@ -57,13 +59,15 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label}>
+            <Link key={stat.label} href={stat.href} className="block">
+            <Card className="h-full transition hover:border-line/20 hover:bg-mint/20">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-ink/55">{stat.label}</p>
                 <Icon className={stat.color} size={20} />
               </div>
               <p className={`mt-3 text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </Card>
+            </Link>
           );
         })}
       </div>
@@ -82,6 +86,14 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
             <div className="flex justify-between gap-4">
               <span className="text-ink/55">Heildarútgjöld</span>
               <span className="font-bold text-coral">{money(data.expenses, currency)}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-ink/55">Útgjaldafærslur</span>
+              <span className="font-bold">{data.expenseTransactions.length}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-ink/55">Meðalútgjald</span>
+              <span className="font-bold">{money(averageExpense, currency)}</span>
             </div>
             <div className="flex justify-between gap-4 border-t border-line/10 pt-3">
               <span className="text-ink/55">Eftir mánuðinn</span>
@@ -118,12 +130,31 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
 
       <div className="mb-5 grid gap-5 xl:grid-cols-2">
         <Card>
-          <h2 className="mb-4 font-bold">Útgjöld eftir flokkum</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-bold">Útgjöld eftir flokkum</h2>
+            <Link className="text-sm font-semibold text-moss underline-offset-2 hover:underline" href={`/transactions?month=${month}&type=expense`}>
+              Sjá færslur
+            </Link>
+          </div>
           {data.spendingByCategory.length ? <PieBreakdown data={data.spendingByCategory} links={categoryLinks} /> : <EmptyState>Engin útgjöld í þessum mánuði.</EmptyState>}
         </Card>
         <Card>
-          <h2 className="mb-4 font-bold">Tekjur eftir flokkum</h2>
-          {data.incomeByCategory.length ? <CategoryBars data={data.incomeByCategory.slice(0, 8)} /> : <EmptyState>Engar tekjur í þessum mánuði.</EmptyState>}
+          <h2 className="mb-4 font-bold">Stærstu útgjöld</h2>
+          {data.expenseTransactions.length ? (
+            <div className="divide-y divide-line/10">
+              {data.expenseTransactions.slice(0, 8).map((tx) => (
+                <Link key={tx.id} href={`/transactions?month=${month}&type=expense&search=${encodeURIComponent(tx.note ?? "")}`} className="flex items-center justify-between gap-4 py-3 text-sm transition hover:text-moss">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{tx.note || "Færsla"}</p>
+                    <p className="text-ink/55">{tx.date} · {tx.categories?.name ?? "Óflokkað"}</p>
+                  </div>
+                  <p className="shrink-0 font-bold text-coral">{money(Number(tx.amount), currency)}</p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <EmptyState>Engin útgjöld í þessum mánuði.</EmptyState>
+          )}
         </Card>
       </div>
 
