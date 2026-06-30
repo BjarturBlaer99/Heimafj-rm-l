@@ -1,7 +1,5 @@
 import { ArrowRight, CheckCircle2, LockKeyhole, Moon, ReceiptText, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 
 const currency = new Intl.NumberFormat("is-IS", {
   style: "currency",
@@ -29,15 +27,7 @@ const transactions = [
   { note: "Sparnaður", date: "15. júní", amount: 90000, type: "saving" }
 ];
 
-async function getIsLoggedIn() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  return Boolean(data.user);
-}
-
-export default async function HomePage() {
-  if (await getIsLoggedIn()) redirect("/dashboard");
-
+export default function HomePage() {
   return (
     <main className="min-h-screen bg-paper text-ink">
       <header className="border-b border-line/10 bg-surface">
@@ -47,6 +37,9 @@ export default async function HomePage() {
             <p className="font-bold leading-tight">Fjármál</p>
           </Link>
           <div className="flex items-center gap-2">
+            <Link className="focus-ring hidden rounded-md px-3 py-2 text-sm font-semibold text-ink/70 transition hover:bg-muted hover:text-ink sm:inline-flex" href="/dashboard">
+              Opna app
+            </Link>
             <Link className="focus-ring rounded-md px-3 py-2 text-sm font-semibold text-ink/70 transition hover:bg-muted hover:text-ink" href="/login">
               Innskráning
             </Link>
