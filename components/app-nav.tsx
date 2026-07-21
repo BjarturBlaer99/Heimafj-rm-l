@@ -1,10 +1,13 @@
 "use client";
 
 import clsx from "clsx";
-import { Menu, UserCircle, X } from "lucide-react";
+import { ListIcon } from "@phosphor-icons/react/dist/csr/List";
+import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
+import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavItem = {
   href: string;
@@ -42,7 +45,7 @@ export function TopNav({ email }: { email?: string }) {
   }, [open]);
 
   return (
-    <nav className="ml-auto min-w-0 flex-1 lg:ml-4">
+    <nav className="ml-auto min-w-0 flex-1 lg:ml-5">
       <div className="hidden min-w-0 items-center justify-center gap-1 lg:flex">
         {nav.map((item) => {
           const active = isActive(pathname, item.href);
@@ -52,8 +55,8 @@ export function TopNav({ email }: { email?: string }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "focus-ring inline-flex h-10 items-center rounded-md px-3 text-sm font-semibold transition xl:px-4",
-                active ? "bg-mint text-ink" : "text-ink/65 hover:bg-mint hover:text-ink"
+                "focus-ring inline-flex h-10 items-center border-b-2 px-2.5 text-[13px] font-semibold transition xl:px-3",
+                active ? "border-ink text-ink" : "border-transparent text-ink/58 hover:border-line/15 hover:text-ink"
               )}
             >
               {item.label}
@@ -63,36 +66,34 @@ export function TopNav({ email }: { email?: string }) {
       </div>
 
       <div className="flex items-center justify-end gap-2 lg:hidden">
+        <ThemeToggle compact />
         <Link
           href="/settings"
           className={clsx(
-            "focus-ring grid h-10 w-10 place-items-center rounded-full border border-line/10 bg-muted text-ink/70 transition hover:bg-mint hover:text-ink",
-            isActive(pathname, "/settings") && "bg-mint text-ink"
+            "focus-ring grid h-9 w-9 place-items-center rounded-md border border-line/10 bg-surface text-ink/70 shadow-sm transition hover:bg-muted hover:text-ink",
+            isActive(pathname, "/settings") && "bg-muted text-ink"
           )}
           title={email ? `Stillingar: ${email}` : "Stillingar"}
           aria-label="Stillingar"
         >
-          <UserCircle size={22} />
+          <UserCircleIcon size={20} weight="duotone" />
         </Link>
         <button
           type="button"
-          className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-md text-ink transition hover:bg-muted"
+          className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-ink transition hover:bg-muted"
           aria-label="Opna valmynd"
           aria-expanded={open}
           onClick={() => setOpen(true)}
         >
-          <Menu size={24} />
+          <ListIcon size={22} weight="bold" />
         </button>
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex h-dvh w-screen flex-col overflow-y-auto bg-paper px-6 py-5 text-ink animate-rise lg:hidden">
+        <div className="fixed inset-0 z-50 flex h-dvh w-screen flex-col overflow-y-auto bg-surface px-6 py-5 text-ink animate-rise lg:hidden">
           <div className="flex items-start justify-between gap-4">
             <Link href="/dashboard" className="focus-ring flex items-center rounded-md px-1 py-0.5 transition hover:text-moss" aria-label="Fara á yfirlit">
-              <div>
-                <p className="text-sm font-semibold text-ink/55">Mín</p>
-                <p className="text-lg font-bold leading-tight">Fjármál</p>
-              </div>
+              <span className="text-lg font-bold leading-none">Mín fjármál</span>
             </Link>
             <button
               type="button"
@@ -100,11 +101,11 @@ export function TopNav({ email }: { email?: string }) {
               aria-label="Loka valmynd"
               onClick={() => setOpen(false)}
             >
-              <X size={36} strokeWidth={2.2} />
+              <XIcon size={34} weight="regular" />
             </button>
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 py-10">
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10">
             {nav.map((item) => {
               const active = isActive(pathname, item.href);
               return (
@@ -113,7 +114,7 @@ export function TopNav({ email }: { email?: string }) {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={clsx(
-                    "focus-ring rounded-md px-4 py-1 text-center text-4xl font-bold leading-tight tracking-normal transition sm:text-5xl",
+                    "focus-ring rounded-md px-4 py-1 text-center text-3xl font-semibold leading-tight tracking-normal transition sm:text-5xl",
                     active ? "text-moss" : "text-ink hover:text-moss"
                   )}
                 >

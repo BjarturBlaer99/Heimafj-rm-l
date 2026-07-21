@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
+import type { PieSectorDataItem } from "recharts/types/polar/Pie";
 import { money, percent } from "@/lib/format";
 
 const axisColor = "rgb(var(--color-ink) / 0.68)";
@@ -9,9 +11,40 @@ const gridColor = "rgb(var(--color-line) / 0.12)";
 const tooltipStyle = {
   backgroundColor: "rgb(var(--color-surface))",
   border: "1px solid rgb(var(--color-line) / 0.16)",
-  borderRadius: "12px",
+  borderRadius: "8px",
   color: "rgb(var(--color-ink))"
 };
+
+type PieTooltipEntry = {
+  color?: string;
+  name?: string | number;
+  value?: string | number;
+  payload?: { name?: string; value?: number };
+};
+
+function PieTooltip({ active, payload, total }: { active?: boolean; payload?: PieTooltipEntry[]; total: number }) {
+  const entry = payload?.[0];
+  if (!active || !entry) return null;
+
+  const name = entry.payload?.name ?? String(entry.name ?? "");
+  const value = Number(entry.payload?.value ?? entry.value ?? 0);
+
+  return (
+    <div className="pointer-events-none min-w-[150px] rounded-md border border-line/15 bg-surface px-3 py-2.5 text-ink shadow-soft">
+      <div className="flex items-center gap-2">
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: entry.color }} />
+        <p className="text-sm font-semibold">{name}</p>
+      </div>
+      <p className="mt-1 text-sm font-bold">{money(value)}</p>
+      <p className="text-xs text-ink/55">{percent(total > 0 ? (value / total) * 100 : 0)}</p>
+    </div>
+  );
+}
+
+function renderActivePieSector(props: PieSectorDataItem) {
+  const outerRadius = typeof props.outerRadius === "number" ? props.outerRadius : Number.parseFloat(String(props.outerRadius ?? 0));
+  return <Sector {...props} outerRadius={outerRadius + 6} />;
+}
 
 export function TrendChart({ data, height = 220 }: { data: Array<Record<string, string | number>>; height?: number }) {
   return (
@@ -22,8 +55,8 @@ export function TrendChart({ data, height = 220 }: { data: Array<Record<string, 
           <XAxis dataKey="month" tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <YAxis tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <Tooltip contentStyle={tooltipStyle} />
-          <Area type="monotone" dataKey="income" name="Tekjur" stroke="#4f6f52" fill="#d9f4d6" />
-          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="#f47f6b" fill="#f47f6b33" />
+          <Area type="monotone" dataKey="income" name="Tekjur" stroke="#21805b" fill="#21805b24" />
+          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="#dc4c46" fill="#dc4c4624" />
           <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="#3b82f6" fill="#3b82f633" />
         </AreaChart>
       </ResponsiveContainer>
@@ -38,39 +71,49 @@ export function PieBreakdown({
   data: Array<{ name: string; value: number }>;
   links?: Record<string, string>;
 }) {
-  const colors = ["#4f6f52", "#f2c14e", "#f47f6b", "#3b82f6", "#14b8a6", "#a855f7", "#64748b"];
+  const colors = ["#21805b", "#dc4c46", "#cf9726", "#2563eb", "#0f766e", "#7c3aed", "#64748b"];
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const [activeIndex, setActiveIndex] = useState<number>();
 
   return (
-    <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-center">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-center">
       <div className="min-w-0">
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={230}>
           <PieChart margin={{ top: 12, right: 12, bottom: 12, left: 12 }}>
             <Pie
               data={data}
               dataKey="value"
               nameKey="name"
-              innerRadius={58}
-              outerRadius={88}
+              innerRadius={52}
+              outerRadius={80}
               paddingAngle={2}
               stroke="rgb(var(--color-surface))"
               strokeWidth={2}
+              activeIndex={activeIndex}
+              activeShape={renderActivePieSector}
+              onMouseEnter={(_entry, index) => setActiveIndex(index)}
+              onMouseLeave={() => setActiveIndex(undefined)}
             >
               {data.map((entry, index) => (
                 <Cell key={entry.name} fill={colors[index % colors.length]} />
               ))}
             </Pie>
-            <Tooltip contentStyle={tooltipStyle} formatter={(value: number, _name, payload) => [money(Number(value)), payload?.payload?.name]} />
+            <Tooltip
+              allowEscapeViewBox={{ x: true, y: true }}
+              content={<PieTooltip total={total} />}
+              cursor={false}
+              wrapperStyle={{ zIndex: 30, outline: "none" }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="min-w-0 space-y-2">
+      <div className="grid min-w-0 gap-2 sm:grid-cols-2">
         {data.map((entry, index) => {
           const href = links?.[entry.name];
           const content = (
             <>
-              <span className="mt-1 h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
+              <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 items-start justify-between gap-3">
                   <p className="min-w-0 truncate text-sm font-semibold">{entry.name}</p>
@@ -82,11 +125,11 @@ export function PieBreakdown({
           );
 
           return href ? (
-            <Link key={entry.name} href={href} className="flex min-w-0 items-start gap-3 rounded-lg border border-line/10 bg-surface/70 px-3 py-2 transition hover:bg-mint/35">
+            <Link key={entry.name} href={href} className="flex min-w-0 items-start gap-2.5 rounded-md border border-line/10 bg-surface/70 px-2.5 py-2 transition hover:bg-muted">
               {content}
             </Link>
           ) : (
-            <div key={entry.name} className="flex min-w-0 items-start gap-3 rounded-lg border border-line/10 bg-surface/70 px-3 py-2">
+            <div key={entry.name} className="flex min-w-0 items-start gap-2.5 rounded-md border border-line/10 bg-surface/70 px-2.5 py-2">
               {content}
             </div>
           );
@@ -105,7 +148,7 @@ export function CategoryBars({ data }: { data: Array<{ name: string; value: numb
           <XAxis dataKey="name" tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <YAxis tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [money(Number(value)), "Upphæð"]} />
-          <Bar dataKey="value" name="Upphæð" fill="#4f6f52" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="value" name="Upphæð" fill="#21805b" radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

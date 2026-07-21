@@ -670,7 +670,7 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
           <h2 className="mb-4 font-bold">Flokkunarsamantekt</h2>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {sortedCategorySummary.map((item) => (
-              <div key={item.name} className="rounded-2xl border border-line/15 bg-panel/60 p-4">
+              <div key={item.name} className="rounded-lg border border-line/15 bg-surface/70 p-4">
                 <p className="text-sm text-ink/60">{item.count} færslur</p>
                 <p className="mt-1 font-semibold">{item.name}</p>
                 <p className="mt-2 text-lg font-bold">{money(item.total)}</p>

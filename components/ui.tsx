@@ -13,9 +13,9 @@ export function Button({
   return (
     <button
       className={clsx(
-        "focus-ring inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md px-4 py-2 text-center text-sm font-semibold leading-snug transition disabled:opacity-50",
+        "focus-ring inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-md border border-transparent px-4 py-2 text-center text-sm font-semibold leading-snug shadow-sm transition duration-150 disabled:pointer-events-none disabled:opacity-50",
         variant === "primary" && "bg-ink text-paper hover:bg-ink/90",
-        variant === "secondary" && "border border-line/10 bg-surface text-ink hover:bg-mint/35",
+        variant === "secondary" && "border-line/15 bg-surface text-ink hover:bg-muted",
         variant === "danger" && "bg-coral text-paper hover:bg-coral/90",
         className
       )}
@@ -26,7 +26,8 @@ export function Button({
   );
 }
 
-export const inputClass = "focus-ring h-10 w-full min-w-0 rounded-md border border-line/10 bg-surface px-3 text-sm text-ink shadow-sm";
+export const inputClass =
+  "focus-ring h-10 w-full min-w-0 rounded-md border border-line/15 bg-paper/50 px-3 text-sm text-ink shadow-sm transition placeholder:text-ink/35 hover:border-line/25 focus:bg-surface";
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -39,15 +40,15 @@ export function Field({ label, children }: { label: string; children: React.Reac
 
 export function PageHeader({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 className="min-w-0 text-2xl font-bold tracking-normal">{title}</h1>
+    <div className="mb-6 flex flex-col gap-3 border-b border-line/10 pb-5 sm:flex-row sm:items-center sm:justify-between">
+      <h1 className="min-w-0 text-2xl font-semibold leading-tight tracking-normal">{title}</h1>
       {action ? <div className="min-w-0 sm:shrink-0">{action}</div> : null}
     </div>
   );
 }
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-dashed border-line/20 bg-surface/60 p-4 text-center text-sm leading-relaxed text-ink/60 sm:p-8">{children}</div>;
+  return <div className="rounded-lg border border-dashed border-line/20 bg-surface p-4 text-center text-sm leading-relaxed text-ink/60 sm:p-8">{children}</div>;
 }
 
 export function ProgressBar({ value }: { value: number }) {

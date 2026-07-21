@@ -16,7 +16,7 @@ export function FlashMessage({ code, imported, skipped }: { code?: string; impor
 
   const className =
     message.tone === "success"
-      ? "mb-5 rounded-lg border border-moss/20 bg-mint/70 px-4 py-3 text-sm font-semibold text-ink"
+      ? "mb-5 rounded-lg border border-moss/20 bg-moss/10 px-4 py-3 text-sm font-semibold text-moss"
       : "mb-5 rounded-lg border border-coral/20 bg-coral/10 px-4 py-3 text-sm font-semibold text-coral";
 
   return <div className={className}>{message.text}{details}</div>;

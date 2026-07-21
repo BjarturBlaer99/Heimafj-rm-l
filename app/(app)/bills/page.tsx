@@ -1,4 +1,8 @@
-import { CheckCircle2, Circle, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowCounterClockwiseIcon as RotateCcw } from "@phosphor-icons/react/dist/ssr/ArrowCounterClockwise";
+import { CheckCircleIcon as CheckCircle2 } from "@phosphor-icons/react/dist/ssr/CheckCircle";
+import { CircleIcon as Circle } from "@phosphor-icons/react/dist/ssr/Circle";
+import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
+import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { ConfirmButton } from "@/components/confirm-button";
 import { FlashMessage } from "@/components/flash-message";
 import { Button, Card, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";

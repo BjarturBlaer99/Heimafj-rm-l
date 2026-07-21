@@ -1,4 +1,6 @@
-import { Plus, Trash2, TrendingUp } from "lucide-react";
+import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
+import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
+import { TrendUpIcon as TrendingUp } from "@phosphor-icons/react/dist/ssr/TrendUp";
 import { Button, Card, EmptyState, PageHeader, inputClass } from "@/components/ui";
 import { deleteMonthlyIncome, saveMonthlyIncome } from "@/lib/actions";
 import { getCategories, getTransactions } from "@/lib/data";

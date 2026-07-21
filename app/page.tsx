@@ -1,4 +1,9 @@
-import { ArrowRight, CheckCircle2, Moon, ReceiptText, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRightIcon as ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
+import { CheckCircleIcon as CheckCircle2 } from "@phosphor-icons/react/dist/ssr/CheckCircle";
+import { MoonIcon as Moon } from "@phosphor-icons/react/dist/ssr/Moon";
+import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Receipt";
+import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
+import { TrendUpIcon as TrendingUp } from "@phosphor-icons/react/dist/ssr/TrendUp";
 import Link from "next/link";
 
 const currency = new Intl.NumberFormat("is-IS", {
@@ -31,10 +36,9 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-paper text-ink">
       <header className="border-b border-line/10 bg-surface">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[60px] max-w-[1440px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="focus-ring rounded-md px-1 py-0.5 transition hover:text-moss" aria-label="Heim">
-            <p className="text-xs font-semibold text-ink/55">Mín</p>
-            <p className="font-bold leading-tight">Fjármál</p>
+            <span className="text-[15px] font-bold leading-none">Mín fjármál</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link className="focus-ring rounded-md px-3 py-2 text-sm font-semibold text-ink/70 transition hover:bg-muted hover:text-ink" href="/login">
@@ -47,8 +51,9 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:px-8 lg:py-14">
-        <div className="max-w-2xl">
+      <section className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <div className="max-w-3xl py-2 sm:py-5">
+          <p className="mb-3 text-sm font-semibold text-moss">Persónuleg fjármál, á einum stað</p>
           <h1 className="text-4xl font-bold leading-tight tracking-normal sm:text-5xl">Mín Fjármál</h1>
           <p className="mt-4 text-lg leading-8 text-ink/68">
             Persónulegt fjármálayfirlit á íslensku með færslum, reikningum, sparnaði, greiningu og mánaðarlegri stöðu.
@@ -58,13 +63,13 @@ export default function HomePage() {
               Prófa með eigin gögnum
               <ArrowRight size={17} />
             </Link>
-            <Link className="focus-ring inline-flex min-h-11 items-center rounded-md border border-line/10 bg-surface px-5 py-3 text-sm font-bold text-ink transition hover:bg-mint/35" href="/login">
+            <Link className="focus-ring inline-flex min-h-11 items-center rounded-md border border-line/15 bg-surface px-5 py-3 text-sm font-bold text-ink shadow-sm transition hover:bg-muted" href="/login">
               Ég á nú þegar aðgang
             </Link>
           </div>
         </div>
 
-        <div className="rounded-lg border border-line/10 bg-surface p-4 shadow-soft sm:p-5">
+        <div className="mt-10 rounded-lg border border-line/10 bg-surface p-4 shadow-soft sm:p-5 lg:mt-12">
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-ink/55">Sýnigögn</p>
@@ -132,10 +137,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-line/10 bg-surface/70">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:grid-cols-3 sm:px-6 lg:px-8">
+      <section className="border-t border-line/10 bg-surface">
+        <div className="mx-auto grid max-w-[1440px] divide-y divide-line/10 px-4 py-8 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-6 lg:px-8">
           {["CSV/Excel innflutningur", "Mánaðaryfirlit", "Sparnaðarmarkmið"].map((item) => (
-            <div key={item} className="rounded-lg border border-line/10 bg-surface p-4">
+            <div key={item} className="px-0 py-5 sm:px-6 sm:py-1 first:pl-0 last:pr-0">
               <p className="font-bold">{item}</p>
               <p className="mt-2 text-sm leading-6 text-ink/60">Sýnigögnin sýna hvernig yfirlitið lítur út áður en þú stofnar aðgang.</p>
             </div>

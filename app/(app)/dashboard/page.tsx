@@ -1,4 +1,10 @@
-import { CheckCircle2, Circle, PiggyBank, ReceiptText, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowUpRightIcon as ArrowUpRight } from "@phosphor-icons/react/dist/ssr/ArrowUpRight";
+import { CheckCircleIcon as CheckCircle2 } from "@phosphor-icons/react/dist/ssr/CheckCircle";
+import { CircleIcon as Circle } from "@phosphor-icons/react/dist/ssr/Circle";
+import { ListChecksIcon as ListChecks } from "@phosphor-icons/react/dist/ssr/ListChecks";
+import { PiggyBankIcon as PiggyBank } from "@phosphor-icons/react/dist/ssr/PiggyBank";
+import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Receipt";
+import { TagIcon as Tags } from "@phosphor-icons/react/dist/ssr/Tag";
 import Link from "next/link";
 import { PieBreakdown, TrendChart } from "@/components/charts";
 import { Button, Card, EmptyState, PageHeader, ProgressBar } from "@/components/ui";
@@ -14,19 +20,6 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
   const currency = "ISK";
   const month = currentMonth();
-  const stats = [
-    { label: "Tekjur", value: money(data.income, currency), href: `/income?month=${month}`, icon: TrendingUp, valueClassName: "text-moss", iconClassName: "text-moss" },
-    { label: "Útgjöld", value: money(data.expenses, currency), href: `/expenses?month=${month}`, icon: TrendingDown, valueClassName: "text-coral", iconClassName: "text-coral" },
-    {
-      label: "Niðurstaða mánaðar",
-      value: money(data.savings, currency),
-      href: `/monthly-overview?month=${month}`,
-      icon: PiggyBank,
-      valueClassName: data.savings >= 0 ? "text-moss" : "text-coral",
-      iconClassName: data.savings >= 0 ? "text-moss" : "text-coral"
-    },
-    { label: "Ógreiddir reikningar", value: money(data.unpaidBillsTotal, currency), href: `/bills?month=${month}`, icon: ReceiptText, valueClassName: "text-coral", iconClassName: "text-coral" }
-  ];
   const categoryLinks = Object.values(
     data.transactions
       .filter((transaction) => transaction.type === "expense")
@@ -44,6 +37,37 @@ export default async function DashboardPage() {
       }, {})
   ).sort((left, right) => right.value - left.value);
   const categoryHrefMap = Object.fromEntries(categoryLinks.filter((item) => item.id).map((item) => [item.name, `/transactions/category/${item.id}?month=${month}&type=expense`]));
+  const topCategory = categoryLinks[0] ?? null;
+  const stats = [
+    {
+      label: "Heildarsparnaður",
+      value: money(data.totalSavingsBalance, currency),
+      href: "/savings-goals",
+      icon: PiggyBank,
+      valueClassName: "text-ink"
+    },
+    {
+      label: "Ógreiddir reikningar",
+      value: money(data.unpaidBillsTotal, currency),
+      href: `/bills?month=${month}`,
+      icon: ReceiptText,
+      valueClassName: data.unpaidBillsTotal > 0 ? "text-coral" : "text-ink"
+    },
+    {
+      label: "Færslur í mánuðinum",
+      value: data.transactions.length.toLocaleString("is-IS"),
+      href: `/transactions?month=${month}`,
+      icon: ListChecks,
+      valueClassName: "text-ink"
+    },
+    {
+      label: "Stærsti útgjaldaflokkur",
+      value: topCategory?.name ?? "Enginn",
+      href: topCategory?.id ? `/transactions/category/${topCategory.id}?month=${month}&type=expense` : `/expenses?month=${month}`,
+      icon: Tags,
+      valueClassName: "text-ink"
+    }
+  ];
 
   return (
     <>
@@ -65,60 +89,68 @@ export default async function DashboardPage() {
         }
       />
 
-      <Card className="motion-card animate-rise mb-5">
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(440px,0.85fr)]">
+      <section className="animate-rise min-h-[280px] overflow-hidden rounded-lg border border-[#273244] bg-[#111827] p-5 text-white shadow-soft sm:p-6 dark:border-white/10 dark:bg-[#0f131a]">
+        <div className="grid h-full gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] md:items-end">
           <div>
-            <p className="text-sm font-semibold text-ink/55">{monthLabel(month)}</p>
-            <h2 className="mt-1 text-xl font-bold">Staða mánaðarins</h2>
+            <p className="text-sm font-semibold text-white/55">{monthLabel(month)}</p>
+            <p className="mt-5 text-sm font-medium text-white/65">Eftir mánuðinn</p>
+            <Link href={`/monthly-overview?month=${month}`} className="focus-ring mt-1 inline-flex max-w-full items-center gap-2 rounded-md text-white transition hover:text-white/80">
+              <span className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{money(data.savings, currency)}</span>
+              <ArrowUpRight className="shrink-0 text-white/50" size={22} />
+            </Link>
+            <p className="mt-2 text-sm text-white/45">Tekjur að frádregnum útgjöldum þessa mánaðar.</p>
           </div>
-          <div className="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[520px]">
-            <Link href={`/income?month=${month}`} className="rounded-lg border border-line/10 bg-mint/35 p-3 transition hover:border-line/20 hover:bg-mint/55">
-              <p className="font-semibold text-ink/55">Tekjur</p>
-              <p className="mt-1 font-bold text-moss">{money(data.income, currency)}</p>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Link href={`/income?month=${month}`} className="rounded-lg border border-white/10 bg-white/[0.055] p-4 transition hover:bg-white/[0.09]">
+              <p className="text-xs font-semibold text-white/50">Tekjur</p>
+              <p className="mt-2 text-lg font-semibold text-white">{money(data.income, currency)}</p>
             </Link>
-            <Link href={`/expenses?month=${month}`} className="rounded-lg border border-line/10 bg-surface/70 p-3 transition hover:border-line/20 hover:bg-mint/35">
-              <p className="font-semibold text-ink/55">Útgjöld</p>
-              <p className="mt-1 font-bold text-coral">{money(data.expenses, currency)}</p>
-            </Link>
-            <Link href={`/monthly-overview?month=${month}`} className="rounded-lg border border-line/10 bg-surface/70 p-3 transition hover:border-line/20 hover:bg-mint/35">
-              <p className="font-semibold text-ink/55">Eftir</p>
-              <p className={`mt-1 font-bold ${data.savings >= 0 ? "text-moss" : "text-coral"}`}>{money(data.savings, currency)}</p>
+            <Link href={`/expenses?month=${month}`} className="rounded-lg border border-white/10 bg-white/[0.055] p-4 transition hover:bg-white/[0.09]">
+              <p className="text-xs font-semibold text-white/50">Útgjöld</p>
+              <p className="mt-2 text-lg font-semibold text-white">{money(data.expenses, currency)}</p>
             </Link>
           </div>
         </div>
-      </Card>
+      </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Link key={stat.label} href={stat.href} className="block">
-              <Card className={`motion-card animate-rise animate-delay-${Math.min(index + 1, 4)} h-full transition hover:border-line/20 hover:bg-mint/20`}>
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-ink/55">{stat.label}</p>
-                  <Icon className={stat.iconClassName} size={20} />
+              <Card className={`motion-card animate-rise animate-delay-${Math.min(index + 1, 4)} min-h-[132px] h-full transition hover:border-line/20`}>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-muted text-ink/55">
+                    <Icon size={18} />
+                  </span>
+                  <ArrowUpRight className="shrink-0 text-ink/25" size={17} />
                 </div>
-                <p className={`mt-3 text-2xl font-bold ${stat.valueClassName}`}>{stat.value}</p>
+                <p className="mt-4 text-sm font-medium text-ink/55">{stat.label}</p>
+                <p className={`mt-1 break-words text-xl font-semibold leading-tight ${stat.valueClassName}`}>{stat.value}</p>
               </Card>
             </Link>
           );
         })}
       </div>
+      </div>
 
-      <div className="animate-rise animate-delay-2 mt-5">
+      <div className="mt-6 grid gap-6">
+      <div className="animate-rise animate-delay-2">
         <Link href="/savings-goals" className="block">
-        <Card className="motion-card transition hover:border-line/20 hover:bg-mint/20">
-          <div className="mb-4 flex items-center justify-between gap-4">
+        <Card className="motion-card transition hover:border-line/20 hover:bg-muted/60">
+          <div className="mb-5 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <h2 className="font-bold">Heildarsparnaður</h2>
               <p className="text-sm text-ink/55">Raunverulegur sparnaður skiptur eftir tegund.</p>
             </div>
-            <p className="text-2xl font-bold text-moss">{money(data.totalSavingsBalance, currency)}</p>
+            <p className="shrink-0 text-2xl font-semibold text-moss">{money(data.totalSavingsBalance, currency)}</p>
           </div>
           {!data.savingsBucketsReady ? (
             <EmptyState>Keyrðu `supabase/savings-buckets-update.sql` í Supabase til að vista sparnaðarflokkana.</EmptyState>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {data.savingsBuckets.map((bucket) => (
                 <div key={bucket.bucket_type} className="rounded-lg border border-line/10 bg-surface/70 p-4">
                   <p className="text-sm font-semibold text-ink/55">{bucket.label}</p>
@@ -131,45 +163,24 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <div className="animate-rise animate-delay-3 mt-5 grid items-start gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-        <Link href={`/monthly-overview?month=${month}`} className="block">
-          <Card className="motion-card transition hover:border-line/20 hover:bg-mint/20">
+      <div className="animate-rise animate-delay-3 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <Link href={`/monthly-overview?month=${month}`} className="block h-full">
+          <Card className="motion-card h-full transition hover:border-line/20 hover:bg-muted/60">
             <h2 className="mb-4 font-bold">Mánaðarlegar tekjur og útgjöld</h2>
             <TrendChart data={data.trend} height={220} />
           </Card>
         </Link>
-        <Card className="motion-card">
+        <Card className="motion-card h-full">
           <h2 className="mb-4 font-bold">Útgjöld eftir flokkum</h2>
           {data.spendingByCategory.length ? (
-            <div className="space-y-4">
-              <PieBreakdown data={data.spendingByCategory} links={categoryHrefMap} />
-              <div className="grid gap-2">
-                {categoryLinks.map((item) =>
-                  item.id ? (
-                    <Link
-                      key={item.id}
-                      className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-mint/35"
-                      href={`/transactions/category/${item.id}?month=${month}&type=expense`}
-                    >
-                      <span>{item.name}</span>
-                      <span>{money(item.value, currency)}</span>
-                    </Link>
-                  ) : (
-                    <div key={item.name} className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/60 px-3 py-2 text-sm text-ink/60">
-                      <span>{item.name}</span>
-                      <span>{money(item.value, currency)}</span>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
+            <PieBreakdown data={data.spendingByCategory} links={categoryHrefMap} />
           ) : (
             <EmptyState>Engin útgjöld í þessum mánuði.</EmptyState>
           )}
         </Card>
       </div>
 
-      <div className="animate-rise animate-delay-4 mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="animate-rise animate-delay-4 grid gap-6 lg:grid-cols-2">
         <Card className="motion-card">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-bold">Reikningar mánaðarins</h2>
@@ -217,7 +228,7 @@ export default async function DashboardPage() {
         </Card>
 
         <Link href="/savings-goals" className="block">
-        <Card className="motion-card h-full transition hover:border-line/20 hover:bg-mint/20">
+        <Card className="motion-card h-full transition hover:border-line/20 hover:bg-muted/60">
           <h2 className="mb-4 font-bold">Staða sparnaðarmarkmiðs</h2>
           <div className="space-y-4">
             {data.goals.length ? (
@@ -248,7 +259,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <div className="animate-rise animate-delay-4 mt-5">
+      <div className="animate-rise animate-delay-4">
         <Card className="motion-card">
           <h2 className="mb-4 font-bold">Nýlegar færslur</h2>
           {data.transactions.length ? (
@@ -276,6 +287,7 @@ export default async function DashboardPage() {
             <EmptyState>Engar færslur í þessum mánuði.</EmptyState>
           )}
         </Card>
+      </div>
       </div>
     </>
   );

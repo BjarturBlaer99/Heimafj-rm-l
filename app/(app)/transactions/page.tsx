@@ -1,4 +1,5 @@
-import { Plus, Trash2 } from "lucide-react";
+import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
+import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import Link from "next/link";
 import { ConfirmButton } from "@/components/confirm-button";
 import { CsvImporter } from "@/components/csv-importer";

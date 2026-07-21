@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { Moon, Sun } from "lucide-react";
+import { MoonIcon } from "@phosphor-icons/react/dist/csr/Moon";
+import { SunIcon } from "@phosphor-icons/react/dist/csr/Sun";
 import { useEffect, useState } from "react";
 
 const storageKey = "finance-theme";
@@ -13,7 +14,7 @@ function getPreferredTheme() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, compact = false }: { className?: string; compact?: boolean }) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
@@ -36,14 +37,15 @@ export function ThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={toggleTheme}
       className={clsx(
-        "focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-line/15 bg-surface px-3 text-sm font-semibold text-ink shadow-soft transition hover:bg-muted",
+        "focus-ring border border-line/15 bg-surface text-ink shadow-sm transition hover:bg-muted",
+        compact ? "grid h-9 w-9 place-items-center rounded-md" : "inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold",
         className
       )}
       aria-label={isDark ? "Skipta yfir í ljóst þema" : "Skipta yfir í dökkt þema"}
       title={isDark ? "Ljóst þema" : "Dökkt þema"}
     >
-      {isDark ? <Sun size={16} /> : <Moon size={16} />}
-      <span>{isDark ? "Ljóst" : "Dökkt"}</span>
+      {isDark ? <SunIcon size={18} weight="duotone" /> : <MoonIcon size={18} weight="duotone" />}
+      {compact ? null : <span>{isDark ? "Ljóst" : "Dökkt"}</span>}
     </button>
   );
 }

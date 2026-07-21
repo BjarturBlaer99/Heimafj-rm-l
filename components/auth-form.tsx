@@ -59,8 +59,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" | "forgot" | "rese
             </Field>
           )}
 
-          {state.error ? <p className="rounded-md bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">{state.error}</p> : null}
-          {state.message ? <p className="rounded-md bg-mint/70 px-3 py-2 text-sm font-semibold text-ink">{state.message}</p> : null}
+          {state.error ? <p className="rounded-md border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">{state.error}</p> : null}
+          {state.message ? <p className="rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm font-semibold text-moss">{state.message}</p> : null}
 
           <Button type="submit" disabled={pending}>
             {pending ? "Augnablik..." : title}

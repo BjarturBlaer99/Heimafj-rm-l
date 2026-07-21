@@ -1,4 +1,9 @@
-import { CalendarDays, CheckCircle2, Circle, PiggyBank, ReceiptText, TrendingDown } from "lucide-react";
+import { CalendarDotsIcon as CalendarDays } from "@phosphor-icons/react/dist/ssr/CalendarDots";
+import { CheckCircleIcon as CheckCircle2 } from "@phosphor-icons/react/dist/ssr/CheckCircle";
+import { CircleIcon as Circle } from "@phosphor-icons/react/dist/ssr/Circle";
+import { PiggyBankIcon as PiggyBank } from "@phosphor-icons/react/dist/ssr/PiggyBank";
+import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Receipt";
+import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
 import Link from "next/link";
 import { PieBreakdown } from "@/components/charts";
 import { Card, EmptyState, Field, PageHeader, ProgressBar, inputClass } from "@/components/ui";
@@ -53,7 +58,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
             </select>
           </Field>
           <div className="flex items-end">
-            <button className="focus-ring min-h-10 w-full rounded-md border border-line/10 bg-surface px-4 py-2 text-sm font-semibold text-ink hover:bg-mint/35 sm:w-auto" type="submit">
+            <button className="focus-ring min-h-10 w-full rounded-md border border-line/15 bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-sm transition hover:bg-muted sm:w-auto" type="submit">
               Skoða
             </button>
           </div>
@@ -65,7 +70,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
           const Icon = stat.icon;
           return (
             <Link key={stat.label} href={stat.href} className="block">
-            <Card className="h-full transition hover:border-line/20 hover:bg-mint/20">
+            <Card className="h-full transition hover:border-line/20 hover:bg-muted/60">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-ink/55">{stat.label}</p>
                 <Icon className={stat.color} size={20} />
@@ -173,7 +178,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
               {data.bills.map((bill) => (
                 <Link
                   key={bill.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm transition hover:bg-mint/35"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm transition hover:bg-muted"
                   href={`/bills?month=${month}`}
                 >
                   <span className="flex min-w-0 items-center gap-2">

@@ -1,4 +1,7 @@
-import { Plus, Trash2, TrendingDown, WalletCards } from "lucide-react";
+import { CardsIcon as WalletCards } from "@phosphor-icons/react/dist/ssr/Cards";
+import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
+import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
+import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
 import Link from "next/link";
 import { CategoryBars } from "@/components/charts";
 import { Button, Card, EmptyState, PageHeader, ProgressBar, inputClass } from "@/components/ui";
@@ -105,7 +108,7 @@ export default async function ExpensesPage() {
                   item.id ? (
                     <Link
                       key={item.id}
-                      className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-mint/35"
+                      className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-muted"
                       href={`/transactions/category/${item.id}?month=${month}&type=expense`}
                     >
                       <span>{item.name}</span>

@@ -4,29 +4,29 @@
 
 :root {
   color-scheme: light;
-  --color-ink: 23 33 27;
-  --color-moss: 79 111 82;
-  --color-mint: 217 244 214;
-  --color-coral: 244 127 107;
-  --color-gold: 242 193 78;
-  --color-paper: 247 244 238;
+  --color-ink: 17 24 39;
+  --color-moss: 33 128 91;
+  --color-mint: 225 244 235;
+  --color-coral: 220 76 70;
+  --color-gold: 207 151 38;
+  --color-paper: 247 248 250;
   --color-surface: 255 255 255;
-  --color-muted: 241 236 227;
-  --color-line: 23 33 27;
-  --shadow-soft: 23 33 27;
+  --color-muted: 241 243 246;
+  --color-line: 15 23 42;
+  --shadow-soft: 15 23 42;
 }
 
 .dark {
   color-scheme: dark;
-  --color-ink: 245 245 245;
-  --color-moss: 148 208 159;
-  --color-mint: 38 38 38;
-  --color-coral: 251 139 117;
-  --color-gold: 255 205 98;
-  --color-paper: 5 5 5;
-  --color-surface: 15 15 15;
-  --color-muted: 28 28 28;
-  --color-line: 245 245 245;
+  --color-ink: 241 245 249;
+  --color-moss: 84 190 140;
+  --color-mint: 24 34 30;
+  --color-coral: 248 113 113;
+  --color-gold: 234 179 64;
+  --color-paper: 5 7 10;
+  --color-surface: 12 15 20;
+  --color-muted: 25 30 38;
+  --color-line: 226 232 240;
   --shadow-soft: 0 0 0;
 }
 
@@ -45,10 +45,16 @@ body {
   transition:
     background-color 180ms ease,
     color 180ms ease;
+  text-rendering: geometricPrecision;
+  font-variant-numeric: tabular-nums;
 }
 
 * {
   border-color: rgb(var(--color-line) / 0.1);
+}
+
+::selection {
+  background: rgb(var(--color-moss) / 0.2);
 }
 
 .focus-ring {
@@ -64,7 +70,7 @@ body {
 }
 
 .motion-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   border-color: rgb(var(--color-line) / 0.18);
 }
 

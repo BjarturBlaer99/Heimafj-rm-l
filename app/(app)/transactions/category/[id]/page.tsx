@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeftIcon as ArrowLeft } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
 import { Card, EmptyState, PageHeader } from "@/components/ui";
 import { getCategoryById, getTransactions } from "@/lib/data";
 import { currentMonth, money } from "@/lib/format";

@@ -1,4 +1,7 @@
-import { LogOut, MoonStar, Plus, Trash2 } from "lucide-react";
+import { MoonStarsIcon as MoonStar } from "@phosphor-icons/react/dist/ssr/MoonStars";
+import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
+import { SignOutIcon as LogOut } from "@phosphor-icons/react/dist/ssr/SignOut";
+import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, Card, EmptyState, Field, inputClass, PageHeader } from "@/components/ui";
 import { deleteCategory, saveCategory, saveProfile, signOut } from "@/lib/actions";

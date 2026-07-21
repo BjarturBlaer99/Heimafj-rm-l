@@ -16,7 +16,7 @@ export default {
         line: "rgb(var(--color-line) / <alpha-value>)"
       },
       boxShadow: {
-        soft: "0 20px 60px rgba(var(--shadow-soft) / 0.22)"
+        soft: "0 1px 2px rgba(var(--shadow-soft) / 0.05), 0 10px 28px rgba(var(--shadow-soft) / 0.045)"
       }
     }
   },
