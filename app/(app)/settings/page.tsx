@@ -30,7 +30,7 @@ export default async function SettingsPage() {
 
           <Card>
             <div className="mb-4 flex items-center gap-2">
-              <MoonStar size={18} className="text-moss" />
+              <MoonStar size={18} className="text-accent" />
               <h2 className="font-bold">Þema</h2>
             </div>
             <p className="mb-4 text-sm text-ink/60">Skiptu á milli ljósrar og dökkrar útgáfu eftir því sem hentar þér best.</p>

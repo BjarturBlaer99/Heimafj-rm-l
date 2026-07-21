@@ -34,7 +34,7 @@ export default async function CategoryTransactionsPage({
       <div className="mb-4">
         <Link
           href={`/transactions?month=${month}&type=${type}`}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-moss underline-offset-2 hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-accent underline-offset-2 hover:underline"
         >
           <ArrowLeft size={16} />
           Til baka í færslur

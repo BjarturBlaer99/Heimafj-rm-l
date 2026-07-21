@@ -5,13 +5,13 @@ import { MoonIcon } from "@phosphor-icons/react/dist/csr/Moon";
 import { SunIcon } from "@phosphor-icons/react/dist/csr/Sun";
 import { useEffect, useState } from "react";
 
-const storageKey = "finance-theme";
+const storageKey = "finance-theme-metallic";
 
 function getPreferredTheme() {
   if (typeof window === "undefined") return "light";
   const stored = window.localStorage.getItem(storageKey);
   if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 export function ThemeToggle({ className, compact = false }: { className?: string; compact?: boolean }) {
@@ -37,14 +37,14 @@ export function ThemeToggle({ className, compact = false }: { className?: string
       type="button"
       onClick={toggleTheme}
       className={clsx(
-        "focus-ring border border-line/15 bg-surface text-ink shadow-sm transition hover:bg-muted",
-        compact ? "grid h-9 w-9 place-items-center rounded-md" : "inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold",
+        "focus-ring border border-line/15 bg-surface/80 text-ink shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-accent",
+        compact ? "grid h-10 w-10 place-items-center rounded-md" : "inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold",
         className
       )}
       aria-label={isDark ? "Skipta yfir í ljóst þema" : "Skipta yfir í dökkt þema"}
       title={isDark ? "Ljóst þema" : "Dökkt þema"}
     >
-      {isDark ? <SunIcon size={18} weight="duotone" /> : <MoonIcon size={18} weight="duotone" />}
+      {isDark ? <SunIcon className="icon-pop" size={18} weight="duotone" /> : <MoonIcon className="icon-pop" size={18} weight="duotone" />}
       {compact ? null : <span>{isDark ? "Ljóst" : "Dökkt"}</span>}
     </button>
   );

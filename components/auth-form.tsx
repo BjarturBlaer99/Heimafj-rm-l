@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { Button, Card, Field, inputClass } from "@/components/ui";
 import { forgotPasswordAction, loginAction, resetPasswordAction, signupAction, type AuthState } from "@/lib/auth-actions";
@@ -29,9 +30,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" | "forgot" | "rese
 
   return (
     <main className="grid min-h-screen place-items-center bg-paper px-4 py-10">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-line/15">
+        <Link href="/" className="focus-ring mb-8 inline-flex rounded-md text-base font-extrabold">
+          Mín <span className="ml-1 text-accent">fjármál</span>
+        </Link>
         <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="mt-1 text-sm text-ink/55">Innskráning og öryggi er meðhöndlað af Supabase Auth.</p>
+        <p className="mt-1 text-sm text-ink/55">Örugg leið inn í persónulega fjármálayfirlitið þitt.</p>
 
         <form action={formAction} className="mt-6 grid gap-4">
           {mode === "signup" && (
@@ -67,10 +71,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" | "forgot" | "rese
           </Button>
         </form>
 
-        <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold text-moss">
-          {mode !== "login" && <a href="/login">Innskráning</a>}
-          {mode !== "signup" && <a href="/signup">Stofna aðgang</a>}
-          {mode === "login" && <a href="/forgot-password">Gleymt lykilorð?</a>}
+        <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold text-accent">
+          {mode !== "login" && <Link href="/login">Innskráning</Link>}
+          {mode !== "signup" && <Link href="/signup">Stofna aðgang</Link>}
+          {mode === "login" && <Link href="/forgot-password">Gleymt lykilorð?</Link>}
         </div>
       </Card>
     </main>

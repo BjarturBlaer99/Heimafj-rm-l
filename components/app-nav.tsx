@@ -46,7 +46,7 @@ export function TopNav({ email }: { email?: string }) {
 
   return (
     <nav className="ml-auto min-w-0 flex-1 lg:ml-5">
-      <div className="hidden min-w-0 items-center justify-center gap-1 lg:flex">
+      <div className="mx-auto hidden w-fit min-w-0 items-center justify-center gap-0.5 lg:flex">
         {nav.map((item) => {
           const active = isActive(pathname, item.href);
           return (
@@ -55,8 +55,8 @@ export function TopNav({ email }: { email?: string }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "focus-ring inline-flex h-10 items-center border-b-2 px-2.5 text-[13px] font-semibold transition xl:px-3",
-                active ? "border-ink text-ink" : "border-transparent text-ink/58 hover:border-line/15 hover:text-ink"
+                "focus-ring inline-flex h-9 items-center rounded-md px-2.5 text-[13px] font-semibold transition xl:px-3",
+                active ? "bg-accent/10 text-accent" : "text-ink/55 hover:bg-muted/70 hover:text-ink"
               )}
             >
               {item.label}
@@ -70,8 +70,8 @@ export function TopNav({ email }: { email?: string }) {
         <Link
           href="/settings"
           className={clsx(
-            "focus-ring grid h-9 w-9 place-items-center rounded-md border border-line/10 bg-surface text-ink/70 shadow-sm transition hover:bg-muted hover:text-ink",
-            isActive(pathname, "/settings") && "bg-muted text-ink"
+            "focus-ring grid h-10 w-10 place-items-center rounded-md border border-line/15 bg-surface/80 text-ink/70 shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-accent",
+            isActive(pathname, "/settings") && "border-accent/30 bg-muted text-accent"
           )}
           title={email ? `Stillingar: ${email}` : "Stillingar"}
           aria-label="Stillingar"
@@ -80,7 +80,7 @@ export function TopNav({ email }: { email?: string }) {
         </Link>
         <button
           type="button"
-          className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-ink transition hover:bg-muted"
+          className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-md border border-line/15 bg-surface/80 text-ink transition hover:border-accent/30 hover:bg-muted hover:text-accent"
           aria-label="Opna valmynd"
           aria-expanded={open}
           onClick={() => setOpen(true)}
@@ -90,10 +90,10 @@ export function TopNav({ email }: { email?: string }) {
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex h-dvh w-screen flex-col overflow-y-auto bg-surface px-6 py-5 text-ink animate-rise lg:hidden">
+        <div className="menu-enter fixed inset-0 z-50 flex h-dvh w-screen flex-col overflow-y-auto bg-paper px-6 py-5 text-ink lg:hidden">
           <div className="flex items-start justify-between gap-4">
-            <Link href="/dashboard" className="focus-ring flex items-center rounded-md px-1 py-0.5 transition hover:text-moss" aria-label="Fara á yfirlit">
-              <span className="text-lg font-bold leading-none">Mín fjármál</span>
+            <Link href="/dashboard" className="focus-ring flex items-center rounded-md px-1 py-1 transition hover:opacity-80" aria-label="Fara á yfirlit">
+              <span className="whitespace-nowrap text-lg font-extrabold leading-none">Mín <span className="text-accent">fjármál</span></span>
             </Link>
             <button
               type="button"
@@ -105,7 +105,7 @@ export function TopNav({ email }: { email?: string }) {
             </button>
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10">
+          <div className="stagger-children flex flex-1 flex-col items-center justify-center gap-5 py-10">
             {nav.map((item) => {
               const active = isActive(pathname, item.href);
               return (
@@ -115,7 +115,7 @@ export function TopNav({ email }: { email?: string }) {
                   aria-current={active ? "page" : undefined}
                   className={clsx(
                     "focus-ring rounded-md px-4 py-1 text-center text-3xl font-semibold leading-tight tracking-normal transition sm:text-5xl",
-                    active ? "text-moss" : "text-ink hover:text-moss"
+                    active ? "text-accent" : "text-ink hover:text-accent"
                   )}
                 >
                   {item.label}

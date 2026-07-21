@@ -6,10 +6,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function AppShell({ children, email }: { children: React.ReactNode; email?: string }) {
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <header className="sticky top-0 z-30 border-b border-line/10 bg-surface">
-        <div className="mx-auto flex min-h-[60px] max-w-[1440px] items-center gap-3 px-3 py-2 sm:px-6 lg:px-8">
-          <Link href="/dashboard" className="focus-ring flex min-w-0 shrink-0 items-center rounded-md px-1 py-0.5 transition hover:text-moss" aria-label="Fara á yfirlit">
-            <span className="text-[15px] font-bold leading-none">Mín fjármál</span>
+      <header className="header-enter sticky top-0 z-30 bg-paper/90 px-3 py-3 backdrop-blur-xl sm:px-5">
+        <div className="mx-auto flex min-h-[60px] max-w-[1200px] items-center gap-3 rounded-lg border border-line/10 bg-surface/90 px-3 py-2 shadow-soft sm:px-4">
+          <Link href="/dashboard" className="focus-ring flex min-w-0 shrink-0 items-center rounded-md px-1 py-1 transition hover:opacity-80" aria-label="Fara á yfirlit">
+            <span className="whitespace-nowrap text-base font-extrabold leading-none">Mín <span className="text-accent">fjármál</span></span>
           </Link>
 
           <TopNav email={email} />
@@ -18,7 +18,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
             <ThemeToggle compact />
             <Link
               href="/settings"
-              className="focus-ring grid h-9 w-9 place-items-center rounded-md border border-line/10 bg-surface text-ink/65 shadow-sm transition hover:bg-muted hover:text-ink"
+              className="focus-ring grid h-10 w-10 place-items-center rounded-md border border-line/15 bg-surface/80 text-ink/65 shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-accent"
               title={email ? `Stillingar: ${email}` : "Stillingar"}
               aria-label="Stillingar"
             >
@@ -29,7 +29,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
       </header>
 
       <main className="min-w-0">
-        <div className="mx-auto min-w-0 max-w-[1440px] px-3 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">{children}</div>
+        <div className="page-enter mx-auto min-w-0 max-w-[1200px] px-3 py-5 sm:px-5 sm:py-7">{children}</div>
       </main>
     </div>
   );

@@ -139,7 +139,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                   </div>
 
                   <details className="mt-4">
-                    <summary className="cursor-pointer text-sm font-semibold text-moss">Breyta reikningi</summary>
+                    <summary className="cursor-pointer text-sm font-semibold text-accent">Breyta reikningi</summary>
                     <form action={saveBill} className="mt-3 grid gap-3 md:grid-cols-[1fr_150px_120px_1fr_auto]">
                       <input type="hidden" name="id" value={bill.id} />
                       <input className={inputClass} name="name" defaultValue={bill.name} required />

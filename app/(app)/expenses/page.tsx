@@ -76,10 +76,10 @@ export default async function ExpensesPage() {
         <Card>
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-ink/55">Stærsti útgjaldaflokkur</p>
-            <WalletCards className="text-moss" size={20} />
+            <WalletCards className="text-accent" size={20} />
           </div>
           {topExpense?.id ? (
-            <Link className="mt-3 block text-xl font-bold text-moss underline-offset-2 hover:underline" href={`/transactions/category/${topExpense.id}?month=${month}&type=expense`}>
+            <Link className="mt-3 block text-xl font-bold text-accent underline-offset-2 hover:underline" href={`/transactions/category/${topExpense.id}?month=${month}&type=expense`}>
               {topExpense.name}
             </Link>
           ) : (
@@ -90,7 +90,7 @@ export default async function ExpensesPage() {
         <Card>
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-ink/55">Mánaðaráætlun</p>
-            <WalletCards className="text-moss" size={20} />
+            <WalletCards className="text-accent" size={20} />
           </div>
           <p className="mt-3 text-2xl font-bold">{money(currentMonthlyBudget, currency)}</p>
           <p className="mt-1 text-sm text-ink/55">Heildaráætlun fyrir {monthLabel(month)}</p>
@@ -108,7 +108,7 @@ export default async function ExpensesPage() {
                   item.id ? (
                     <Link
                       key={item.id}
-                      className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm font-semibold text-moss transition hover:bg-muted"
+                      className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm font-semibold text-accent transition hover:bg-muted"
                       href={`/transactions/category/${item.id}?month=${month}&type=expense`}
                     >
                       <span>{item.name}</span>
@@ -257,7 +257,7 @@ export default async function ExpensesPage() {
                   </div>
                 </div>
                 <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-semibold text-moss">Breyta áætlun</summary>
+                  <summary className="cursor-pointer text-sm font-semibold text-accent">Breyta áætlun</summary>
                   <form action={saveBudget} className="mt-3 grid gap-2">
                     <input type="hidden" name="id" value={budget.id} />
                     <select className={inputClass} name="category_id" defaultValue={budget.category_id ?? ""}>

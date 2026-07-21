@@ -157,7 +157,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                   </td>
                   <td className="py-3">
                     {tx.category_id ? (
-                      <Link className="font-semibold text-moss underline-offset-2 hover:underline" href={`/transactions/category/${tx.category_id}?month=${month}&type=${tx.type}`}>
+                      <Link className="font-semibold text-accent underline-offset-2 hover:underline" href={`/transactions/category/${tx.category_id}?month=${month}&type=${tx.type}`}>
                         {tx.categories?.name ?? "Óflokkað"}
                       </Link>
                     ) : (

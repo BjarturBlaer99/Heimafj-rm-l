@@ -1,11 +1,15 @@
 import type { Config } from "tailwindcss";
 
 export default {
+  darkMode: "class",
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
         ink: "rgb(var(--color-ink) / <alpha-value>)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        onAccent: "rgb(var(--color-on-accent) / <alpha-value>)",
+        lagoon: "rgb(var(--color-lagoon) / <alpha-value>)",
         moss: "rgb(var(--color-moss) / <alpha-value>)",
         mint: "rgb(var(--color-mint) / <alpha-value>)",
         coral: "rgb(var(--color-coral) / <alpha-value>)",
@@ -16,7 +20,7 @@ export default {
         line: "rgb(var(--color-line) / <alpha-value>)"
       },
       boxShadow: {
-        soft: "0 1px 2px rgba(var(--shadow-soft) / 0.05), 0 10px 28px rgba(var(--shadow-soft) / 0.045)"
+        soft: "0 1px 2px rgba(var(--shadow-soft) / 0.06), 0 8px 24px rgba(var(--shadow-soft) / 0.06)"
       }
     }
   },

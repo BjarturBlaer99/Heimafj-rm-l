@@ -2,16 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Fjármál",
-  description: "Örugg persónuleg fjármálaumsjón með Supabase"
+  title: "Mín fjármál",
+  description: "Persónulegt fjármálayfirlit á íslensku"
 };
 
 const themeScript = `
 (() => {
-  const storageKey = "finance-theme";
+  const storageKey = "finance-theme-metallic";
   const stored = window.localStorage.getItem(storageKey);
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const theme = stored === "dark" || stored === "light" ? stored : (prefersDark ? "dark" : "light");
+  const theme = stored === "dark" || stored === "light" ? stored : "light";
   document.documentElement.classList.toggle("dark", theme === "dark");
 })();
 `;

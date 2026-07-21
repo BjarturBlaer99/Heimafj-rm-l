@@ -10,4 +10,5 @@ dist
 .vercel
 next-*.log
 next-*.err.log
+design-*.log
 tsconfig.tsbuildinfo

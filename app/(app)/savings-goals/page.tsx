@@ -45,7 +45,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
             <h2 className="text-lg font-bold">Heildarsparnaður</h2>
             <p className="text-sm text-ink/55">Skiptu upp raunverulegum sparnaði eftir tegund.</p>
           </div>
-          <p className="text-3xl font-bold text-moss">{money(totalSavings, currency)}</p>
+          <p className="text-3xl font-bold text-lagoon">{money(totalSavings, currency)}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {savingsBucketsResult.buckets.map((bucket) => (
@@ -74,7 +74,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
                 </Button>
               </form>
               <details className="mt-3">
-                <summary className="cursor-pointer text-sm font-semibold text-moss">Leiðrétta heildarupphæð</summary>
+                <summary className="cursor-pointer text-sm font-semibold text-accent">Leiðrétta heildarupphæð</summary>
                 <form action={saveSavingsBucket} className="mt-3 grid gap-2">
                   <input type="hidden" name="bucket_type" value={bucket.bucket_type} />
                   <input type="hidden" name="label" value={bucket.label} />
@@ -103,7 +103,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
                       {entry.note ? ` · ${entry.note}` : ""}
                     </p>
                   </div>
-                  <p className="font-bold text-moss">{money(Number(entry.amount), currency)}</p>
+                  <p className="font-bold text-lagoon">{money(Number(entry.amount), currency)}</p>
                 </div>
               ))}
             </div>
@@ -121,7 +121,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
             <h2 className="text-lg font-bold">Húsnæðisparnaður</h2>
             <p className="text-sm text-ink/55">Samanlagt úr séreignarsparnaði og húsnæðissparnaði.</p>
           </div>
-          <p className="text-3xl font-bold text-moss">{money(housingSavings, currency)}</p>
+          <p className="text-3xl font-bold text-lagoon">{money(housingSavings, currency)}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {housingBuckets.map((bucket) => (
@@ -139,7 +139,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
             <h2 className="text-lg font-bold">Varasjóður</h2>
             <p className="text-sm text-ink/55">Samanlagt úr hlutabréfum og sjóðum.</p>
           </div>
-          <p className="text-3xl font-bold text-moss">{money(emergencySavings, currency)}</p>
+          <p className="text-3xl font-bold text-lagoon">{money(emergencySavings, currency)}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {emergencyBuckets.map((bucket) => (

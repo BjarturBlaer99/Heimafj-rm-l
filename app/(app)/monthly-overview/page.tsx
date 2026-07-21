@@ -85,7 +85,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
       <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
           <div className="mb-4 flex items-center gap-2">
-            <CalendarDays size={18} className="text-moss" />
+            <CalendarDays size={18} className="text-accent" />
             <h2 className="font-bold">{monthLabel(month)}</h2>
           </div>
           <div className="grid gap-3 text-sm">
@@ -142,7 +142,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
         <Card>
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-bold">Útgjöld eftir flokkum</h2>
-            <Link className="text-sm font-semibold text-moss underline-offset-2 hover:underline" href={`/transactions?month=${month}&type=expense`}>
+            <Link className="text-sm font-semibold text-accent underline-offset-2 hover:underline" href={`/transactions?month=${month}&type=expense`}>
               Sjá færslur
             </Link>
           </div>
@@ -153,7 +153,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
           {data.expenseTransactions.length ? (
             <div className="divide-y divide-line/10">
               {data.expenseTransactions.slice(0, 8).map((tx) => (
-                <Link key={tx.id} href={`/transactions?month=${month}&type=expense&search=${encodeURIComponent(tx.note ?? "")}`} className="flex items-center justify-between gap-4 py-3 text-sm transition hover:text-moss">
+                <Link key={tx.id} href={`/transactions?month=${month}&type=expense&search=${encodeURIComponent(tx.note ?? "")}`} className="flex items-center justify-between gap-4 py-3 text-sm transition hover:text-accent">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{tx.note || "Færsla"}</p>
                     <p className="text-ink/55">{tx.date} · {tx.categories?.name ?? "Óflokkað"}</p>

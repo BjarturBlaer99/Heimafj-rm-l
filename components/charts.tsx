@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
 import type { PieSectorDataItem } from "recharts/types/polar/Pie";
 import { money, percent } from "@/lib/format";
 
@@ -55,10 +55,30 @@ export function TrendChart({ data, height = 220 }: { data: Array<Record<string, 
           <XAxis dataKey="month" tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <YAxis tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <Tooltip contentStyle={tooltipStyle} />
-          <Area type="monotone" dataKey="income" name="Tekjur" stroke="#21805b" fill="#21805b24" />
-          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="#dc4c46" fill="#dc4c4624" />
-          <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="#3b82f6" fill="#3b82f633" />
+          <Area type="monotone" dataKey="income" name="Tekjur" stroke="rgb(var(--color-accent))" fill="rgb(var(--color-accent) / 0.14)" />
+          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="rgb(var(--color-coral))" fill="rgb(var(--color-coral) / 0.14)" />
+          <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="rgb(var(--color-lagoon))" fill="rgb(var(--color-lagoon) / 0.14)" />
         </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export function Sparkline({
+  data,
+  dataKey,
+  color = "rgb(var(--color-accent))"
+}: {
+  data: Array<Record<string, string | number>>;
+  dataKey: string;
+  color?: string;
+}) {
+  return (
+    <div className="h-11 min-w-0" aria-hidden="true">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 5, right: 2, bottom: 2, left: 2 }}>
+          <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} activeDot={false} />
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
@@ -71,7 +91,7 @@ export function PieBreakdown({
   data: Array<{ name: string; value: number }>;
   links?: Record<string, string>;
 }) {
-  const colors = ["#21805b", "#dc4c46", "#cf9726", "#2563eb", "#0f766e", "#7c3aed", "#64748b"];
+  const colors = ["rgb(var(--color-accent))", "rgb(var(--color-coral))", "rgb(var(--color-gold))", "rgb(var(--color-lagoon))", "#8b7cf6", "rgb(var(--color-moss))", "#7890b8"];
   const total = data.reduce((sum, item) => sum + item.value, 0);
   const [activeIndex, setActiveIndex] = useState<number>();
 
@@ -148,7 +168,7 @@ export function CategoryBars({ data }: { data: Array<{ name: string; value: numb
           <XAxis dataKey="name" tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <YAxis tick={{ fill: axisColor }} axisLine={{ stroke: gridColor }} tickLine={{ stroke: gridColor }} />
           <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [money(Number(value)), "Upphæð"]} />
-          <Bar dataKey="value" name="Upphæð" fill="#21805b" radius={[6, 6, 0, 0]} />
+          <Bar dataKey="value" name="Upphæð" fill="rgb(var(--color-accent))" radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
