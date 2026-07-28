@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { getSupabaseConfig } from "@/lib/supabase/config";
 
 type CookieToSet = {
   name: string;
@@ -14,10 +15,11 @@ export async function GET(request: Request) {
   const next = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard";
 
   const response = NextResponse.redirect(new URL(next, url.origin));
+  const { key, url: supabaseUrl } = getSupabaseConfig();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    key,
     {
       cookies: {
         getAll() {

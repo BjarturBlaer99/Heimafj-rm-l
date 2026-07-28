@@ -26,7 +26,7 @@ Personal finance web app built with Next.js App Router, TypeScript, Tailwind CSS
 
 ## Environment Variables
 
-Create `.env.local`:
+Create `.env.development.local` for local development and point it at the development Supabase project:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
@@ -34,7 +34,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-publishable-key"
 NEXT_PUBLIC_SITE_URL="http://localhost:5173"
 ```
 
-For production, `NEXT_PUBLIC_SITE_URL` should be your real deployed URL, for example:
+The file is ignored by Git. Local development and Vercel Preview must never use the production Supabase project.
+
+Use this environment split in Vercel:
+
+| Variable | Production | Preview |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production Supabase URL | Development Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production publishable key | Development publishable key |
+| `NEXT_PUBLIC_SITE_URL` | Production app URL | Not set; Vercel supplies the deployment URL |
+
+For production, `NEXT_PUBLIC_SITE_URL` should be the real deployed URL, for example:
 
 ```env
 NEXT_PUBLIC_SITE_URL="https://your-app-name.vercel.app"
@@ -105,13 +115,13 @@ git push -u origin main
 
 ### 3. Add Environment Variables in Vercel
 
-Add these variables in the Vercel project settings:
+Add these variables in the Vercel project settings using the environment split above:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_SITE_URL`
 
-Set `NEXT_PUBLIC_SITE_URL` to your Vercel domain, for example:
+Set `NEXT_PUBLIC_SITE_URL` for Production only, for example:
 
 ```env
 NEXT_PUBLIC_SITE_URL="https://your-app-name.vercel.app"
@@ -129,15 +139,12 @@ Then click `Deploy`.
 
 ### 5. Update Supabase Auth URLs
 
-After Vercel gives you the final URL:
+Configure both Supabase projects under `Authentication > URL Configuration`:
 
-1. Open Supabase.
-2. Go to `Authentication > URL Configuration`.
-3. Set `Site URL` to your deployed Vercel URL.
-4. Add these redirect URLs:
-   - `https://your-app-name.vercel.app/dashboard`
-   - `https://your-app-name.vercel.app/reset-password`
-   - any custom domain URLs if you add one later
+1. Production project: set `Site URL` to the production Vercel URL and allow `https://your-app-name.vercel.app/**`.
+2. Development project: set `Site URL` to `http://localhost:5173`.
+3. Development project: allow `http://localhost:5173/**`.
+4. Development project: allow `https://*-your-vercel-team-slug.vercel.app/**` for Preview deployments.
 
 ### 6. Test Production
 
