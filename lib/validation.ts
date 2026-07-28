@@ -8,7 +8,7 @@ export const authSchema = z.object({
 
 export const transactionSchema = z.object({
   id: z.string().uuid().optional(),
-  category_id: z.string().uuid().nullable().optional(),
+  category_id: z.preprocess((value) => (value === "" ? null : value), z.string().uuid().nullable().optional()),
   amount: z.coerce.number().positive(),
   type: z.enum(["income", "expense"]),
   date: z.string().min(10).max(10),
@@ -55,7 +55,7 @@ export const billPaymentSchema = z.object({
 
 export const monthlyIncomeSchema = z.object({
   id: z.string().uuid().optional(),
-  category_id: z.string().uuid().nullable().optional(),
+  category_id: z.preprocess((value) => (value === "" ? null : value), z.string().uuid().nullable().optional()),
   month: z.string().regex(/^\d{4}-\d{2}$/).transform((value) => `${value}-01`),
   amount: z.coerce.number().positive(),
   note: z.string().trim().max(500).nullable().optional()
