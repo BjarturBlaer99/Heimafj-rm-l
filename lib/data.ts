@@ -1,16 +1,17 @@
 import { addMonths, format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { currentMonth, monthStart } from "@/lib/format";
 import { fallbackSavingsBuckets, mergeSavingsBuckets } from "@/lib/savings-buckets";
 import { createClient } from "@/lib/supabase/server";
 import type { BillPayment, BillWithPayment, Budget, Category, Profile, SavingsBucket, SavingsBucketEntry, SavingsContribution, SavingsGoal, Transaction } from "@/lib/types";
 
-export async function getAuthed() {
+export const getAuthed = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) redirect("/login");
   return { supabase, user: data.user };
-}
+});
 
 async function ensureSystemCategories() {
   const { supabase, user } = await getAuthed();
@@ -135,21 +136,24 @@ export async function getSavingsBucketEntries(limit = 20) {
 
 export async function getDashboardData() {
   const month = currentMonth();
-  const [profile, transactions, budgets, goals, savingsBucketsResult, billsResult] = await Promise.all([
+  const trendMonths = 6;
+  const trendStart = startOfMonth(subMonths(new Date(), trendMonths - 1));
+  const [profile, trendTransactions, budgets, goals, savingsBucketsResult, billsResult] = await Promise.all([
     getProfile(),
-    getTransactions({ month }),
+    getTransactions({ from: format(trendStart, "yyyy-MM-dd") }),
     getBudgets(month),
     getSavingsGoals(),
     getSavingsBuckets(),
     getBillsForMonth(month)
   ]);
+  const transactions = trendTransactions.filter((item) => item.date.startsWith(month));
   const income = transactions.filter((item) => item.type === "income").reduce((sum, item) => sum + Number(item.amount), 0);
   const expenses = transactions.filter((item) => item.type === "expense").reduce((sum, item) => sum + Number(item.amount), 0);
   const savings = income - expenses;
   const budgeted = budgets.reduce((sum, item) => sum + Number(item.amount), 0);
   const remainingBudget = budgeted - expenses;
   const spendingByCategory = categoryTotals(transactions.filter((item) => item.type === "expense"));
-  const trend = await monthlyTrend(6);
+  const trend = buildMonthlyTrend(trendTransactions, trendMonths);
   const totalSavingsBalance = savingsBucketsResult.buckets.reduce((sum, bucket) => sum + Number(bucket.amount), 0);
   const activeBills = billsResult.bills.filter((bill) => bill.is_active);
   const paidBills = activeBills.filter((bill) => bill.payment);
@@ -233,6 +237,11 @@ export async function getOverviewMonths(limit = 18) {
 export async function monthlyTrend(months = 8) {
   const start = startOfMonth(subMonths(new Date(), months - 1));
   const transactions = await getTransactions({ from: format(start, "yyyy-MM-dd") });
+  return buildMonthlyTrend(transactions, months);
+}
+
+function buildMonthlyTrend(transactions: Transaction[], months: number) {
+  const start = startOfMonth(subMonths(new Date(), months - 1));
   return Array.from({ length: months }, (_, index) => {
     const date = addMonths(start, index);
     const key = format(date, "yyyy-MM");

@@ -1,9 +1,11 @@
 export function money(value: number, currency = "ISK") {
-  return new Intl.NumberFormat("is-IS", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0
-  }).format(Number(value) || 0);
+  const numericValue = Number(value);
+  const roundedValue = Number.isFinite(numericValue) ? Math.round(numericValue) : 0;
+  const sign = roundedValue < 0 ? "-" : "";
+  const groupedValue = Math.abs(roundedValue)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${sign}${groupedValue}\u00a0${currency === "ISK" ? "kr." : currency}`;
 }
 
 export function percent(value: number) {
