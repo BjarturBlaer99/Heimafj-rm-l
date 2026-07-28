@@ -1,8 +1,23 @@
 import { z } from "zod";
+import { PASSWORD_MIN_LENGTH } from "@/lib/password-policy";
+
+export const passwordSchema = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH)
+  .max(100)
+  .regex(/[a-z]/)
+  .regex(/[A-Z]/)
+  .regex(/[0-9]/)
+  .regex(/[^A-Za-z0-9]/);
+
+export const loginSchema = z.object({
+  email: z.string().email().max(120),
+  password: z.string().min(1).max(100)
+});
 
 export const authSchema = z.object({
   email: z.string().email().max(120),
-  password: z.string().min(8).max(100),
+  password: passwordSchema,
   fullName: z.string().trim().min(2).max(80).optional()
 });
 

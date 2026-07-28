@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { Button, Card, Field, inputClass } from "@/components/ui";
 import { forgotPasswordAction, loginAction, resetPasswordAction, signupAction, type AuthState } from "@/lib/auth-actions";
+import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
 
 const initialState: AuthState = {};
 
 export function AuthForm({ mode }: { mode: "login" | "signup" | "forgot" | "reset" }) {
+  const showPasswordPolicy = mode === "signup" || mode === "reset";
   const action =
     mode === "signup"
       ? signupAction
@@ -57,9 +59,18 @@ export function AuthForm({ mode }: { mode: "login" | "signup" | "forgot" | "rese
                 name="password"
                 type="password"
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
-                minLength={8}
+                minLength={mode === "login" ? 1 : PASSWORD_MIN_LENGTH}
+                maxLength={100}
+                pattern={showPasswordPolicy ? PASSWORD_PATTERN : undefined}
+                title={showPasswordPolicy ? PASSWORD_REQUIREMENTS : undefined}
+                aria-describedby={showPasswordPolicy ? "password-requirements" : undefined}
                 required
               />
+              {showPasswordPolicy ? (
+                <span id="password-requirements" className="text-xs font-normal leading-relaxed text-ink/50">
+                  {PASSWORD_REQUIREMENTS}
+                </span>
+              ) : null}
             </Field>
           )}
 
