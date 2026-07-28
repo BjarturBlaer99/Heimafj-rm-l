@@ -110,6 +110,10 @@ body {
   animation: menu-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.sheet-enter {
+  animation: sheet-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .value-enter {
   animation: value-in 560ms 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -222,6 +226,18 @@ body {
   }
 }
 
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes value-in {
   from {
     opacity: 0;
@@ -271,6 +287,7 @@ body {
   .header-enter,
   .panel-enter,
   .menu-enter,
+  .sheet-enter,
   .value-enter,
   .line-reveal,
   .icon-pop,

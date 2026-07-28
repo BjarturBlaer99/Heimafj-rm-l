@@ -1,6 +1,6 @@
 import { UserCircleIcon } from "@phosphor-icons/react/dist/ssr/UserCircle";
 import Link from "next/link";
-import { TopNav } from "@/components/app-nav";
+import { MobileBottomNav, TopNav } from "@/components/app-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppShell({ children, email }: { children: React.ReactNode; email?: string }) {
@@ -28,9 +28,10 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
         </div>
       </header>
 
-      <main className="min-w-0">
+      <main className="min-w-0 pb-24 lg:pb-0">
         <div className="page-enter mx-auto min-w-0 max-w-[1200px] px-3 py-5 sm:px-5 sm:py-7">{children}</div>
       </main>
+      <MobileBottomNav />
     </div>
   );
 }
