@@ -6,9 +6,13 @@ import { Button, Card, Field, inputClass } from "@/components/ui";
 import { forgotPasswordAction, loginAction, resetPasswordAction, signupAction, type AuthState } from "@/lib/auth-actions";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
 
-const initialState: AuthState = {};
-
-export function AuthForm({ mode }: { mode: "login" | "signup" | "forgot" | "reset" }) {
+export function AuthForm({
+  mode,
+  initialError
+}: {
+  mode: "login" | "signup" | "forgot" | "reset";
+  initialError?: string;
+}) {
   const showPasswordPolicy = mode === "signup" || mode === "reset";
   const action =
     mode === "signup"
@@ -19,7 +23,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" | "forgot" | "rese
           ? resetPasswordAction
           : loginAction;
 
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const [state, formAction, pending] = useActionState(action, { error: initialError } satisfies AuthState);
 
   const title =
     mode === "signup"

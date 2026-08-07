@@ -19,6 +19,21 @@ const resetSchema = z.object({
   password: passwordSchema
 });
 
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(100),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1).max(100)
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Lykilorðin passa ekki saman.",
+    path: ["confirmPassword"]
+  })
+  .refine((data) => data.password !== data.currentPassword, {
+    message: "Nýja lykilorðið þarf að vera annað en það núverandi.",
+    path: ["password"]
+  });
+
 function siteUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (configuredUrl) {
@@ -129,4 +144,68 @@ export async function resetPasswordAction(_: AuthState, formData: FormData): Pro
   }
 
   redirect("/dashboard");
+}
+
+export async function changePasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: String(formData.get("currentPassword") ?? ""),
+    password: String(formData.get("password") ?? ""),
+    confirmPassword: String(formData.get("confirmPassword") ?? "")
+  });
+
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+
+    if (issue?.path[0] === "confirmPassword") {
+      return { error: "Lykilorðin passa ekki saman." };
+    }
+
+    if (issue?.path[0] === "currentPassword") {
+      return { error: "Sláðu inn núverandi lykilorð." };
+    }
+
+    if (issue?.message === "Nýja lykilorðið þarf að vera annað en það núverandi.") {
+      return { error: issue.message };
+    }
+
+    return { error: PASSWORD_REQUIREMENTS };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user?.email) {
+    return { error: "Innskráningin þín er útrunnin. Skráðu þig inn aftur og reyndu svo aftur." };
+  }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: parsed.data.currentPassword
+  });
+
+  if (signInError) {
+    return { error: "Núverandi lykilorð er rangt." };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+    current_password: parsed.data.currentPassword
+  });
+
+  if (error) {
+    if (error.code === "weak_password") {
+      return { error: PASSWORD_REQUIREMENTS };
+    }
+
+    if (error.code === "same_password") {
+      return { error: "Nýja lykilorðið þarf að vera annað en það núverandi." };
+    }
+
+    return { error: "Ekki tókst að breyta lykilorðinu. Reyndu aftur síðar." };
+  }
+
+  return { message: "Lykilorðinu hefur verið breytt." };
 }

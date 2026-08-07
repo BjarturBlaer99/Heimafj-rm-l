@@ -1,7 +1,9 @@
 import { MoonStarsIcon as MoonStar } from "@phosphor-icons/react/dist/ssr/MoonStars";
+import { LockKeyIcon as LockKey } from "@phosphor-icons/react/dist/ssr/LockKey";
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { SignOutIcon as LogOut } from "@phosphor-icons/react/dist/ssr/SignOut";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
+import { PasswordChangeForm } from "@/components/password-change-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, Card, EmptyState, Field, inputClass, PageHeader } from "@/components/ui";
 import { deleteCategory, saveCategory, saveProfile, signOut } from "@/lib/actions";
@@ -39,10 +41,14 @@ export default async function SettingsPage() {
 
           <Card>
             <div className="mb-4 flex items-center gap-2">
-              <LogOut size={18} className="text-coral" />
+              <LockKey size={18} className="text-accent" />
               <h2 className="font-bold">Aðgangur</h2>
             </div>
-            <p className="mb-4 text-sm text-ink/60">Skráðu þig út úr appinu á þessu tæki.</p>
+            <p className="mb-4 text-sm text-ink/60">Uppfærðu lykilorðið sem þú notar til að skrá þig inn.</p>
+            <PasswordChangeForm />
+
+            <div className="my-5 border-t border-line/10" />
+            <p className="mb-3 text-sm text-ink/60">Skráðu þig út úr appinu á þessu tæki.</p>
             <form action={signOut}>
               <Button variant="secondary">
                 <LogOut size={17} />

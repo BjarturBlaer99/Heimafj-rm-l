@@ -9,7 +9,7 @@ type CookieToSet = {
   options: CookieOptions;
 };
 
-const publicRoutes = ["/login", "/signup", "/forgot-password", "/reset-password"];
+const publicRoutes = new Set(["/login", "/signup", "/forgot-password", "/reset-password", "/auth/callback"]);
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
   );
 
   const { data } = await supabase.auth.getUser();
-  const isPublic = publicRoutes.some((route) => path.startsWith(route));
+  const isPublic = publicRoutes.has(path);
 
   if (!data.user && !isPublic) {
     const url = request.nextUrl.clone();
