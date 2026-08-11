@@ -347,7 +347,9 @@ async function fetchMarketAsset(definition: MarketAssetDefinition, apiKey: strin
 
 async function fetchMarketAssets() {
   const apiKey = process.env.ALPHA_VANTAGE_API_KEY?.trim();
-  if (!apiKey) return { stocks: fallbackStocks, funds: fallbackFunds };
+  if (!apiKey) {
+    throw new Error("ALPHA_VANTAGE_API_KEY is not configured");
+  }
 
   const definitions: MarketAssetDefinition[] = [...stockDefinitions, ...fundDefinitions];
   const fallbacks = [...fallbackStocks, ...fallbackFunds];
@@ -446,14 +448,20 @@ const fallbackFunds: StockSnapshot[] = [
 const getInflationCached = unstable_cache(fetchInflation, ["market-inflation-v1"], { revalidate: 21_600 });
 const getPolicyRateCached = unstable_cache(fetchPolicyRate, ["market-policy-rate-v1"], { revalidate: 3_600 });
 const getFxRatesCached = unstable_cache(fetchFxRates, ["market-fx-v1"], { revalidate: 3_600 });
-const getMarketAssetsCached = unstable_cache(fetchMarketAssets, ["market-assets-v2"], { revalidate: 86_400 });
+const getMarketAssetsCached = unstable_cache(fetchMarketAssets, ["market-assets-v3"], { revalidate: 86_400 });
+
+async function getMarketAssets() {
+  return process.env.ALPHA_VANTAGE_API_KEY?.trim()
+    ? getMarketAssetsCached()
+    : { stocks: fallbackStocks, funds: fallbackFunds };
+}
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
   const [inflationResult, policyRateResult, fxResult, assetsResult] = await Promise.allSettled([
     getInflationCached(),
     getPolicyRateCached(),
     getFxRatesCached(),
-    getMarketAssetsCached()
+    getMarketAssets()
   ]);
   const assets = assetsResult.status === "fulfilled"
     ? assetsResult.value
