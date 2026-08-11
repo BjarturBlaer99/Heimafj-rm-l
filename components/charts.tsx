@@ -91,7 +91,15 @@ export function PieBreakdown({
   data: Array<{ name: string; value: number }>;
   links?: Record<string, string>;
 }) {
-  const colors = ["rgb(var(--color-accent))", "rgb(var(--color-coral))", "rgb(var(--color-gold))", "rgb(var(--color-lagoon))", "#8b7cf6", "rgb(var(--color-moss))", "#7890b8"];
+  const colors = [
+    "rgb(var(--color-accent))",
+    "rgb(var(--color-coral))",
+    "rgb(var(--color-gold))",
+    "rgb(var(--color-lagoon))",
+    "rgb(var(--color-violet))",
+    "rgb(var(--color-moss))",
+    "rgb(var(--color-steel))"
+  ];
   const total = data.reduce((sum, item) => sum + item.value, 0);
   const [activeIndex, setActiveIndex] = useState<number>();
 

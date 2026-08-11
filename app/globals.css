@@ -4,35 +4,39 @@
 
 :root {
   color-scheme: light;
-  --color-ink: 31 31 31;
-  --color-accent: 31 31 31;
+  --color-ink: 17 19 24;
+  --color-accent: 47 79 228;
   --color-on-accent: 255 255 255;
-  --color-lagoon: 31 132 116;
-  --color-moss: 30 135 87;
-  --color-mint: 232 244 237;
-  --color-coral: 210 69 76;
-  --color-gold: 172 118 20;
-  --color-paper: 255 255 255;
+  --color-lagoon: 12 124 110;
+  --color-moss: 8 122 85;
+  --color-mint: 231 247 240;
+  --color-coral: 197 61 77;
+  --color-gold: 155 101 0;
+  --color-violet: 118 88 214;
+  --color-steel: 90 111 148;
+  --color-paper: 247 248 250;
   --color-surface: 255 255 255;
-  --color-muted: 244 244 244;
-  --color-line: 31 31 31;
-  --shadow-soft: 31 31 31;
+  --color-muted: 238 241 245;
+  --color-line: 17 19 24;
+  --shadow-soft: 17 19 24;
 }
 
 .dark {
   color-scheme: dark;
-  --color-ink: 255 255 255;
-  --color-accent: 255 255 255;
-  --color-on-accent: 31 31 31;
-  --color-lagoon: 67 190 169;
-  --color-moss: 66 196 130;
-  --color-mint: 19 52 40;
-  --color-coral: 255 116 121;
-  --color-gold: 236 184 81;
-  --color-paper: 0 0 0;
-  --color-surface: 31 31 31;
-  --color-muted: 43 43 45;
-  --color-line: 201 201 205;
+  --color-ink: 244 246 250;
+  --color-accent: 128 150 255;
+  --color-on-accent: 9 11 16;
+  --color-lagoon: 83 210 193;
+  --color-moss: 70 201 149;
+  --color-mint: 17 55 44;
+  --color-coral: 255 124 136;
+  --color-gold: 241 196 83;
+  --color-violet: 168 148 255;
+  --color-steel: 142 159 190;
+  --color-paper: 9 11 16;
+  --color-surface: 20 23 30;
+  --color-muted: 30 35 45;
+  --color-line: 244 246 250;
   --shadow-soft: 0 0 0;
 }
 
@@ -92,6 +96,10 @@ body {
 
 .motion-link:hover svg {
   transform: translate(3px, -1px);
+}
+
+.tooltip-content[data-state="delayed-open"] {
+  animation: tooltip-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .page-enter {
@@ -269,6 +277,18 @@ body {
   to {
     opacity: 1;
     transform: rotate(0) scale(1);
+  }
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

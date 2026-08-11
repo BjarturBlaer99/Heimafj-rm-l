@@ -14,6 +14,8 @@ export default {
         mint: "rgb(var(--color-mint) / <alpha-value>)",
         coral: "rgb(var(--color-coral) / <alpha-value>)",
         gold: "rgb(var(--color-gold) / <alpha-value>)",
+        violet: "rgb(var(--color-violet) / <alpha-value>)",
+        steel: "rgb(var(--color-steel) / <alpha-value>)",
         paper: "rgb(var(--color-paper) / <alpha-value>)",
         surface: "rgb(var(--color-surface) / <alpha-value>)",
         muted: "rgb(var(--color-muted) / <alpha-value>)",
