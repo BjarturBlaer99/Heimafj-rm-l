@@ -364,9 +364,14 @@ export function DemoApp() {
         className="sticky top-0 z-30 bg-paper/90 px-3 py-3 backdrop-blur-xl sm:px-5"
       >
         <div className="mx-auto flex min-h-[60px] max-w-[1200px] items-center gap-3 rounded-lg border border-line/10 bg-surface/90 px-3 py-2 shadow-soft sm:px-4">
-          <Link href="/" className="focus-ring flex shrink-0 items-center rounded-md px-1 py-1 transition hover:opacity-80" aria-label="Heim">
+          <button
+            type="button"
+            onClick={() => navigate("overview")}
+            className="focus-ring flex shrink-0 items-center rounded-md px-1 py-1 transition hover:opacity-80"
+            aria-label="Fara á yfirlit"
+          >
             <span className="whitespace-nowrap text-base font-extrabold leading-none">Mín <span className="text-accent">fjármál</span></span>
-          </Link>
+          </button>
 
           <nav className="mx-auto hidden items-center gap-0.5 lg:flex" aria-label="Sýningarvalmynd">
             {views.map((item) => {
@@ -420,11 +425,9 @@ export function DemoApp() {
             <Badge>Sýningarútgáfa</Badge>
             <p className="mt-2 text-sm text-ink/55">Sýnigögn · breytingar vistast ekki</p>
           </div>
-          <Button asChild variant="ghost" size="sm" className="w-fit">
-            <Link href="/">
-              <HouseIcon size={17} weight="duotone" />
-              Heim
-            </Link>
+          <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => navigate("overview")}>
+            <HouseIcon size={17} weight="duotone" />
+            Heim
           </Button>
         </div>
 
