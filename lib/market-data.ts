@@ -109,6 +109,22 @@ const alphaVantageSchema = z.object({
   )
 });
 
+function alphaVantageFailureCode(payload: unknown) {
+  if (!payload || typeof payload !== "object") return "invalid-response";
+
+  const response = payload as Record<string, unknown>;
+  const message = [response.Information, response.Note, response["Error Message"]]
+    .find((value): value is string => typeof value === "string")
+    ?.toLowerCase();
+
+  if (!message) return "invalid-response";
+  if (message.includes("rate limit") || message.includes("call volume") || message.includes("25 requests")) {
+    return "rate-limit";
+  }
+  if (message.includes("api key") || message.includes("apikey")) return "invalid-key";
+  return "provider-error";
+}
+
 const stockDefinitions = [
   { symbol: "AAPL", name: "Apple" },
   { symbol: "MSFT", name: "Microsoft" },
@@ -314,7 +330,12 @@ async function fetchMarketAsset(definition: MarketAssetDefinition, apiKey: strin
     outputsize: "compact",
     apikey: apiKey
   });
-  const response = alphaVantageSchema.parse(await fetchJson(`${ALPHA_VANTAGE_URL}?${query.toString()}`));
+  const payload = await fetchJson(`${ALPHA_VANTAGE_URL}?${query.toString()}`);
+  const parsed = alphaVantageSchema.safeParse(payload);
+  if (!parsed.success) {
+    throw new Error(`alpha-vantage:${alphaVantageFailureCode(payload)}`);
+  }
+  const response = parsed.data;
   const points = Object.entries(response["Time Series (Daily)"])
     .map(([date, values]) => ({
       date,
@@ -355,6 +376,18 @@ async function fetchMarketAssets() {
   const fallbacks = [...fallbackStocks, ...fallbackFunds];
   const results = await Promise.allSettled(definitions.map((definition) => fetchMarketAsset(definition, apiKey)));
   const assets = results.map((result, index) => (result.status === "fulfilled" ? result.value : fallbacks[index]));
+  const failures = results.reduce<Record<string, number>>((summary, result) => {
+    if (result.status === "fulfilled") return summary;
+    const reason = result.reason instanceof Error && result.reason.message.startsWith("alpha-vantage:")
+      ? result.reason.message.slice("alpha-vantage:".length)
+      : "request-error";
+    summary[reason] = (summary[reason] ?? 0) + 1;
+    return summary;
+  }, {});
+
+  if (Object.keys(failures).length > 0) {
+    console.warn(`[market-data] Alpha Vantage fallbacks: ${JSON.stringify(failures)}`);
+  }
 
   return {
     stocks: assets.slice(0, stockDefinitions.length),
@@ -448,7 +481,7 @@ const fallbackFunds: StockSnapshot[] = [
 const getInflationCached = unstable_cache(fetchInflation, ["market-inflation-v1"], { revalidate: 21_600 });
 const getPolicyRateCached = unstable_cache(fetchPolicyRate, ["market-policy-rate-v1"], { revalidate: 3_600 });
 const getFxRatesCached = unstable_cache(fetchFxRates, ["market-fx-v1"], { revalidate: 3_600 });
-const getMarketAssetsCached = unstable_cache(fetchMarketAssets, ["market-assets-v3"], { revalidate: 86_400 });
+const getMarketAssetsCached = unstable_cache(fetchMarketAssets, ["market-assets-v4"], { revalidate: 86_400 });
 
 async function getMarketAssets() {
   return process.env.ALPHA_VANTAGE_API_KEY?.trim()
