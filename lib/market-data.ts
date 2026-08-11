@@ -66,6 +66,7 @@ const LCE_API_URL = "https://www.lce.is/api/fixed-income";
 const ALPHA_VANTAGE_URL = "https://www.alphavantage.co/query";
 
 const requestTimeout = 8_000;
+const marketAssetBatchSize = 3;
 
 const pxMetadataSchema = z.object({
   variables: z.array(
@@ -393,25 +394,29 @@ async function fetchMarketAssetsLive() {
     throw error;
   }
 
-  const results = await Promise.allSettled(
-    remainingDefinitions.map((definition) => fetchMarketAsset(definition, apiKey))
-  );
   const assets = [probe];
-  const failures: Record<string, number> = {};
 
-  results.forEach((result) => {
-    if (result.status === "fulfilled") {
-      assets.push(result.value);
-      return;
+  for (let index = 0; index < remainingDefinitions.length; index += marketAssetBatchSize) {
+    const batch = remainingDefinitions.slice(index, index + marketAssetBatchSize);
+    const results = await Promise.allSettled(
+      batch.map((definition) => fetchMarketAsset(definition, apiKey))
+    );
+    const failures: Record<string, number> = {};
+
+    results.forEach((result) => {
+      if (result.status === "fulfilled") {
+        assets.push(result.value);
+        return;
+      }
+
+      const reason = marketAssetFailureReason(result.reason);
+      failures[reason] = (failures[reason] ?? 0) + 1;
+    });
+
+    if (Object.keys(failures).length > 0) {
+      logMarketAssetFailures(failures);
+      throw new Error("Alpha Vantage market refresh was incomplete");
     }
-
-    const reason = marketAssetFailureReason(result.reason);
-    failures[reason] = (failures[reason] ?? 0) + 1;
-  });
-
-  if (Object.keys(failures).length > 0) {
-    logMarketAssetFailures(failures);
-    throw new Error("Alpha Vantage market refresh was incomplete");
   }
 
   return {
