@@ -7,6 +7,7 @@ import { ChartLineUpIcon } from "@phosphor-icons/react/dist/csr/ChartLineUp";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
+import { HouseLineIcon } from "@phosphor-icons/react/dist/csr/HouseLine";
 import { InvoiceIcon } from "@phosphor-icons/react/dist/csr/Invoice";
 import { PiggyBankIcon } from "@phosphor-icons/react/dist/csr/PiggyBank";
 import { ReceiptIcon } from "@phosphor-icons/react/dist/csr/Receipt";
@@ -19,6 +20,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CategoryBars, PieBreakdown, Sparkline, TrendChart } from "@/components/charts";
 import { MarketOverview } from "@/components/market-overview";
+import { RealEstateOverview } from "@/components/real-estate-overview";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
@@ -37,9 +39,10 @@ import {
 } from "@/lib/demo-data";
 import { money } from "@/lib/format";
 import type { MarketSnapshot } from "@/lib/market-data";
+import type { RealEstateSnapshot } from "@/lib/real-estate-data";
 import { cn } from "@/lib/utils";
 
-type DemoView = "overview" | "transactions" | "bills" | "savings" | "analytics";
+type DemoView = "overview" | "transactions" | "bills" | "savings" | "realEstate" | "analytics";
 type TransactionFilter = "all" | DemoTransaction["kind"];
 
 const views = [
@@ -47,8 +50,11 @@ const views = [
   { id: "transactions" as const, label: "Færslur", icon: ReceiptIcon },
   { id: "bills" as const, label: "Reikningar", icon: InvoiceIcon },
   { id: "savings" as const, label: "Sparnaður", icon: PiggyBankIcon },
+  { id: "realEstate" as const, label: "Fasteignir", icon: HouseLineIcon },
   { id: "analytics" as const, label: "Greining", icon: ChartLineUpIcon }
 ];
+
+const mobileViews = views.filter((view) => view.id !== "analytics");
 
 const transactionFilters: Array<{ id: TransactionFilter; label: string }> = [
   { id: "all", label: "Allar" },
@@ -351,7 +357,16 @@ function Analytics() {
   );
 }
 
-export function DemoApp({ marketData }: { marketData: MarketSnapshot }) {
+function RealEstate({ data }: { data: RealEstateSnapshot }) {
+  return (
+    <>
+      <ViewHeading title="Fasteignir" description="Markaðsgögn, lánareiknivél og eignir til skoðunar" />
+      <RealEstateOverview data={data} />
+    </>
+  );
+}
+
+export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnapshot; realEstateData: RealEstateSnapshot }) {
   const [view, setView] = useState<DemoView>("overview");
 
   function navigate(nextView: DemoView) {
@@ -449,6 +464,7 @@ export function DemoApp({ marketData }: { marketData: MarketSnapshot }) {
             {view === "transactions" ? <Transactions /> : null}
             {view === "bills" ? <Bills /> : null}
             {view === "savings" ? <Savings /> : null}
+            {view === "realEstate" ? <RealEstate data={realEstateData} /> : null}
             {view === "analytics" ? <Analytics /> : null}
           </motion.div>
         </AnimatePresence>
@@ -463,7 +479,7 @@ export function DemoApp({ marketData }: { marketData: MarketSnapshot }) {
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="mx-auto grid h-16 max-w-md grid-cols-5 px-2">
-          {views.map((item) => {
+          {mobileViews.map((item) => {
             const Icon = item.icon;
             const active = view === item.id;
             return (

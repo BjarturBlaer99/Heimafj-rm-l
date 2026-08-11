@@ -5,6 +5,7 @@ import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 import { BankIcon } from "@phosphor-icons/react/dist/csr/Bank";
 import { ChartLineUpIcon } from "@phosphor-icons/react/dist/csr/ChartLineUp";
+import { ChartPieSliceIcon } from "@phosphor-icons/react/dist/csr/ChartPieSlice";
 import { CurrencyCircleDollarIcon } from "@phosphor-icons/react/dist/csr/CurrencyCircleDollar";
 import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
@@ -16,10 +17,10 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { MarketPoint, MarketSnapshot } from "@/lib/market-data";
+import type { MarketPoint, MarketSnapshot, StockSnapshot } from "@/lib/market-data";
 import { cn } from "@/lib/utils";
 
-type MarketTab = "stocks" | "fx" | "economy";
+type MarketTab = "stocks" | "funds" | "fx" | "economy";
 
 const cardGridVariants: Variants = {
   hidden: {},
@@ -310,30 +311,37 @@ function SummaryCards({ data }: { data: MarketSnapshot }) {
   );
 }
 
-function StockPanel({ data }: { data: MarketSnapshot }) {
+function AssetPanel({ assets, kind }: { assets: StockSnapshot[]; kind: "stock" | "fund" }) {
+  const isFund = kind === "fund";
+
   return (
-    <motion.div className="grid gap-3 lg:grid-cols-3" variants={cardGridVariants} initial="hidden" animate="visible">
-      {data.stocks.map((stock) => (
-        <motion.div key={stock.symbol} variants={cardVariants} whileHover={{ y: -3 }} className="min-w-0">
+    <motion.div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" variants={cardGridVariants} initial="hidden" animate="visible">
+      {assets.map((asset) => (
+        <motion.div key={asset.symbol} variants={cardVariants} whileHover={{ y: -3 }} className="min-w-0">
           <Card className="h-full min-h-[220px] overflow-hidden">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-accent/10 text-sm font-black text-accent">{stock.symbol.slice(0, 2)}</span>
+                <span className={cn(
+                  "grid h-10 w-10 shrink-0 place-items-center rounded-md text-sm font-black",
+                  isFund ? "bg-violet/10 text-violet" : "bg-accent/10 text-accent"
+                )}>
+                  {asset.symbol.slice(0, 3)}
+                </span>
                 <div className="min-w-0">
-                  <p className="truncate font-bold">{stock.name}</p>
-                  <p className="text-xs font-semibold text-ink/45">{stock.symbol}</p>
+                  <p className="truncate font-bold">{asset.name}</p>
+                  <p className="text-xs font-semibold text-ink/45">{asset.symbol}</p>
                 </div>
               </div>
-              <StatusBadge status={stock.status} />
+              <StatusBadge status={asset.status} />
             </div>
             <div className="mt-5 flex items-end justify-between gap-3">
-              <p className="text-2xl font-bold"><AnimatedNumber value={stock.value} format={stockNumber.format} /></p>
-              <ChangeBadge value={stock.changePercent} />
+              <p className="text-2xl font-bold"><AnimatedNumber value={asset.value} format={stockNumber.format} /></p>
+              <ChangeBadge value={asset.changePercent} />
             </div>
             <div className="mt-3">
-              <MiniTrend points={stock.series} color={stock.change >= 0 ? "rgb(var(--color-moss))" : "rgb(var(--color-coral))"} />
+              <MiniTrend points={asset.series} color={asset.change >= 0 ? "rgb(var(--color-moss))" : "rgb(var(--color-coral))"} />
             </div>
-            <p className="mt-2 text-xs text-ink/45">Lokaverð {sourceDate(stock.asOf)}</p>
+            <p className="mt-2 text-xs text-ink/45">{isFund ? "Lokaverð sjóðs" : "Lokaverð"} {sourceDate(asset.asOf)}</p>
           </Card>
         </motion.div>
       ))}
@@ -413,6 +421,7 @@ export function MarketOverview({
   const [tab, setTab] = useState<MarketTab>("stocks");
   const tabs: Array<{ id: MarketTab; label: string; icon: typeof ChartLineUpIcon }> = [
     { id: "stocks", label: "Hlutabréf", icon: ChartLineUpIcon },
+    { id: "funds", label: "Sjóðir", icon: ChartPieSliceIcon },
     { id: "fx", label: "Gengi", icon: GlobeHemisphereWestIcon },
     { id: "economy", label: "Hagkerfið", icon: BankIcon }
   ];
@@ -472,7 +481,8 @@ export function MarketOverview({
                 exit={{ opacity: 0, y: -5 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               >
-                {tab === "stocks" ? <StockPanel data={data} /> : null}
+                {tab === "stocks" ? <AssetPanel assets={data.stocks} kind="stock" /> : null}
+                {tab === "funds" ? <AssetPanel assets={data.funds} kind="fund" /> : null}
                 {tab === "fx" ? <FxPanel data={data} /> : null}
                 {tab === "economy" ? <EconomyPanel data={data} /> : null}
               </motion.div>

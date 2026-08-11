@@ -8,6 +8,7 @@ import { DotsThreeCircleIcon } from "@phosphor-icons/react/dist/csr/DotsThreeCir
 import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
 import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
+import { HouseLineIcon } from "@phosphor-icons/react/dist/csr/HouseLine";
 import { InvoiceIcon } from "@phosphor-icons/react/dist/csr/Invoice";
 import { PiggyBankIcon } from "@phosphor-icons/react/dist/csr/PiggyBank";
 import { ReceiptIcon } from "@phosphor-icons/react/dist/csr/Receipt";
@@ -32,6 +33,7 @@ const nav: NavItem[] = [
   { href: "/expenses", label: "Útgjöld" },
   { href: "/bills", label: "Reikningar" },
   { href: "/savings-goals", label: "Sparnaður" },
+  { href: "/real-estate", label: "Fasteignir" },
   { href: "/markets", label: "Markaðir" },
   { href: "/analytics", label: "Greining" }
 ];
@@ -47,6 +49,7 @@ const moreNav = [
   { href: "/income", label: "Tekjur", icon: TrendUpIcon },
   { href: "/bills", label: "Reikningar", icon: InvoiceIcon },
   { href: "/savings-goals", label: "Sparnaður", icon: PiggyBankIcon },
+  { href: "/real-estate", label: "Fasteignir", icon: HouseLineIcon },
   { href: "/markets", label: "Markaðir", icon: GlobeHemisphereWestIcon },
   { href: "/analytics", label: "Greining", icon: ChartLineUpIcon },
   { href: "/settings", label: "Stillingar", icon: GearSixIcon }

@@ -58,6 +58,7 @@ export type MarketSnapshot = {
   policyRate: PolicyRateSnapshot;
   fx: FxSnapshot[];
   stocks: StockSnapshot[];
+  funds: StockSnapshot[];
 };
 
 const PX_CPI_URL = "https://px.hagstofa.is/pxen/api/v1/en/Efnahagur/visitolur/1_vnv/1_vnv/VIS01000.px";
@@ -111,8 +112,25 @@ const alphaVantageSchema = z.object({
 const stockDefinitions = [
   { symbol: "AAPL", name: "Apple" },
   { symbol: "MSFT", name: "Microsoft" },
-  { symbol: "NVDA", name: "NVIDIA" }
+  { symbol: "NVDA", name: "NVIDIA" },
+  { symbol: "GOOGL", name: "Alphabet" },
+  { symbol: "AMZN", name: "Amazon" },
+  { symbol: "META", name: "Meta Platforms" },
+  { symbol: "TSLA", name: "Tesla" }
 ] as const;
+
+const fundDefinitions = [
+  { symbol: "VOO", name: "Vanguard S&P 500 ETF" },
+  { symbol: "QQQ", name: "Invesco QQQ Trust" },
+  { symbol: "VT", name: "Vanguard Total World Stock ETF" },
+  { symbol: "VTI", name: "Vanguard Total Stock Market ETF" },
+  { symbol: "SCHD", name: "Schwab U.S. Dividend Equity ETF" }
+] as const;
+
+type MarketAssetDefinition = {
+  symbol: string;
+  name: string;
+};
 
 const fxDefinitions = [
   { code: "EUR", name: "Evra", pair: "EURISK" },
@@ -289,7 +307,7 @@ async function fetchFxRates() {
   return Promise.all(fxDefinitions.map(fetchFxRate));
 }
 
-async function fetchStock(definition: (typeof stockDefinitions)[number], apiKey: string): Promise<StockSnapshot> {
+async function fetchMarketAsset(definition: MarketAssetDefinition, apiKey: string): Promise<StockSnapshot> {
   const query = new URLSearchParams({
     function: "TIME_SERIES_DAILY",
     symbol: definition.symbol,
@@ -327,12 +345,19 @@ async function fetchStock(definition: (typeof stockDefinitions)[number], apiKey:
   };
 }
 
-async function fetchStocks() {
+async function fetchMarketAssets() {
   const apiKey = process.env.ALPHA_VANTAGE_API_KEY?.trim();
-  if (!apiKey) return fallbackStocks;
+  if (!apiKey) return { stocks: fallbackStocks, funds: fallbackFunds };
 
-  const results = await Promise.allSettled(stockDefinitions.map((definition) => fetchStock(definition, apiKey)));
-  return results.map((result, index) => (result.status === "fulfilled" ? result.value : fallbackStocks[index]));
+  const definitions: MarketAssetDefinition[] = [...stockDefinitions, ...fundDefinitions];
+  const fallbacks = [...fallbackStocks, ...fallbackFunds];
+  const results = await Promise.allSettled(definitions.map((definition) => fetchMarketAsset(definition, apiKey)));
+  const assets = results.map((result, index) => (result.status === "fulfilled" ? result.value : fallbacks[index]));
+
+  return {
+    stocks: assets.slice(0, stockDefinitions.length),
+    funds: assets.slice(stockDefinitions.length)
+  };
 }
 
 const fallbackInflation: InflationSnapshot = {
@@ -383,7 +408,11 @@ const fallbackFx: FxSnapshot[] = [
 const fallbackStocks: StockSnapshot[] = [
   { symbol: "AAPL", name: "Apple", value: 231.4, change: 2.8, changePercent: 1.23 },
   { symbol: "MSFT", name: "Microsoft", value: 514.7, change: -1.9, changePercent: -0.37 },
-  { symbol: "NVDA", name: "NVIDIA", value: 182.6, change: 3.1, changePercent: 1.73 }
+  { symbol: "NVDA", name: "NVIDIA", value: 182.6, change: 3.1, changePercent: 1.73 },
+  { symbol: "GOOGL", name: "Alphabet", value: 201.1, change: 1.7, changePercent: 0.85 },
+  { symbol: "AMZN", name: "Amazon", value: 229.6, change: -0.8, changePercent: -0.35 },
+  { symbol: "META", name: "Meta Platforms", value: 782.3, change: 6.2, changePercent: 0.8 },
+  { symbol: "TSLA", name: "Tesla", value: 339, change: -4.5, changePercent: -1.31 }
 ].map((item, itemIndex) => ({
   ...item,
   currency: "USD",
@@ -396,24 +425,46 @@ const fallbackStocks: StockSnapshot[] = [
   }))
 }));
 
+const fallbackFunds: StockSnapshot[] = [
+  { symbol: "VOO", name: "Vanguard S&P 500 ETF", value: 625.2, change: 3.1, changePercent: 0.5 },
+  { symbol: "QQQ", name: "Invesco QQQ Trust", value: 572.1, change: 4.2, changePercent: 0.74 },
+  { symbol: "VT", name: "Vanguard Total World Stock ETF", value: 139.4, change: 0.5, changePercent: 0.36 },
+  { symbol: "VTI", name: "Vanguard Total Stock Market ETF", value: 326.8, change: 1.4, changePercent: 0.43 },
+  { symbol: "SCHD", name: "Schwab U.S. Dividend Equity ETF", value: 30.1, change: -0.08, changePercent: -0.27 }
+].map((item, itemIndex) => ({
+  ...item,
+  currency: "USD",
+  asOf: "2026-08-08",
+  status: "sample" as const,
+  series: Array.from({ length: 16 }, (_, index) => ({
+    date: `2026-07-${String(index + 10).padStart(2, "0")}`,
+    label: String(index + 1),
+    value: item.value * (0.955 + index * 0.003 + Math.sin(index * 0.65 + itemIndex) * 0.008)
+  }))
+}));
+
 const getInflationCached = unstable_cache(fetchInflation, ["market-inflation-v1"], { revalidate: 21_600 });
 const getPolicyRateCached = unstable_cache(fetchPolicyRate, ["market-policy-rate-v1"], { revalidate: 3_600 });
 const getFxRatesCached = unstable_cache(fetchFxRates, ["market-fx-v1"], { revalidate: 3_600 });
-const getStocksCached = unstable_cache(fetchStocks, ["market-stocks-v1"], { revalidate: 21_600 });
+const getMarketAssetsCached = unstable_cache(fetchMarketAssets, ["market-assets-v2"], { revalidate: 86_400 });
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
-  const [inflationResult, policyRateResult, fxResult, stocksResult] = await Promise.allSettled([
+  const [inflationResult, policyRateResult, fxResult, assetsResult] = await Promise.allSettled([
     getInflationCached(),
     getPolicyRateCached(),
     getFxRatesCached(),
-    getStocksCached()
+    getMarketAssetsCached()
   ]);
+  const assets = assetsResult.status === "fulfilled"
+    ? assetsResult.value
+    : { stocks: fallbackStocks, funds: fallbackFunds };
 
   return {
     generatedAt: new Date().toISOString(),
     inflation: inflationResult.status === "fulfilled" ? inflationResult.value : fallbackInflation,
     policyRate: policyRateResult.status === "fulfilled" ? policyRateResult.value : fallbackPolicyRate,
     fx: fxResult.status === "fulfilled" ? fxResult.value : fallbackFx,
-    stocks: stocksResult.status === "fulfilled" ? stocksResult.value : fallbackStocks
+    stocks: assets.stocks,
+    funds: assets.funds
   };
 }

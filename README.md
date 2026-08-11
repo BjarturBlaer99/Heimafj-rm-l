@@ -24,6 +24,7 @@ Personal finance web app built with Next.js App Router, TypeScript, Tailwind CSS
 - Savings tracking and savings goal progress
 - Live inflation, policy-rate and FX market overview
 - Optional Alpha Vantage stock market data
+- Live residential property price trends and mortgage calculator
 - Settings and categories
 
 ## Environment Variables

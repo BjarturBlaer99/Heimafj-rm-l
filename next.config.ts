@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
       { source: "/utgjold", destination: "/expenses", permanent: false },
       { source: "/reikningar", destination: "/bills", permanent: false },
       { source: "/sparnadur", destination: "/savings-goals", permanent: false },
+      { source: "/fasteignir", destination: "/real-estate", permanent: false },
       { source: "/markadir", destination: "/markets", permanent: false },
       { source: "/greining", destination: "/analytics", permanent: false },
       { source: "/stillingar", destination: "/settings", permanent: false }
