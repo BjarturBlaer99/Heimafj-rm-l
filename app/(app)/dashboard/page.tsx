@@ -7,9 +7,11 @@ import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Recei
 import { TagIcon as Tags } from "@phosphor-icons/react/dist/ssr/Tag";
 import Link from "next/link";
 import { PieBreakdown, Sparkline, TrendChart } from "@/components/charts";
+import { MarketOverview } from "@/components/market-overview";
 import { Button, Card, EmptyState, ProgressBar } from "@/components/ui";
 import { getDashboardData } from "@/lib/data";
 import { currentMonth, money, percent } from "@/lib/format";
+import { getMarketSnapshot } from "@/lib/market-data";
 
 function monthLabel(month: string) {
   const date = new Date(`${month}-01T00:00:00`);
@@ -35,7 +37,7 @@ function MetricBar({ label, value, detail, danger = false }: { label: string; va
 }
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const [data, marketData] = await Promise.all([getDashboardData(), getMarketSnapshot()]);
   const currency = data.profile?.currency ?? "ISK";
   const month = currentMonth();
   const displayName = data.profile?.full_name?.trim() ?? "";
@@ -204,6 +206,10 @@ export default async function DashboardPage() {
             </Link>
           );
         })}
+      </section>
+
+      <section className="mt-7 border-t border-line/10 pt-7">
+        <MarketOverview data={marketData} compact detailsHref="/markets" />
       </section>
 
       <section className="mt-5 grid items-stretch gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(300px,0.9fr)]">

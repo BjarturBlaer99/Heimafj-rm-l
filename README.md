@@ -22,6 +22,8 @@ Personal finance web app built with Next.js App Router, TypeScript, Tailwind CSS
 - Expense analysis
 - Income tracking
 - Savings tracking and savings goal progress
+- Live inflation, policy-rate and FX market overview
+- Optional Alpha Vantage stock market data
 - Settings and categories
 
 ## Environment Variables
@@ -32,9 +34,12 @@ Create `.env.development.local` for local development and point it at the develo
 NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-publishable-key"
 NEXT_PUBLIC_SITE_URL="http://localhost:5173"
+ALPHA_VANTAGE_API_KEY="your-server-only-key"
 ```
 
 The file is ignored by Git. Local development and Vercel Preview must never use the production Supabase project.
+
+`ALPHA_VANTAGE_API_KEY` is optional and must stay server-only. Without it, stock cards use clearly labelled sample data; inflation, policy rates and FX data still load from their public providers.
 
 Use this environment split in Vercel:
 
@@ -43,6 +48,7 @@ Use this environment split in Vercel:
 | `NEXT_PUBLIC_SUPABASE_URL` | Production Supabase URL | Development Supabase URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production publishable key | Development publishable key |
 | `NEXT_PUBLIC_SITE_URL` | Production app URL | Not set; Vercel supplies the deployment URL |
+| `ALPHA_VANTAGE_API_KEY` | Optional server-only market key | Optional server-only market key |
 
 For production, `NEXT_PUBLIC_SITE_URL` should be the real deployed URL, for example:
 

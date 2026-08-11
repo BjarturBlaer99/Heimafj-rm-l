@@ -16,7 +16,7 @@ export function AnimatedNumber({ value, format = String }: { value: number; form
     const controls = animate(0, value, {
       duration: 0.78,
       ease: [0.22, 1, 0.36, 1],
-      onUpdate: (latest) => setDisplayValue(Math.round(latest))
+      onUpdate: (latest) => setDisplayValue(latest)
     });
 
     return () => controls.stop();

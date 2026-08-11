@@ -18,6 +18,7 @@ import { AnimatePresence, motion, MotionConfig, type Variants } from "motion/rea
 import Link from "next/link";
 import { useState } from "react";
 import { CategoryBars, PieBreakdown, Sparkline, TrendChart } from "@/components/charts";
+import { MarketOverview } from "@/components/market-overview";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
@@ -35,6 +36,7 @@ import {
   type DemoTransaction
 } from "@/lib/demo-data";
 import { money } from "@/lib/format";
+import type { MarketSnapshot } from "@/lib/market-data";
 import { cn } from "@/lib/utils";
 
 type DemoView = "overview" | "transactions" | "bills" | "savings" | "analytics";
@@ -84,7 +86,7 @@ function ViewHeading({ title, description }: { title: string; description: strin
   );
 }
 
-function Overview({ onNavigate }: { onNavigate: (view: DemoView) => void }) {
+function Overview({ onNavigate, marketData }: { onNavigate: (view: DemoView) => void; marketData: MarketSnapshot }) {
   const stats = [
     { label: "Tekjur", value: demoSummary.income, tone: "text-moss", icon: TrendUpIcon, view: "analytics" as const, key: "income" },
     { label: "Útgjöld", value: demoSummary.expenses, tone: "text-coral", icon: TrendDownIcon, view: "analytics" as const, key: "expenses" },
@@ -117,7 +119,7 @@ function Overview({ onNavigate }: { onNavigate: (view: DemoView) => void }) {
                     </span>
                   </div>
                   <p className={cn("mt-3 text-xl font-bold", stat.tone)}>
-                    <AnimatedNumber value={stat.value} format={stat.key === "count" ? String : money} />
+                    <AnimatedNumber value={stat.value} format={stat.key === "count" ? (value) => String(Math.round(value)) : money} />
                   </p>
                   <Sparkline data={demoTrend} dataKey={stat.key === "count" ? "expenses" : stat.key} />
                 </button>
@@ -181,6 +183,10 @@ function Overview({ onNavigate }: { onNavigate: (view: DemoView) => void }) {
         </div>
         <PieBreakdown data={demoCategories} />
       </Card>
+
+      <div className="mt-7 border-t border-line/10 pt-7">
+        <MarketOverview data={marketData} />
+      </div>
     </>
   );
 }
@@ -345,7 +351,7 @@ function Analytics() {
   );
 }
 
-export function DemoApp() {
+export function DemoApp({ marketData }: { marketData: MarketSnapshot }) {
   const [view, setView] = useState<DemoView>("overview");
 
   function navigate(nextView: DemoView) {
@@ -439,7 +445,7 @@ export function DemoApp() {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
           >
-            {view === "overview" ? <Overview onNavigate={navigate} /> : null}
+            {view === "overview" ? <Overview onNavigate={navigate} marketData={marketData} /> : null}
             {view === "transactions" ? <Transactions /> : null}
             {view === "bills" ? <Bills /> : null}
             {view === "savings" ? <Savings /> : null}
