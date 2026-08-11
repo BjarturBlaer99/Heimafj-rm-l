@@ -13,6 +13,7 @@ import { PiggyBankIcon } from "@phosphor-icons/react/dist/csr/PiggyBank";
 import { ReceiptIcon } from "@phosphor-icons/react/dist/csr/Receipt";
 import { TrendDownIcon } from "@phosphor-icons/react/dist/csr/TrendDown";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
+import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
 import { WalletIcon } from "@phosphor-icons/react/dist/csr/Wallet";
 import Link from "next/link";
 import { useState } from "react";
@@ -344,6 +345,15 @@ export function DemoApp() {
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
             <ThemeToggle compact />
+            <Link
+              href="/login"
+              className="focus-ring inline-flex min-h-10 items-center gap-2 rounded-md border border-line/15 bg-surface px-2.5 text-sm font-bold text-ink/65 shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-ink"
+              title="Innskráning"
+              aria-label="Innskráning"
+            >
+              <UserCircleIcon size={19} weight="duotone" />
+              <span className="hidden md:inline">Innskráning</span>
+            </Link>
             <Link href="/signup" className="focus-ring motion-link inline-flex min-h-10 items-center gap-2 rounded-md bg-accent px-3 text-sm font-bold text-onAccent transition hover:bg-accent/90">
               <span className="hidden sm:inline">Stofna aðgang</span>
               <span className="sm:hidden">Stofna</span>
