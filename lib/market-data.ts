@@ -366,27 +366,52 @@ async function fetchMarketAsset(definition: MarketAssetDefinition, apiKey: strin
   };
 }
 
-async function fetchMarketAssets() {
+function marketAssetFailureReason(error: unknown) {
+  return error instanceof Error && error.message.startsWith("alpha-vantage:")
+    ? error.message.slice("alpha-vantage:".length)
+    : "request-error";
+}
+
+function logMarketAssetFailures(failures: Record<string, number>) {
+  console.warn(`[market-data] Alpha Vantage fallbacks: ${JSON.stringify(failures)}`);
+}
+
+async function fetchMarketAssetsLive() {
   const apiKey = process.env.ALPHA_VANTAGE_API_KEY?.trim();
   if (!apiKey) {
     throw new Error("ALPHA_VANTAGE_API_KEY is not configured");
   }
 
   const definitions: MarketAssetDefinition[] = [...stockDefinitions, ...fundDefinitions];
-  const fallbacks = [...fallbackStocks, ...fallbackFunds];
-  const results = await Promise.allSettled(definitions.map((definition) => fetchMarketAsset(definition, apiKey)));
-  const assets = results.map((result, index) => (result.status === "fulfilled" ? result.value : fallbacks[index]));
-  const failures = results.reduce<Record<string, number>>((summary, result) => {
-    if (result.status === "fulfilled") return summary;
-    const reason = result.reason instanceof Error && result.reason.message.startsWith("alpha-vantage:")
-      ? result.reason.message.slice("alpha-vantage:".length)
-      : "request-error";
-    summary[reason] = (summary[reason] ?? 0) + 1;
-    return summary;
-  }, {});
+  const [probeDefinition, ...remainingDefinitions] = definitions;
+  let probe: StockSnapshot;
+
+  try {
+    probe = await fetchMarketAsset(probeDefinition, apiKey);
+  } catch (error) {
+    logMarketAssetFailures({ [marketAssetFailureReason(error)]: 1 });
+    throw error;
+  }
+
+  const results = await Promise.allSettled(
+    remainingDefinitions.map((definition) => fetchMarketAsset(definition, apiKey))
+  );
+  const assets = [probe];
+  const failures: Record<string, number> = {};
+
+  results.forEach((result) => {
+    if (result.status === "fulfilled") {
+      assets.push(result.value);
+      return;
+    }
+
+    const reason = marketAssetFailureReason(result.reason);
+    failures[reason] = (failures[reason] ?? 0) + 1;
+  });
 
   if (Object.keys(failures).length > 0) {
-    console.warn(`[market-data] Alpha Vantage fallbacks: ${JSON.stringify(failures)}`);
+    logMarketAssetFailures(failures);
+    throw new Error("Alpha Vantage market refresh was incomplete");
   }
 
   return {
@@ -481,11 +506,20 @@ const fallbackFunds: StockSnapshot[] = [
 const getInflationCached = unstable_cache(fetchInflation, ["market-inflation-v1"], { revalidate: 21_600 });
 const getPolicyRateCached = unstable_cache(fetchPolicyRate, ["market-policy-rate-v1"], { revalidate: 3_600 });
 const getFxRatesCached = unstable_cache(fetchFxRates, ["market-fx-v1"], { revalidate: 3_600 });
-const getMarketAssetsCached = unstable_cache(fetchMarketAssets, ["market-assets-v4"], { revalidate: 86_400 });
+const getMarketAssetsLiveCached = unstable_cache(fetchMarketAssetsLive, ["market-assets-live-v1"], {
+  revalidate: 86_400
+});
+const getMarketAssetsRetryCached = unstable_cache(async () => {
+  try {
+    return await getMarketAssetsLiveCached();
+  } catch {
+    return { stocks: fallbackStocks, funds: fallbackFunds };
+  }
+}, ["market-assets-retry-v1"], { revalidate: 21_600 });
 
 async function getMarketAssets() {
   return process.env.ALPHA_VANTAGE_API_KEY?.trim()
-    ? getMarketAssetsCached()
+    ? getMarketAssetsRetryCached()
     : { stocks: fallbackStocks, funds: fallbackFunds };
 }
 
