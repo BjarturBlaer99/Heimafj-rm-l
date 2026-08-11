@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
 
-  if (path === "/") {
+  if (path === "/" || path === "/demo") {
     return response;
   }
 

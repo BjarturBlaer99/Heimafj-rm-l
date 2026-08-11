@@ -1,5 +1,6 @@
 "use client";
 
+import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
 import Link from "next/link";
 import { useActionState } from "react";
 import { Button, Card, Field, inputClass } from "@/components/ui";
@@ -37,9 +38,15 @@ export function AuthForm({
   return (
     <main className="grid min-h-screen place-items-center bg-paper px-4 py-10">
       <Card className="w-full max-w-md border-line/15">
-        <Link href="/" className="focus-ring mb-8 inline-flex rounded-md text-base font-extrabold">
-          Mín <span className="ml-1 text-accent">fjármál</span>
-        </Link>
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <Link href="/" className="focus-ring inline-flex rounded-md text-base font-extrabold">
+            Mín <span className="ml-1 text-accent">fjármál</span>
+          </Link>
+          <Link href="/" className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-md px-2.5 text-sm font-semibold text-ink/60 transition hover:bg-muted hover:text-ink">
+            <HouseIcon size={17} weight="duotone" />
+            Heim
+          </Link>
+        </div>
         <h1 className="text-2xl font-bold">{title}</h1>
         <p className="mt-1 text-sm text-ink/55">Örugg leið inn í persónulega fjármálayfirlitið þitt.</p>
 

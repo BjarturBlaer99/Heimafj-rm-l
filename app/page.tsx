@@ -1,6 +1,5 @@
 import { ArrowRightIcon as ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { CheckCircleIcon as CheckCircle2 } from "@phosphor-icons/react/dist/ssr/CheckCircle";
-import { MoonIcon as Moon } from "@phosphor-icons/react/dist/ssr/Moon";
 import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Receipt";
 import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
 import { TrendUpIcon as TrendingUp } from "@phosphor-icons/react/dist/ssr/TrendUp";
@@ -61,12 +60,12 @@ export default function HomePage() {
             Íslenskt fjármálayfirlit með færslum, reikningum, sparnaði, greiningu og skýrri mánaðarstöðu.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link className="focus-ring pressable motion-link inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-5 py-3 text-sm font-bold text-onAccent transition hover:bg-accent/90" href="/signup">
-              Prófa með eigin gögnum
+            <Link className="focus-ring pressable motion-link inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-5 py-3 text-sm font-bold text-onAccent transition hover:bg-accent/90" href="/demo">
+              Skoða sýningarútgáfu
               <ArrowRight size={17} />
             </Link>
-            <Link className="focus-ring pressable inline-flex min-h-11 items-center rounded-md border border-line/15 bg-surface/70 px-5 py-3 text-sm font-bold text-ink shadow-sm transition hover:border-accent/30 hover:bg-muted" href="/login">
-              Ég á nú þegar aðgang
+            <Link className="focus-ring pressable inline-flex min-h-11 items-center rounded-md border border-line/15 bg-surface/70 px-5 py-3 text-sm font-bold text-ink shadow-sm transition hover:border-accent/30 hover:bg-muted" href="/signup">
+              Prófa með eigin gögnum
             </Link>
           </div>
         </div>
@@ -78,9 +77,10 @@ export default function HomePage() {
               <p className="text-sm font-semibold text-ink/55">Sýnigögn</p>
               <h2 className="text-xl font-bold">Júní 2026</h2>
             </div>
-            <div className="grid h-10 w-10 place-items-center rounded-md bg-accent/10 text-accent">
-              <Moon size={18} />
-            </div>
+            <Link href="/demo" className="focus-ring motion-link inline-flex min-h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-accent transition hover:bg-muted">
+              Opna sýningu
+              <ArrowRight size={16} />
+            </Link>
           </div>
 
           <div className="stagger-children grid gap-3 sm:grid-cols-3">
