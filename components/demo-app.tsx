@@ -93,11 +93,18 @@ function ViewHeading({ title, description }: { title: string; description: strin
 }
 
 function Overview({ onNavigate, marketData }: { onNavigate: (view: DemoView) => void; marketData: MarketSnapshot }) {
+  const monthBalanceTone = demoSummary.balance > 0 ? "text-moss" : demoSummary.balance < 0 ? "text-coral" : "text-ink";
+  const monthBalanceColor = demoSummary.balance > 0
+    ? "rgb(var(--color-moss))"
+    : demoSummary.balance < 0
+      ? "rgb(var(--color-coral))"
+      : "rgb(var(--color-ink))";
+  const balanceRate = demoSummary.income > 0 ? (demoSummary.balance / demoSummary.income) * 100 : 0;
   const stats = [
-    { label: "Tekjur", value: demoSummary.income, tone: "text-moss", icon: TrendUpIcon, view: "analytics" as const, key: "income" },
-    { label: "Útgjöld", value: demoSummary.expenses, tone: "text-coral", icon: TrendDownIcon, view: "analytics" as const, key: "expenses" },
-    { label: "Eftir", value: demoSummary.balance, tone: "text-accent", icon: WalletIcon, view: "savings" as const, key: "savings" },
-    { label: "Færslur", value: demoSummary.transactionCount, tone: "text-ink", icon: ReceiptIcon, view: "transactions" as const, key: "count" }
+    { label: "Tekjur", value: demoSummary.income, tone: "text-moss", color: "rgb(var(--color-moss))", icon: TrendUpIcon, view: "analytics" as const, key: "income" },
+    { label: "Útgjöld", value: demoSummary.expenses, tone: "text-coral", color: "rgb(var(--color-coral))", icon: TrendDownIcon, view: "analytics" as const, key: "expenses" },
+    { label: "Eftir mánuðinn", value: demoSummary.balance, tone: monthBalanceTone, color: monthBalanceColor, icon: WalletIcon, view: "analytics" as const, key: "savings" },
+    { label: "Færslur", value: demoSummary.transactionCount, tone: "text-ink", color: "rgb(var(--color-accent))", icon: ReceiptIcon, view: "transactions" as const, key: null }
   ];
 
   return (
@@ -125,9 +132,16 @@ function Overview({ onNavigate, marketData }: { onNavigate: (view: DemoView) => 
                     </span>
                   </div>
                   <p className={cn("mt-3 text-xl font-bold", stat.tone)}>
-                    <AnimatedNumber value={stat.value} format={stat.key === "count" ? (value) => String(Math.round(value)) : money} />
+                    <AnimatedNumber value={stat.value} format={stat.key ? money : (value) => String(Math.round(value))} />
                   </p>
-                  <Sparkline data={demoTrend} dataKey={stat.key === "count" ? "expenses" : stat.key} />
+                  {stat.key ? (
+                    <Sparkline data={demoTrend} dataKey={stat.key} color={stat.color} />
+                  ) : (
+                    <div className="mt-5 flex items-center gap-2 text-xs font-medium text-ink/45">
+                      <span className="h-px flex-1 bg-accent/35" />
+                      <span>í þessum mánuði</span>
+                    </div>
+                  )}
                 </button>
               </Card>
             </motion.div>
@@ -149,18 +163,20 @@ function Overview({ onNavigate, marketData }: { onNavigate: (view: DemoView) => 
 
         <Card className="h-full">
           <div className="flex items-center gap-2">
-            <CheckCircleIcon size={20} className="text-moss" weight="duotone" />
+            <CheckCircleIcon size={20} className={monthBalanceTone} weight="duotone" />
             <h3 className="font-bold">Mánaðarstaða</h3>
           </div>
-          <p className="mt-5 text-3xl font-bold text-moss">Góð</p>
-          <p className="mt-1 text-sm text-ink/55">37% af tekjum eru eftir.</p>
+          <p className={cn("mt-5 text-3xl font-bold", monthBalanceTone)}>
+            {demoSummary.balance > 0 ? "Góð" : demoSummary.balance < 0 ? "Þarf athygli" : "Jafnvægi"}
+          </p>
+          <p className="mt-1 text-sm text-ink/55">{Math.round(balanceRate)}% af tekjum eru eftir.</p>
           <div className="mt-6 grid gap-4">
             <div>
               <div className="mb-1.5 flex justify-between text-xs font-semibold">
                 <span>Sparnaðarhlutfall</span>
-                <span>12%</span>
+                <span>{Math.round(balanceRate)}%</span>
               </div>
-              <AnimatedProgress value={12} />
+              <AnimatedProgress value={Math.max(0, Math.min(balanceRate, 100))} />
             </div>
             <div>
               <div className="mb-1.5 flex justify-between text-xs font-semibold">

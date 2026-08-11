@@ -65,6 +65,12 @@ export default async function DashboardPage() {
   const primaryGoal = data.goals[0] ?? null;
   const goalProgress = primaryGoal ? (data.totalSavingsBalance / Number(primaryGoal.target_amount)) * 100 : 0;
   const positiveMonth = data.savings >= 0;
+  const monthBalanceTone = data.savings > 0 ? "text-moss" : data.savings < 0 ? "text-coral" : "text-ink";
+  const monthBalanceColor = data.savings > 0
+    ? "rgb(var(--color-moss))"
+    : data.savings < 0
+      ? "rgb(var(--color-coral))"
+      : "rgb(var(--color-ink))";
   const financialStatus = positiveMonth && data.unpaidBillsTotal === 0 ? "Mjög góð" : positiveMonth ? "Góð" : "Þarf athygli";
   const statusClass = positiveMonth ? "border-moss/20 bg-moss/10 text-moss" : "border-coral/20 bg-coral/10 text-coral";
 
@@ -127,9 +133,9 @@ export default async function DashboardPage() {
       value: money(data.savings, currency),
       href: `/monthly-overview?month=${month}`,
       dataKey: "savings",
-      color: "rgb(var(--color-accent))",
+      color: monthBalanceColor,
       icon: PiggyBank,
-      tone: positiveMonth ? "text-accent" : "text-coral"
+      tone: monthBalanceTone
     },
     {
       label: "Fjöldi færslna",

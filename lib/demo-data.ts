@@ -16,12 +16,12 @@ export const demoSummary = {
 };
 
 export const demoTrend = [
-  { month: "jan.", income: 635000, expenses: 421000, savings: 70000 },
-  { month: "feb.", income: 648000, expenses: 438000, savings: 75000 },
-  { month: "mar.", income: 655000, expenses: 402000, savings: 85000 },
-  { month: "apr.", income: 690000, expenses: 455000, savings: 80000 },
-  { month: "maí", income: 680000, expenses: 512000, savings: 45000 },
-  { month: "jún.", income: 742000, expenses: 468500, savings: 90000 }
+  { month: "jan.", income: 635000, expenses: 421000, savings: 214000 },
+  { month: "feb.", income: 648000, expenses: 438000, savings: 210000 },
+  { month: "mar.", income: 655000, expenses: 402000, savings: 253000 },
+  { month: "apr.", income: 690000, expenses: 455000, savings: 235000 },
+  { month: "maí", income: 680000, expenses: 512000, savings: 168000 },
+  { month: "jún.", income: 742000, expenses: 468500, savings: 273500 }
 ];
 
 export const demoCategories = [

@@ -29,6 +29,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
   const budgetUsage = budgetAmount > 0 ? (data.expenses / budgetAmount) * 100 : 0;
   const topExpenseCategory = data.spendingByCategory[0] ?? null;
   const averageDailyExpense = data.expenses / daysInMonth(month);
+  const monthBalanceTone = data.savings > 0 ? "text-moss" : data.savings < 0 ? "text-coral" : "text-ink";
   const categoryLinks = Object.fromEntries(
     data.expenseTransactions
       .filter((transaction) => transaction.category_id && transaction.categories?.name)
@@ -38,7 +39,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
     { label: "Útgjöld", value: money(data.expenses, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
     { label: "Stærsti flokkur", value: topExpenseCategory?.name ?? "Enginn", href: "/expenses", icon: ReceiptText, color: "text-ink" },
     { label: "Meðalútgjöld á dag", value: money(averageDailyExpense, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
-    { label: "Eftir mánuðinn", value: money(data.savings, currency), href: `/transactions?month=${month}`, icon: PiggyBank, color: data.savings >= 0 ? "text-moss" : "text-coral" }
+    { label: "Eftir mánuðinn", value: money(data.savings, currency), href: `/transactions?month=${month}`, icon: PiggyBank, color: monthBalanceTone }
   ];
 
   return (
@@ -107,7 +108,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
             </div>
             <div className="flex justify-between gap-4 border-t border-line/10 pt-3">
               <span className="text-ink/55">Eftir mánuðinn</span>
-              <span className={`font-bold ${data.savings >= 0 ? "text-moss" : "text-coral"}`}>{money(data.savings, currency)}</span>
+              <span className={`font-bold ${monthBalanceTone}`}>{money(data.savings, currency)}</span>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-ink/55">Sparnaðarfærslur</span>
