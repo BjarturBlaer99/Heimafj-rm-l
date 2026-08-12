@@ -3,6 +3,7 @@
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
 import Link from "next/link";
 import { useActionState } from "react";
+import { AppFooter } from "@/components/app-footer";
 import { Button, Card, Field, inputClass } from "@/components/ui";
 import { forgotPasswordAction, loginAction, resetPasswordAction, signupAction, type AuthState } from "@/lib/auth-actions";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
@@ -36,8 +37,9 @@ export function AuthForm({
           : "Velkomin aftur";
 
   return (
-    <main className="grid min-h-screen place-items-center bg-paper px-4 py-10">
-      <Card className="w-full max-w-md border-line/15">
+    <div className="flex min-h-screen flex-col bg-paper text-ink">
+      <main className="grid flex-1 place-items-center px-4 py-10 sm:py-14">
+        <Card className="w-full max-w-md border-line/15">
         <div className="mb-8 flex items-center justify-between gap-4">
           <Link href="/" className="focus-ring inline-flex rounded-md text-base font-extrabold">
             Mín <span className="ml-1 text-accent">fjármál</span>
@@ -98,7 +100,9 @@ export function AuthForm({
           {mode !== "signup" && <Link href="/signup">Stofna aðgang</Link>}
           {mode === "login" && <Link href="/forgot-password">Gleymt lykilorð?</Link>}
         </div>
-      </Card>
-    </main>
+        </Card>
+      </main>
+      <AppFooter mode="demo" showProductLinks={false} />
+    </div>
   );
 }

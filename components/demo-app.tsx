@@ -22,6 +22,7 @@ import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { AnimatePresence, motion, MotionConfig, type Variants } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AppFooter } from "@/components/app-footer";
 import { CategoryBars, PieBreakdown, Sparkline, TrendChart } from "@/components/charts";
 import { ChangeBadge, MarketOverview, StatusBadge } from "@/components/market-overview";
 import { RealEstateOverview } from "@/components/real-estate-overview";
@@ -428,7 +429,7 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
   return (
     <MotionConfig reducedMotion="user">
       <TooltipProvider delayDuration={280}>
-        <div className="min-h-screen bg-paper text-ink">
+        <div className="flex min-h-screen flex-col bg-paper text-ink">
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -491,7 +492,7 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
         </div>
       </motion.header>
 
-      <main className="mx-auto min-w-0 max-w-[1200px] px-3 pb-28 pt-5 sm:px-5 sm:pt-7 lg:pb-10">
+      <main className="mx-auto min-w-0 w-full max-w-[1200px] flex-1 px-3 pb-10 pt-5 sm:px-5 sm:pt-7 lg:pb-12">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Badge>Sýningarútgáfa</Badge>
@@ -521,6 +522,8 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <AppFooter mode="demo" onDemoNavigate={navigate} reserveMobileNavSpace />
 
       <motion.nav
         initial={{ opacity: 0, y: 16 }}
