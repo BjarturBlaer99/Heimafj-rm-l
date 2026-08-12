@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Card, EmptyState, Field, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, Field, SectionHeader, inputClass } from "@/components/ui";
 import { importTransactionsForClient } from "@/lib/actions";
 import { money } from "@/lib/format";
 import type { Category } from "@/lib/types";
@@ -558,6 +558,7 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
   return (
     <div className="grid gap-5">
       <Card>
+        <SectionHeader title="Flytja inn bankaskrá" description="Veldu CSV, XLS eða XLSX og staðfestu dálkamöppun áður en færslur eru fluttar inn." />
         <div className="mb-4">
           <Field label="Veldu CSV eða Excel skrá">
             <input
@@ -572,7 +573,7 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
         </div>
         <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
           <Field label="Gögn til innflutnings">
-            <textarea className={`${inputClass} h-72 py-2 font-mono text-xs`} value={csvText} onChange={(event) => setCsvText(event.target.value)} />
+            <textarea className={`${inputClass} h-48 py-2 font-mono text-xs sm:h-72`} value={csvText} onChange={(event) => setCsvText(event.target.value)} />
           </Field>
           <div className="grid content-start gap-4">
             <Field label="Dagsetning">
@@ -624,13 +625,10 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
         </div>
       </Card>
 
-      <Card className="overflow-x-auto">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-bold">Forskoðun á kortaeyðslu</h2>
-          <Button type="button" disabled={importRows.length === 0 || isImporting} onClick={() => void submitImport()}>
+      <Card>
+        <SectionHeader title="Forskoðun á kortaeyðslu" description="Yfirfarðu færslurnar og flokkunina áður en þú vistar þær." action={<Button type="button" disabled={importRows.length === 0 || isImporting} onClick={() => void submitImport()}>
             {isImporting ? "Flyt inn..." : `Flytja inn ${importRows.length} færslur`}
-          </Button>
-        </div>
+          </Button>} />
         {importError ? <div className="mb-4 rounded-lg border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">{importError}</div> : null}
         {detectedRows.length > maxImportRows ? (
           <div className="mb-4 rounded-lg border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">
@@ -638,7 +636,22 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
           </div>
         ) : null}
         {importRows.length ? (
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <>
+            <div className="grid gap-2 sm:hidden">
+              {importRows.slice(0, 25).map((row, index) => (
+                <article key={`${row.date}-${index}`} className="rounded-md border border-line/10 bg-muted/25 p-3">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{row.note}</p>
+                      <p className="mt-0.5 text-xs text-ink/50">{row.date} · {row.category_id ? categoryNames.get(row.category_id) ?? "Óþekktur flokkur" : "Óflokkað"}</p>
+                    </div>
+                    <p className="shrink-0 font-bold text-coral">-{money(row.amount)}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="text-ink/55">
               <tr>
                 <th className="pb-3">Dagsetning</th>
@@ -659,7 +672,9 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+              </table>
+            </div>
+          </>
         ) : (
           <EmptyState>Engin gild kortaeyðsla fannst. Athugaðu dálkamöppun og skráarsnið.</EmptyState>
         )}
@@ -667,7 +682,7 @@ export function CsvImporter({ categories }: { categories: Category[] }) {
 
       {sortedCategorySummary.length ? (
         <Card>
-          <h2 className="mb-4 font-bold">Flokkunarsamantekt</h2>
+          <SectionHeader title="Flokkunarsamantekt" description="Færslur og upphæðir eftir sjálfvirkri flokkun." />
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {sortedCategorySummary.map((item) => (
               <div key={item.name} className="rounded-lg border border-line/15 bg-surface/70 p-4">

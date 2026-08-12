@@ -4,7 +4,7 @@ import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
 import Link from "next/link";
 import { CategoryBars } from "@/components/charts";
-import { Button, Card, EmptyState, PageHeader, ProgressBar, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
 import { deleteBudget, saveBudget } from "@/lib/actions";
 import { getAllBudgets, getBudgets, getCategories, getTransactions } from "@/lib/data";
 import { currentMonth, money } from "@/lib/format";
@@ -63,43 +63,17 @@ export default async function ExpensesPage() {
 
   return (
     <>
-      <PageHeader title="Útgjöld" />
+      <PageHeader title="Útgjöld" description="Greindu útgjöld, settu mánaðaráætlun og fylgstu með stöðunni í rauntíma." />
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
-        <Card>
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-ink/55">Útgjöld í mánuðinum</p>
-            <TrendingDown className="text-coral" size={20} />
-          </div>
-          <p className="mt-3 text-2xl font-bold">{money(expenseTotal, currency)}</p>
-        </Card>
-        <Card>
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-ink/55">Stærsti útgjaldaflokkur</p>
-            <WalletCards className="text-accent" size={20} />
-          </div>
-          {topExpense?.id ? (
-            <Link className="mt-3 block text-xl font-bold text-accent underline-offset-2 hover:underline" href={`/transactions/category/${topExpense.id}?month=${month}&type=expense`}>
-              {topExpense.name}
-            </Link>
-          ) : (
-            <p className="mt-3 text-xl font-bold">{topExpense?.name ?? "Enginn flokkur"}</p>
-          )}
-          <p className="mt-1 text-sm text-ink/55">{topExpense ? money(topExpense.value, currency) : "0 kr."}</p>
-        </Card>
-        <Card>
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-ink/55">Mánaðaráætlun</p>
-            <WalletCards className="text-accent" size={20} />
-          </div>
-          <p className="mt-3 text-2xl font-bold">{money(currentMonthlyBudget, currency)}</p>
-          <p className="mt-1 text-sm text-ink/55">Heildaráætlun fyrir {monthLabel(month)}</p>
-        </Card>
+        <MetricCard label="Útgjöld í mánuðinum" value={money(expenseTotal, currency)} detail={monthLabel(month)} icon={<TrendingDown size={19} weight="duotone" />} tone="coral" />
+        <MetricCard label="Stærsti útgjaldaflokkur" value={topExpense?.name ?? "Enginn flokkur"} detail={topExpense ? money(topExpense.value, currency) : "0 kr."} icon={<WalletCards size={19} weight="duotone" />} tone="gold" href={topExpense?.id ? `/transactions/category/${topExpense.id}?month=${month}&type=expense` : undefined} />
+        <MetricCard label="Mánaðaráætlun" value={money(currentMonthlyBudget, currency)} detail={`Heildaráætlun fyrir ${monthLabel(month)}`} icon={<WalletCards size={19} weight="duotone" />} tone="accent" />
       </div>
 
       <div className="mb-5 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
         <Card>
-          <h2 className="mb-4 font-bold">Útgjöld eftir flokkum</h2>
+          <SectionHeader title="Útgjöld eftir flokkum" description="Flokkar raðaðir eftir heildarupphæð í mánuðinum." />
           {categoryTotals.length ? (
             <div className="space-y-4">
               <CategoryBars data={categoryTotals.slice(0, 8).map((item) => ({ name: item.name, value: item.value }))} />
@@ -111,13 +85,13 @@ export default async function ExpensesPage() {
                       className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm font-semibold text-accent transition hover:bg-muted"
                       href={`/transactions/category/${item.id}?month=${month}&type=expense`}
                     >
-                      <span>{item.name}</span>
-                      <span>{money(item.value, currency)}</span>
+                      <span className="min-w-0 truncate">{item.name}</span>
+                      <span className="shrink-0">{money(item.value, currency)}</span>
                     </Link>
                   ) : (
                     <div key={item.name} className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/60 px-3 py-2 text-sm text-ink/60">
-                      <span>{item.name}</span>
-                      <span>{money(item.value, currency)}</span>
+                      <span className="min-w-0 truncate">{item.name}</span>
+                      <span className="shrink-0">{money(item.value, currency)}</span>
                     </div>
                   )
                 )}
@@ -128,17 +102,17 @@ export default async function ExpensesPage() {
           )}
         </Card>
         <Card>
-          <h2 className="mb-4 font-bold">Mánaðarstaða</h2>
+          <SectionHeader title="Mánaðarstaða" description="Samanburður útgjalda við heildaráætlun mánaðarins." />
           {currentMonthlyBudget > 0 ? (
             <div>
-              <div className="mb-2 flex justify-between text-sm">
+              <div className="mb-2 grid grid-cols-2 gap-2 text-sm">
                 <span>{money(expenseTotal, currency)} notað</span>
-                <span>{money(currentMonthlyBudget, currency)} áætlað</span>
+                <span className="text-right">{money(currentMonthlyBudget, currency)} áætlað</span>
               </div>
               <ProgressBar value={currentBudgetProgress} />
-              <div className="mt-3 flex justify-between text-sm text-ink/55">
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-ink/55">
                 <span>{money(Math.max(0, currentMonthlyBudget - expenseTotal), currency)} eftir</span>
-                {currentBudgetProgress > 100 ? <span className="font-semibold text-coral">Yfir áætlun</span> : <span>Innan áætlunar</span>}
+                {currentBudgetProgress > 100 ? <span className="text-right font-semibold text-coral">Yfir áætlun</span> : <span className="text-right">Innan áætlunar</span>}
               </div>
             </div>
           ) : (
@@ -148,10 +122,7 @@ export default async function ExpensesPage() {
       </div>
 
       <Card className="mb-5">
-        <div className="mb-4">
-          <h2 className="font-bold">Útgjaldaáætlun</h2>
-          <p className="text-sm text-ink/55">Settu heildaráætlun eða áætlun fyrir einstaka útgjaldaflokka.</p>
-        </div>
+        <SectionHeader title="Útgjaldaáætlun" description="Settu heildaráætlun eða áætlun fyrir einstaka útgjaldaflokka." />
         <form action={saveBudget} className="grid gap-3 md:grid-cols-[1fr_150px_150px_auto]">
           <select className={inputClass} name="category_id">
             <option value="">Heildaráætlun</option>
@@ -172,10 +143,44 @@ export default async function ExpensesPage() {
         </form>
       </Card>
 
-      <Card className="mb-5 overflow-x-auto">
-        <h2 className="mb-4 font-bold">Mánaðaryfirlit</h2>
+      <Card className="mb-5">
+        <SectionHeader title="Mánaðaryfirlit" description="Samanburður áætlunar og raunútgjalda fyrri mánaða." />
         {monthlyOverview.length ? (
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <>
+            <div className="grid gap-2 md:hidden">
+              {monthlyOverview.map((row) => {
+                const difference = row.budgetAmount - row.spentAmount;
+                const usage = row.budgetAmount > 0 ? (row.spentAmount / row.budgetAmount) * 100 : 0;
+                return (
+                  <article key={row.month} className="rounded-md border border-line/10 bg-muted/25 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold capitalize">{monthLabel(row.month)}</p>
+                        <p className={difference < 0 ? "mt-0.5 text-xs font-semibold text-coral" : "mt-0.5 text-xs font-semibold text-moss"}>
+                          {difference < 0 ? "Yfir áætlun" : "Innan áætlunar"}
+                        </p>
+                      </div>
+                      <p className={difference < 0 ? "shrink-0 font-bold text-coral" : "shrink-0 font-bold text-moss"}>{money(difference, currency)}</p>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-line/8 pt-3 text-xs">
+                      <span className="text-ink/50">Áætlun</span>
+                      <span className="text-right font-semibold">{money(row.budgetAmount, currency)}</span>
+                      <span className="text-ink/50">Útgjöld</span>
+                      <span className="text-right font-semibold">{money(row.spentAmount, currency)}</span>
+                    </div>
+                    <div className="mt-3">
+                      <div className="mb-1 flex justify-between text-xs text-ink/50">
+                        <span>Nýting</span>
+                        <span>{Math.round(usage)}%</span>
+                      </div>
+                      <ProgressBar value={usage} />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="text-ink/55">
               <tr>
                 <th className="pb-3">Mánuður</th>
@@ -217,13 +222,17 @@ export default async function ExpensesPage() {
                 );
               })}
             </tbody>
-          </table>
+              </table>
+            </div>
+          </>
         ) : (
           <EmptyState>Engir lokaðir mánuðir með útgjaldayfirliti enn.</EmptyState>
         )}
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <section>
+        <SectionHeader title="Áætlanir þessa mánaðar" description="Breyttu eða fjarlægðu virkar áætlanir eftir þörfum." />
+        <div className="grid gap-4 lg:grid-cols-2">
         {currentBudgets.length ? (
           currentBudgets.map((budget) => {
             const spent = budget.category_id
@@ -246,14 +255,14 @@ export default async function ExpensesPage() {
                   </form>
                 </div>
                 <div className="mt-5">
-                  <div className="mb-2 flex justify-between text-sm">
+                  <div className="mb-2 grid grid-cols-2 gap-2 text-sm">
                     <span>{money(spent, currency)} notað</span>
-                    <span>{money(Number(budget.amount), currency)} áætlað</span>
+                    <span className="text-right">{money(Number(budget.amount), currency)} áætlað</span>
                   </div>
                   <ProgressBar value={usage} />
-                  <div className="mt-2 flex justify-between text-sm text-ink/55">
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-ink/55">
                     <span>{money(Math.max(0, Number(budget.amount) - spent), currency)} eftir</span>
-                    {usage > 100 ? <span className="font-semibold text-coral">Yfir áætlun</span> : <span>Innan áætlunar</span>}
+                    {usage > 100 ? <span className="text-right font-semibold text-coral">Yfir áætlun</span> : <span className="text-right">Innan áætlunar</span>}
                   </div>
                 </div>
                 <details className="mt-4">
@@ -283,7 +292,8 @@ export default async function ExpensesPage() {
         ) : (
           <EmptyState>Engar útgjaldaáætlanir skráðar fyrir þennan mánuð.</EmptyState>
         )}
-      </div>
+        </div>
+      </section>
     </>
   );
 }

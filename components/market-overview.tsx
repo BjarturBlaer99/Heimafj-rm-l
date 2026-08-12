@@ -89,7 +89,7 @@ function sourceTimestamp(date: string) {
   return `${day}. ${month} kl. ${hours}:${minutes}`;
 }
 
-function ChangeBadge({ value, suffix = "%", inverse = false }: { value: number; suffix?: string; inverse?: boolean }) {
+export function ChangeBadge({ value, suffix = "%", inverse = false }: { value: number; suffix?: string; inverse?: boolean }) {
   const positive = value > 0;
   const negative = value < 0;
   const Icon = positive ? ArrowUpRightIcon : negative ? ArrowDownRightIcon : PulseIcon;
@@ -190,7 +190,7 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
   );
 }
 
-function StatusBadge({ status, minimal = false }: { status: "live" | "sample"; minimal?: boolean }) {
+export function StatusBadge({ status, minimal = false }: { status: "live" | "sample"; minimal?: boolean }) {
   if (status === "sample") return <Badge variant="neutral">Sýnigögn</Badge>;
   if (!minimal) return <Badge variant="success">Uppfært</Badge>;
 
@@ -451,7 +451,7 @@ export function MarketOverview({
 
         {!compact ? (
           <div className="mt-4">
-            <div className="mb-4 flex max-w-full overflow-x-auto rounded-md border border-line/10 bg-muted/65 p-1" role="tablist" aria-label="Markaðsgögn">
+            <div className="mb-4 grid max-w-full grid-cols-2 gap-1 rounded-md border border-line/10 bg-muted/65 p-1 sm:flex sm:overflow-x-auto" role="tablist" aria-label="Markaðsgögn">
               {tabs.map((item) => {
                 const active = tab === item.id;
                 const Icon = item.icon;
@@ -462,7 +462,7 @@ export function MarketOverview({
                     role="tab"
                     aria-selected={active}
                     onClick={() => setTab(item.id)}
-                    className={cn("focus-ring relative flex min-h-10 min-w-[116px] flex-1 items-center justify-center gap-2 overflow-hidden rounded-md px-3 text-sm font-bold transition", active ? "text-ink" : "text-ink/50 hover:text-ink")}
+                    className={cn("focus-ring relative flex min-h-10 min-w-0 flex-1 items-center justify-center gap-2 overflow-hidden rounded-md px-2 text-xs font-bold transition sm:min-w-[116px] sm:px-3 sm:text-sm", active ? "text-ink" : "text-ink/50 hover:text-ink")}
                   >
                     {active ? <motion.span layoutId="market-tab" className="absolute inset-0 rounded-md bg-surface shadow-sm" transition={{ type: "spring", stiffness: 430, damping: 34 }} /> : null}
                     <Icon className="relative z-10" size={17} weight={active ? "fill" : "duotone"} />

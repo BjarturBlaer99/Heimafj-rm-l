@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { ArrowLeftIcon as ArrowLeft } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
-import { Card, EmptyState, PageHeader } from "@/components/ui";
+import { CalendarDotsIcon as CalendarDays } from "@phosphor-icons/react/dist/ssr/CalendarDots";
+import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Receipt";
+import { Card, EmptyState, MetricCard, PageHeader, SectionHeader } from "@/components/ui";
 import { getCategoryById, getTransactions } from "@/lib/data";
 import { currentMonth, money } from "@/lib/format";
+
+function monthLabel(month: string) {
+  const date = new Date(`${month}-01T00:00:00`);
+  return new Intl.DateTimeFormat("is-IS", { month: "long", year: "numeric" }).format(date);
+}
 
 export default async function CategoryTransactionsPage({
   params,
@@ -41,22 +48,34 @@ export default async function CategoryTransactionsPage({
         </Link>
       </div>
 
-      <PageHeader title={title} />
+      <PageHeader title={title} description={`Færslur í flokknum fyrir ${monthLabel(month)}.`} />
 
       <div className="mb-5 grid gap-4 md:grid-cols-2">
-        <Card>
-          <p className="text-sm font-semibold text-ink/55">Tímabil</p>
-          <p className="mt-2 text-xl font-bold">{month}</p>
-        </Card>
-        <Card>
-          <p className="text-sm font-semibold text-ink/55">Samtals í flokki</p>
-          <p className="mt-2 text-xl font-bold">{money(total, "ISK")}</p>
-        </Card>
+        <MetricCard label="Tímabil" value={monthLabel(month)} detail={`${transactions.length} færslur`} icon={<CalendarDays size={19} weight="duotone" />} tone="accent" />
+        <MetricCard label="Samtals í flokki" value={money(total, "ISK")} detail={type === "income" ? "Tekjur" : "Útgjöld"} icon={<ReceiptText size={19} weight="duotone" />} tone={type === "income" ? "moss" : "coral"} />
       </div>
 
-      <Card className="overflow-x-auto">
+      <Card>
+        <SectionHeader title="Færslur í flokki" description="Nákvæm sundurliðun valins tímabils." />
         {transactions.length ? (
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <>
+            <div className="grid gap-2 sm:hidden">
+              {transactions.map((transaction) => (
+                <article key={transaction.id} className="rounded-md border border-line/10 bg-muted/25 p-3">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{transaction.note || "Færsla"}</p>
+                      <p className="mt-0.5 text-xs text-ink/50">{transaction.date} · {transaction.type === "income" ? "Tekjur" : "Útgjöld"}</p>
+                    </div>
+                    <p className={transaction.type === "income" ? "shrink-0 font-bold text-moss" : "shrink-0 font-bold text-coral"}>
+                      {transaction.type === "income" ? "+" : "-"}{money(Number(transaction.amount), "ISK")}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="text-ink/55">
               <tr>
                 <th className="pb-3">Dagsetning</th>
@@ -75,7 +94,9 @@ export default async function CategoryTransactionsPage({
                 </tr>
               ))}
             </tbody>
-          </table>
+              </table>
+            </div>
+          </>
         ) : (
           <EmptyState>Engar færslur fundust í þessum flokki fyrir valið tímabil.</EmptyState>
         )}

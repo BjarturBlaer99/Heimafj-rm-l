@@ -5,7 +5,7 @@ import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { ConfirmButton } from "@/components/confirm-button";
 import { FlashMessage } from "@/components/flash-message";
-import { Button, Card, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, Field, MetricCard, PageHeader, SectionHeader, inputClass } from "@/components/ui";
 import { deleteBill, deleteBillPayment, markBillPaid, saveBill } from "@/lib/actions";
 import { getBillsForMonth, getCategories } from "@/lib/data";
 import { currentMonth, money } from "@/lib/format";
@@ -29,7 +29,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader title="Reikningar" />
+      <PageHeader title="Reikningar" description="Haltu utan um endurteknar greiðslur og sjáðu hvað er greitt eða ógreitt í hverjum mánuði." />
       <FlashMessage code={params.success} />
 
       {!billsResult.schemaReady ? (
@@ -39,29 +39,19 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
       ) : (
         <>
           <div className="mb-5 grid gap-4 md:grid-cols-3">
-            <Card>
-              <p className="text-sm font-semibold text-ink/55">Greitt í {monthLabel(month)}</p>
-              <p className="mt-3 text-2xl font-bold text-moss">{money(paidTotal, currency)}</p>
-            </Card>
-            <Card>
-              <p className="text-sm font-semibold text-ink/55">Ógreitt</p>
-              <p className="mt-3 text-2xl font-bold text-coral">{money(unpaidTotal, currency)}</p>
-            </Card>
-            <Card>
-              <p className="text-sm font-semibold text-ink/55">Staða reikninga</p>
-              <p className="mt-3 text-2xl font-bold">
-                {paidBills.length}/{activeBills.length}
-              </p>
-            </Card>
+            <MetricCard label={`Greitt í ${monthLabel(month)}`} value={money(paidTotal, currency)} detail={`${paidBills.length} reikningar greiddir`} icon={<CheckCircle2 size={19} weight="duotone" />} tone="moss" />
+            <MetricCard label="Ógreitt" value={money(unpaidTotal, currency)} detail={`${unpaidBills.length} reikningar bíða greiðslu`} icon={<Circle size={19} weight="duotone" />} tone="coral" />
+            <MetricCard label="Staða reikninga" value={`${paidBills.length}/${activeBills.length}`} detail="Greiddir af virkum reikningum" icon={<CheckCircle2 size={19} weight="duotone" />} tone="accent" />
           </div>
 
           <Card className="mb-5">
+            <SectionHeader title="Velja tímabil" description="Skoðaðu greiðslustöðu reikninga eftir mánuðum." />
             <form className="grid gap-3 sm:grid-cols-[1fr_auto]">
               <Field label="Mánuður">
                 <input className={inputClass} name="month" type="month" defaultValue={month} />
               </Field>
               <div className="flex items-end">
-                <Button type="submit" variant="secondary">
+                <Button type="submit" variant="secondary" className="w-full sm:w-auto">
                   Skoða mánuð
                 </Button>
               </div>
@@ -69,10 +59,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
           </Card>
 
           <Card className="mb-5">
-            <div className="mb-4">
-              <h2 className="font-bold">Nýr reikningur</h2>
-              <p className="text-sm text-ink/55">Þegar reikningur er merktur greiddur verður hann að útgjaldafærslu í völdum mánuði.</p>
-            </div>
+            <SectionHeader title="Nýr reikningur" description="Þegar reikningur er merktur greiddur verður hann að útgjaldafærslu í völdum mánuði." />
             <form action={saveBill} className="grid gap-3 md:grid-cols-[1fr_150px_120px_1fr_auto]">
               <input className={inputClass} name="name" placeholder="Heiti reiknings" required />
               <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" placeholder="Upphæð" required />
@@ -90,7 +77,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                 Virkur
               </label>
               <div className="md:col-span-5">
-                <Button type="submit">
+                <Button type="submit" className="w-full sm:w-auto">
                   <Plus size={17} />
                   Bæta við
                 </Button>
@@ -98,7 +85,9 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
             </form>
           </Card>
 
-          <div className="grid gap-4">
+          <section>
+            <SectionHeader title="Reikningar mánaðarins" description={`${activeBills.length} virkir reikningar fyrir ${monthLabel(month)}.`} />
+            <div className="grid gap-4">
             {billsResult.bills.length ? (
               billsResult.bills.map((bill) => (
                 <Card key={bill.id} className={!bill.is_active ? "opacity-65" : undefined}>
@@ -176,7 +165,8 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
             ) : (
               <EmptyState>Engir reikningar skráðir enn. Bættu við fyrsta reikningnum hér að ofan og merktu hann svo greiddan fyrir mánuðinn.</EmptyState>
             )}
-          </div>
+            </div>
+          </section>
         </>
       )}
     </>

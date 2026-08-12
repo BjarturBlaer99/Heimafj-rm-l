@@ -5,7 +5,7 @@ import { SignOutIcon as LogOut } from "@phosphor-icons/react/dist/ssr/SignOut";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { PasswordChangeForm } from "@/components/password-change-form";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button, Card, EmptyState, Field, inputClass, PageHeader } from "@/components/ui";
+import { Button, Card, EmptyState, Field, inputClass, PageHeader, SectionHeader } from "@/components/ui";
 import { deleteCategory, saveCategory, saveProfile, signOut } from "@/lib/actions";
 import { getCategories, getProfile } from "@/lib/data";
 
@@ -14,11 +14,11 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Stillingar" />
+      <PageHeader title="Stillingar" description="Stjórnaðu prófíl, útliti, aðgangsöryggi og flokkun fjármálagagna." />
       <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
         <div className="grid gap-5">
           <Card>
-            <h2 className="mb-4 font-bold">Prófíll</h2>
+            <SectionHeader title="Prófíll" description="Grunnupplýsingar sem birtast í appinu." />
             <form action={saveProfile} className="grid gap-4">
               <Field label="Fullt nafn">
                 <input className={inputClass} name="full_name" defaultValue={profile?.full_name ?? ""} required />
@@ -31,20 +31,12 @@ export default async function SettingsPage() {
           </Card>
 
           <Card>
-            <div className="mb-4 flex items-center gap-2">
-              <MoonStar size={18} className="text-accent" />
-              <h2 className="font-bold">Þema</h2>
-            </div>
-            <p className="mb-4 text-sm text-ink/60">Skiptu á milli ljósrar og dökkrar útgáfu eftir því sem hentar þér best.</p>
+            <SectionHeader title="Þema" description="Veldu það útlit sem hentar þér best." action={<MoonStar size={19} className="text-accent" weight="duotone" />} />
             <ThemeToggle />
           </Card>
 
           <Card>
-            <div className="mb-4 flex items-center gap-2">
-              <LockKey size={18} className="text-accent" />
-              <h2 className="font-bold">Aðgangur</h2>
-            </div>
-            <p className="mb-4 text-sm text-ink/60">Uppfærðu lykilorðið sem þú notar til að skrá þig inn.</p>
+            <SectionHeader title="Aðgangur" description="Lykilorð og innskráningarstýring." action={<LockKey size={19} className="text-accent" weight="duotone" />} />
             <PasswordChangeForm />
 
             <div className="my-5 border-t border-line/10" />
@@ -59,7 +51,7 @@ export default async function SettingsPage() {
         </div>
 
         <Card>
-          <h2 className="mb-4 font-bold">Flokkar</h2>
+          <SectionHeader title="Flokkar" description="Sérsníddu flokkun tekna og útgjalda." />
           <form action={saveCategory} className="mb-5 grid gap-3 sm:grid-cols-[1fr_140px_auto]">
             <input className={inputClass} name="name" placeholder="Heiti flokks" required />
             <select className={inputClass} name="type">

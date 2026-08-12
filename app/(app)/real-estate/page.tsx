@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RealEstateOverview } from "@/components/real-estate-overview";
+import { PageHeader } from "@/components/ui";
 import { getRealEstateSnapshot } from "@/lib/real-estate-data";
 
 export const metadata: Metadata = {
@@ -12,10 +13,7 @@ export default async function RealEstatePage() {
 
   return (
     <>
-      <header className="mb-6 border-b border-line/10 pb-5">
-        <h1 className="text-2xl font-bold leading-tight sm:text-3xl">Fasteignir</h1>
-        <p className="mt-1 text-sm text-ink/55">Kannaðu markaðinn, reiknaðu lánið og berðu saman eignir á einum stað.</p>
-      </header>
+      <PageHeader title="Fasteignir" description="Kannaðu markaðinn, reiknaðu lánið og berðu saman eignir á einum stað." />
       <RealEstateOverview data={realEstateData} />
     </>
   );

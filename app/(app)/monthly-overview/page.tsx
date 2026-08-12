@@ -6,7 +6,7 @@ import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Recei
 import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
 import Link from "next/link";
 import { PieBreakdown } from "@/components/charts";
-import { Card, EmptyState, Field, PageHeader, ProgressBar, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, Field, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
 import { getMonthlyOverviewData, getOverviewMonths } from "@/lib/data";
 import { currentMonth, money, percent } from "@/lib/format";
 
@@ -36,17 +36,18 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
       .map((transaction) => [transaction.categories?.name, `/transactions/category/${transaction.category_id}?month=${month}&type=expense`])
   );
   const stats = [
-    { label: "Útgjöld", value: money(data.expenses, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
-    { label: "Stærsti flokkur", value: topExpenseCategory?.name ?? "Enginn", href: "/expenses", icon: ReceiptText, color: "text-ink" },
-    { label: "Meðalútgjöld á dag", value: money(averageDailyExpense, currency), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, color: "text-coral" },
-    { label: "Eftir mánuðinn", value: money(data.savings, currency), href: `/transactions?month=${month}`, icon: PiggyBank, color: monthBalanceTone }
+    { label: "Útgjöld", value: money(data.expenses, currency), detail: monthLabel(month), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, tone: "coral" as const },
+    { label: "Stærsti flokkur", value: topExpenseCategory?.name ?? "Enginn", detail: topExpenseCategory ? money(topExpenseCategory.value, currency) : "Engin útgjöld", href: "/expenses", icon: ReceiptText, tone: "gold" as const },
+    { label: "Meðalútgjöld á dag", value: money(averageDailyExpense, currency), detail: `Miðað við ${daysInMonth(month)} daga`, href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, tone: "coral" as const },
+    { label: "Eftir mánuðinn", value: money(data.savings, currency), detail: data.savings >= 0 ? "Mánuðurinn er í plús" : "Mánuðurinn er í mínus", href: `/transactions?month=${month}`, icon: PiggyBank, tone: data.savings > 0 ? "moss" as const : data.savings < 0 ? "coral" as const : "neutral" as const }
   ];
 
   return (
     <>
-      <PageHeader title="Mánaðaryfirlit" />
+      <PageHeader title="Mánaðaryfirlit" description="Farðu yfir tekjur, útgjöld, reikninga og stöðu eins mánaðar í einni heildarmynd." />
 
       <Card className="mb-5">
+        <SectionHeader title="Velja mánuð" description="Skiptu á milli mánaða án þess að missa yfirsýnina." />
         <form className="grid gap-3 sm:grid-cols-[1fr_auto]">
           <Field label="Mánuður">
             <select className={inputClass} name="month" defaultValue={month}>
@@ -59,9 +60,9 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
             </select>
           </Field>
           <div className="flex items-end">
-            <button className="focus-ring min-h-10 w-full rounded-md border border-line/15 bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-sm transition hover:bg-muted sm:w-auto" type="submit">
+            <Button className="w-full sm:w-auto" type="submit" variant="secondary">
               Skoða
-            </button>
+            </Button>
           </div>
         </form>
       </Card>
@@ -70,25 +71,14 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Link key={stat.label} href={stat.href} className="block">
-            <Card className="h-full transition hover:border-line/20 hover:bg-muted/60">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-ink/55">{stat.label}</p>
-                <Icon className={stat.color} size={20} />
-              </div>
-              <p className={`mt-3 text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-            </Card>
-            </Link>
+            <MetricCard key={stat.label} label={stat.label} value={stat.value} detail={stat.detail} href={stat.href} icon={<Icon size={19} weight="duotone" />} tone={stat.tone} />
           );
         })}
       </div>
 
       <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
-          <div className="mb-4 flex items-center gap-2">
-            <CalendarDays size={18} className="text-accent" />
-            <h2 className="font-bold">{monthLabel(month)}</h2>
-          </div>
+          <SectionHeader title={monthLabel(month)} description="Helstu tölur valda mánaðarins." action={<CalendarDays size={19} className="text-accent" weight="duotone" />} />
           <div className="grid gap-3 text-sm">
             <div className="flex justify-between gap-4">
               <span className="text-ink/55">Heildartekjur</span>
@@ -118,7 +108,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
         </Card>
 
         <Card>
-          <h2 className="mb-4 font-bold">Áætlun mánaðar</h2>
+          <SectionHeader title="Áætlun mánaðar" description="Raunútgjöld borin saman við skráða áætlun." />
           {budgetAmount > 0 ? (
             <>
               <div className="mb-2 flex justify-between text-sm">
@@ -141,16 +131,13 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
 
       <div className="mb-5 grid gap-5 xl:grid-cols-2">
         <Card>
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="font-bold">Útgjöld eftir flokkum</h2>
-            <Link className="text-sm font-semibold text-accent underline-offset-2 hover:underline" href={`/transactions?month=${month}&type=expense`}>
+          <SectionHeader title="Útgjöld eftir flokkum" description="Sundurliðun valda mánaðarins." action={<Link className="text-sm font-semibold text-accent underline-offset-2 hover:underline" href={`/transactions?month=${month}&type=expense`}>
               Sjá færslur
-            </Link>
-          </div>
+            </Link>} />
           {data.spendingByCategory.length ? <PieBreakdown data={data.spendingByCategory} links={categoryLinks} /> : <EmptyState>Engin útgjöld í þessum mánuði.</EmptyState>}
         </Card>
         <Card>
-          <h2 className="mb-4 font-bold">Stærstu útgjöld</h2>
+          <SectionHeader title="Stærstu útgjöld" description="Hæstu einstöku útgjaldafærslur mánaðarins." />
           {data.expenseTransactions.length ? (
             <div className="divide-y divide-line/10">
               {data.expenseTransactions.slice(0, 8).map((tx) => (
@@ -171,7 +158,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
 
       <div className="mb-5 grid gap-5 xl:grid-cols-2">
         <Card>
-          <h2 className="mb-4 font-bold">Reikningar</h2>
+          <SectionHeader title="Reikningar" description="Greiðslustaða endurtekinna reikninga." />
           {!data.billsReady ? (
             <EmptyState>Reikningataflan er ekki virk í Supabase enn.</EmptyState>
           ) : data.bills.length ? (
@@ -198,7 +185,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
         </Card>
 
         <Card>
-          <h2 className="mb-4 font-bold">Nýlegar færslur</h2>
+          <SectionHeader title="Nýlegar færslur" description="Síðustu hreyfingar valda mánaðarins." />
           {data.transactions.length ? (
             <div className="divide-y divide-line/10">
               {data.transactions.slice(0, 8).map((tx) => (

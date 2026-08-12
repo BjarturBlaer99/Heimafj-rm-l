@@ -1,8 +1,11 @@
+import { ChartLineUpIcon as ChartLineUp } from "@phosphor-icons/react/dist/ssr/ChartLineUp";
+import { HouseLineIcon as HouseLine } from "@phosphor-icons/react/dist/ssr/HouseLine";
+import { PiggyBankIcon as PiggyBank } from "@phosphor-icons/react/dist/ssr/PiggyBank";
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { ConfirmButton } from "@/components/confirm-button";
 import { FlashMessage } from "@/components/flash-message";
-import { Button, Card, EmptyState, PageHeader, ProgressBar, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
 import { addSavingsBucketAmount, deleteSavingsGoal, saveSavingsBucket, saveSavingsGoal } from "@/lib/actions";
 import { getSavingsBucketEntries, getSavingsBuckets, getSavingsGoals } from "@/lib/data";
 import { isoDate, money, percent } from "@/lib/format";
@@ -25,9 +28,15 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
 
   return (
     <>
-      <PageHeader title="Sparnaður" />
+      <PageHeader title="Sparnaður" description="Fylgstu með heildarsparnaði, skiptingu hans og framvindu að markmiðum." />
 
       <FlashMessage code={params.success} />
+
+      <div className="mb-5 grid gap-4 md:grid-cols-3">
+        <MetricCard label="Heildarsparnaður" value={money(totalSavings, currency)} detail={`${savingsBucketsResult.buckets.length} sparnaðarflokkar`} icon={<PiggyBank size={19} weight="duotone" />} tone="moss" />
+        <MetricCard label="Húsnæðisparnaður" value={money(housingSavings, currency)} detail="Séreign og húsnæðissparnaður" icon={<HouseLine size={19} weight="duotone" />} tone="accent" />
+        <MetricCard label="Fjárfestingar" value={money(emergencySavings, currency)} detail="Hlutabréf og sjóðir" icon={<ChartLineUp size={19} weight="duotone" />} tone="violet" />
+      </div>
 
       {!savingsBucketsResult.schemaReady ? (
         <Card className="mb-5 border-gold/60 bg-gold/10">
@@ -39,17 +48,11 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
         </Card>
       ) : null}
 
-      <Card className="mb-5">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold">Heildarsparnaður</h2>
-            <p className="text-sm text-ink/55">Skiptu upp raunverulegum sparnaði eftir tegund.</p>
-          </div>
-          <p className="text-3xl font-bold text-lagoon">{money(totalSavings, currency)}</p>
-        </div>
+      <section className="mb-6">
+        <SectionHeader title="Sparnaðarflokkar" description="Skiptu raunverulegum sparnaði eftir tegund og skráðu ný framlög." />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {savingsBucketsResult.buckets.map((bucket) => (
-            <div key={bucket.bucket_type} className="rounded-lg border border-line/10 bg-surface/70 p-4">
+            <Card key={bucket.bucket_type} className="h-full">
               <p className="text-sm font-semibold text-ink/60">{bucket.label}</p>
               <p className="mt-2 text-xl font-bold">{money(Number(bucket.amount), currency)}</p>
               {savingsEntriesResult.schemaReady ? (
@@ -84,13 +87,13 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
                   </Button>
                 </form>
               </details>
-            </div>
+            </Card>
           ))}
         </div>
-      </Card>
+      </section>
 
       <Card className="mb-5">
-        <h2 className="mb-4 text-lg font-bold">Síðustu sparnaðarskráningar</h2>
+        <SectionHeader title="Síðustu sparnaðarskráningar" description="Nýjustu framlögin í alla sparnaðarflokka." />
         {savingsEntriesResult.schemaReady ? (
           savingsEntriesResult.entries.length ? (
             <div className="divide-y divide-line/10">
@@ -115,51 +118,12 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
         )}
       </Card>
 
-      <Card className="mb-5">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold">Húsnæðisparnaður</h2>
-            <p className="text-sm text-ink/55">Samanlagt úr séreignarsparnaði og húsnæðissparnaði.</p>
-          </div>
-          <p className="text-3xl font-bold text-lagoon">{money(housingSavings, currency)}</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {housingBuckets.map((bucket) => (
-            <div key={bucket.bucket_type} className="rounded-lg border border-line/10 bg-surface/70 p-4">
-              <p className="text-sm font-semibold text-ink/60">{bucket.label}</p>
-              <p className="mt-2 text-xl font-bold">{money(Number(bucket.amount), currency)}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="mb-5">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold">Varasjóður</h2>
-            <p className="text-sm text-ink/55">Samanlagt úr hlutabréfum og sjóðum.</p>
-          </div>
-          <p className="text-3xl font-bold text-lagoon">{money(emergencySavings, currency)}</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {emergencyBuckets.map((bucket) => (
-            <div key={bucket.bucket_type} className="rounded-lg border border-line/10 bg-surface/70 p-4">
-              <p className="text-sm font-semibold text-ink/60">{bucket.label}</p>
-              <p className="mt-2 text-xl font-bold">{money(Number(bucket.amount), currency)}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="mb-5">
-        <div className="mb-4">
-          <h2 className="text-lg font-bold">Heildarsparnaðarmarkmið</h2>
-          <p className="text-sm text-ink/55">Settu eitt markmið fyrir heildarsparnaðinn. Framvindan tengist sjálfkrafa við upphæðina í Heildarsparnaði hér að ofan.</p>
-        </div>
+      <section className="mb-6">
+        <SectionHeader title="Heildarsparnaðarmarkmið" description="Settu eitt markmið fyrir heildarsparnaðinn; framvindan uppfærist sjálfkrafa." />
 
         {totalGoal ? (
           <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-lg border border-line/10 bg-surface/70 p-5">
+            <Card>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="font-bold">{totalGoal.title}</h3>
@@ -200,9 +164,9 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
                 </div>
                 <ProgressBar value={progress} />
               </div>
-            </div>
+            </Card>
 
-            <div className="rounded-lg border border-line/10 bg-surface/70 p-5">
+            <Card>
               <h3 className="font-bold">Breyta markmiði</h3>
               <form action={saveSavingsGoal} className="mt-4 grid gap-3">
                 <input type="hidden" name="id" value={totalGoal.id} />
@@ -214,21 +178,23 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
                   Vista breytingar
                 </Button>
               </form>
-            </div>
+            </Card>
           </div>
         ) : (
-          <form action={saveSavingsGoal} className="grid gap-3 md:grid-cols-[1fr_170px_170px_auto]">
-            <input className={inputClass} name="title" placeholder="Titill markmiðs" required />
-            <input className={inputClass} name="target_amount" type="number" min="0.01" step="0.01" placeholder="Markupphæð" required />
-            <input className={inputClass} name="target_date" type="date" />
-            <input type="hidden" name="current_amount" value={String(totalSavings)} />
-            <Button type="submit">
-              <Plus size={17} />
-              Vista markmið
-            </Button>
-          </form>
+          <Card>
+            <form action={saveSavingsGoal} className="grid gap-3 md:grid-cols-[1fr_170px_170px_auto]">
+              <input className={inputClass} name="title" placeholder="Titill markmiðs" required />
+              <input className={inputClass} name="target_amount" type="number" min="0.01" step="0.01" placeholder="Markupphæð" required />
+              <input className={inputClass} name="target_date" type="date" />
+              <input type="hidden" name="current_amount" value={String(totalSavings)} />
+              <Button type="submit">
+                <Plus size={17} />
+                Vista markmið
+              </Button>
+            </form>
+          </Card>
         )}
-      </Card>
+      </section>
 
       {goals.length > 1 ? (
         <Card>

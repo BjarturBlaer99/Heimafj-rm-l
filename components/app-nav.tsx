@@ -88,7 +88,7 @@ export function TopNav({ email }: { email?: string }) {
         <Link
           href="/settings"
           className={clsx(
-            "focus-ring grid h-10 w-10 place-items-center rounded-md border border-line/15 bg-surface/80 text-ink/70 shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-accent",
+            "focus-ring grid h-9 w-9 place-items-center rounded-md border border-line/15 bg-surface/80 text-ink/70 shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-accent sm:h-10 sm:w-10",
             isActive(pathname, "/settings") && "border-accent/30 bg-muted text-accent"
           )}
           title={email ? `Stillingar: ${email}` : "Stillingar"}
@@ -124,7 +124,7 @@ export function MobileBottomNav() {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line/10 bg-surface/95 shadow-[0_-8px_24px_rgba(var(--shadow-soft)/0.08)] backdrop-blur-xl lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto grid h-16 max-w-md grid-cols-5 px-2">
+        <div className="mx-auto grid h-[60px] max-w-md grid-cols-5 px-1 sm:h-16 sm:px-2">
           {mobileNav.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;

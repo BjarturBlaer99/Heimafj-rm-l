@@ -1,13 +1,12 @@
 import { ArrowUpRightIcon as ArrowUpRight } from "@phosphor-icons/react/dist/ssr/ArrowUpRight";
 import { CheckCircleIcon as CheckCircle2 } from "@phosphor-icons/react/dist/ssr/CheckCircle";
 import { CircleIcon as Circle } from "@phosphor-icons/react/dist/ssr/Circle";
-import { ListChecksIcon as ListChecks } from "@phosphor-icons/react/dist/ssr/ListChecks";
 import { PiggyBankIcon as PiggyBank } from "@phosphor-icons/react/dist/ssr/PiggyBank";
 import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Receipt";
 import { TagIcon as Tags } from "@phosphor-icons/react/dist/ssr/Tag";
 import Link from "next/link";
 import { PieBreakdown, Sparkline, TrendChart } from "@/components/charts";
-import { MarketOverview } from "@/components/market-overview";
+import { ChangeBadge, MarketOverview } from "@/components/market-overview";
 import { Button, Card, EmptyState, ProgressBar } from "@/components/ui";
 import { getDashboardData } from "@/lib/data";
 import { currentMonth, money, percent } from "@/lib/format";
@@ -20,6 +19,13 @@ function monthLabel(month: string) {
 
 function clamp(value: number) {
   return Math.max(0, Math.min(value, 100));
+}
+
+function trendChange(data: Array<Record<string, string | number>>, dataKey: string) {
+  const latest = Number(data.at(-1)?.[dataKey] ?? 0);
+  const previous = Number(data.at(-2)?.[dataKey] ?? 0);
+  if (!Number.isFinite(latest) || !Number.isFinite(previous) || previous === 0) return 0;
+  return ((latest - previous) / Math.abs(previous)) * 100;
 }
 
 function MetricBar({ label, value, detail, danger = false }: { label: string; value: number; detail: string; danger?: boolean }) {
@@ -98,14 +104,6 @@ export default async function DashboardPage() {
       href: topCategory?.id ? `/transactions/category/${topCategory.id}?month=${month}&type=expense` : `/expenses?month=${month}`,
       icon: Tags,
       tone: "bg-gold/10 text-gold"
-    },
-    {
-      label: "Færslur mánaðarins",
-      value: data.transactions.length.toLocaleString("is-IS"),
-      detail: monthLabel(month),
-      href: `/transactions?month=${month}`,
-      icon: ListChecks,
-      tone: "bg-accent/10 text-accent"
     }
   ];
 
@@ -117,6 +115,9 @@ export default async function DashboardPage() {
       dataKey: "income",
       color: "rgb(var(--color-moss))",
       icon: ArrowUpRight,
+      iconTone: "bg-moss/10 text-moss",
+      change: trendChange(data.trend, "income"),
+      inverse: false,
       tone: "text-moss"
     },
     {
@@ -126,6 +127,9 @@ export default async function DashboardPage() {
       dataKey: "expenses",
       color: "rgb(var(--color-coral))",
       icon: ReceiptText,
+      iconTone: "bg-coral/10 text-coral",
+      change: trendChange(data.trend, "expenses"),
+      inverse: true,
       tone: "text-coral"
     },
     {
@@ -135,16 +139,10 @@ export default async function DashboardPage() {
       dataKey: "savings",
       color: monthBalanceColor,
       icon: PiggyBank,
+      iconTone: data.savings > 0 ? "bg-moss/10 text-moss" : data.savings < 0 ? "bg-coral/10 text-coral" : "bg-muted text-ink",
+      change: trendChange(data.trend, "savings"),
+      inverse: false,
       tone: monthBalanceTone
-    },
-    {
-      label: "Fjöldi færslna",
-      value: data.transactions.length.toLocaleString("is-IS"),
-      href: `/transactions?month=${month}`,
-      dataKey: null,
-      color: "rgb(var(--color-accent))",
-      icon: ListChecks,
-      tone: "text-accent"
     }
   ];
 
@@ -152,21 +150,21 @@ export default async function DashboardPage() {
     <>
       <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold leading-tight sm:text-3xl">Góðan daginn{displayName ? `, ${displayName}` : ""}!</h1>
+          <h1 className="break-words text-[1.65rem] font-bold leading-tight sm:text-3xl">Góðan daginn{displayName ? `, ${displayName}` : ""}!</h1>
           <p className="mt-1 text-sm text-ink/55">Hér er staðan fyrir {monthLabel(month)}.</p>
           <span className={`mt-3 inline-flex rounded-md border px-2.5 py-1 text-xs font-semibold ${statusClass}`}>Fjárhagsstaða: {financialStatus}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/monthly-overview?month=${month}`}>
-            <Button type="button" variant="secondary">Skoða mánuð</Button>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <Link href={`/monthly-overview?month=${month}`} className="min-w-0">
+            <Button type="button" variant="secondary" className="w-full">Skoða mánuð</Button>
           </Link>
-          <Link href="/transactions">
-            <Button type="button">Ný færsla</Button>
+          <Link href="/transactions" className="min-w-0">
+            <Button type="button" className="w-full">Ný færsla</Button>
           </Link>
         </div>
       </header>
 
-      <section className="stagger-children grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Stutt yfirlit">
+      <section className="stagger-children grid gap-3 sm:grid-cols-3" aria-label="Stutt yfirlit">
         {overviewStats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -187,27 +185,33 @@ export default async function DashboardPage() {
         })}
       </section>
 
-      <section className="stagger-children mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Mánaðartölur">
+      <section className="stagger-children mt-4 grid gap-3 sm:grid-cols-3" aria-label="Mánaðartölur">
         {monthlyStats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Link key={stat.label} href={stat.href} className="group block h-full">
-              <Card className="motion-card h-full min-h-[142px] overflow-hidden">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-semibold text-ink/50">{stat.label}</p>
-                  <Icon className={stat.tone} size={17} weight="duotone" />
-                </div>
-                <p className={`mt-2 text-xl font-bold ${stat.tone}`}>{stat.value}</p>
-                {stat.dataKey ? (
-                  <div className="mt-2">
+            <Link key={stat.label} href={stat.href} className="group block h-full min-w-0 transition-transform duration-200 ease-out hover:-translate-y-[3px]">
+              <Card className="h-full min-h-[176px] overflow-hidden p-0 transition-colors duration-200 group-hover:border-accent/25">
+                <div className="flex h-full flex-col p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-md ${stat.iconTone}`}>
+                        <Icon size={19} weight="duotone" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold leading-tight">{stat.label}</p>
+                        <p className="mt-1 text-xs leading-snug text-ink/45">{monthLabel(month)}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <p className={`text-2xl font-bold leading-none ${stat.tone}`}>{stat.value}</p>
+                    <span className="sm:hidden lg:block"><ChangeBadge value={stat.change} inverse={stat.inverse} /></span>
+                  </div>
+                  <div className="mt-auto pt-2">
                     <Sparkline data={data.trend} dataKey={stat.dataKey} color={stat.color} />
+                    <p className="mt-1 text-[11px] text-ink/40">Síðustu sex mánuðir</p>
                   </div>
-                ) : (
-                  <div className="mt-5 flex items-center gap-2 text-xs font-medium text-ink/45">
-                    <span className="h-px flex-1 bg-accent/35" />
-                    <span>í þessum mánuði</span>
-                  </div>
-                )}
+                </div>
               </Card>
             </Link>
           );
@@ -278,7 +282,7 @@ export default async function DashboardPage() {
 
       <section className="mt-5 grid items-stretch gap-4 lg:grid-cols-2">
         <Card className="animate-rise h-full">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <h2 className="font-bold">Reikningar mánaðarins</h2>
             <Link className="text-sm font-semibold text-accent underline-offset-2 hover:underline" href={`/bills?month=${month}`}>Opna</Link>
           </div>
@@ -348,7 +352,7 @@ export default async function DashboardPage() {
               <h2 className="font-bold">Sparnaður</h2>
               <p className="mt-1 text-xs text-ink/50">Skipting heildarsparnaðar.</p>
             </div>
-            <p className="text-xl font-bold text-lagoon">{money(data.totalSavingsBalance, currency)}</p>
+            <p className="text-xl font-bold text-lagoon sm:text-right">{money(data.totalSavingsBalance, currency)}</p>
           </div>
           {!data.savingsBucketsReady ? (
             <EmptyState>Keyrðu `supabase/savings-buckets-update.sql` í Supabase til að vista sparnaðarflokkana.</EmptyState>

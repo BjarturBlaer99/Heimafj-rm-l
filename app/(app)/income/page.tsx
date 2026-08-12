@@ -1,7 +1,7 @@
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { TrendUpIcon as TrendingUp } from "@phosphor-icons/react/dist/ssr/TrendUp";
-import { Button, Card, EmptyState, PageHeader, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, MetricCard, PageHeader, SectionHeader, inputClass } from "@/components/ui";
 import { deleteMonthlyIncome, saveMonthlyIncome } from "@/lib/actions";
 import { getCategories, getTransactions } from "@/lib/data";
 import { currentMonth, money } from "@/lib/format";
@@ -31,26 +31,15 @@ export default async function IncomePage() {
 
   return (
     <>
-      <PageHeader title="Tekjur" />
+      <PageHeader title="Tekjur" description="Skráðu tekjur og fylgstu með þróun þeirra milli mánaða." />
 
       <div className="mb-5 grid gap-4 md:grid-cols-2">
-        <Card>
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-ink/55">Tekjur í þessum mánuði</p>
-            <TrendingUp className="text-moss" size={20} />
-          </div>
-          <p className="mt-3 text-2xl font-bold">{money(currentMonthIncome, currency)}</p>
-        </Card>
-        <Card>
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-ink/55">Heildartekjur skráðar</p>
-            <TrendingUp className="text-moss" size={20} />
-          </div>
-          <p className="mt-3 text-2xl font-bold">{money(totalIncome, currency)}</p>
-        </Card>
+        <MetricCard label="Tekjur í þessum mánuði" value={money(currentMonthIncome, currency)} detail={monthLabel(`${currentMonth()}-01`)} icon={<TrendingUp size={19} weight="duotone" />} tone="moss" />
+        <MetricCard label="Heildartekjur skráðar" value={money(totalIncome, currency)} detail={`${incomes.length} tekjufærslur samtals`} icon={<TrendingUp size={19} weight="duotone" />} tone="moss" />
       </div>
 
       <Card className="mb-5">
+        <SectionHeader title="Skrá tekjur" description="Bættu við einni tekjufærslu fyrir valinn mánuð." />
         <form action={saveMonthlyIncome} className="grid gap-3 md:grid-cols-[140px_140px_1fr_auto]">
           <input className={inputClass} name="month" type="month" defaultValue={currentMonth()} required />
           <input className={inputClass} name="amount" type="number" step="0.01" min="0.01" placeholder="Upphæð" required />
@@ -73,10 +62,23 @@ export default async function IncomePage() {
       </Card>
 
       <div className="mb-5 grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-        <Card className="overflow-x-auto">
-          <h2 className="mb-4 font-bold">Tekjur eftir mánuðum</h2>
+        <Card>
+          <SectionHeader title="Tekjur eftir mánuðum" description="Samantekt skráðra tekna eftir tímabilum." />
           {monthlyRows.length ? (
-            <table className="w-full min-w-[420px] text-left text-sm">
+            <>
+              <div className="divide-y divide-line/10 sm:hidden">
+                {monthlyRows.map((row) => (
+                  <div key={row.month} className="flex min-w-0 items-center justify-between gap-3 py-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold capitalize">{monthLabel(`${row.month}-01`)}</p>
+                      <p className="mt-0.5 text-xs text-ink/50">{row.count} færslur</p>
+                    </div>
+                    <p className="shrink-0 font-bold text-moss">{money(row.total, currency)}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full min-w-[420px] text-left text-sm">
               <thead className="text-ink/55">
                 <tr>
                   <th className="pb-3">Mánuður</th>
@@ -93,16 +95,39 @@ export default async function IncomePage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+                </table>
+              </div>
+            </>
           ) : (
             <EmptyState>Engar tekjur hafa verið skráðar enn.</EmptyState>
           )}
         </Card>
 
-        <Card className="overflow-x-auto">
-          <h2 className="mb-4 font-bold">Skráðar tekjufærslur</h2>
+        <Card>
+          <SectionHeader title="Skráðar tekjufærslur" description="Nákvæm sundurliðun allra tekjufærslna." />
           {incomes.length ? (
-            <table className="w-full min-w-[560px] text-left text-sm">
+            <>
+              <div className="grid gap-2 sm:hidden">
+                {incomes.map((income) => (
+                  <article key={income.id} className="rounded-md border border-line/10 bg-muted/25 p-3">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold">{income.note || "Tekjufærsla"}</p>
+                        <p className="mt-0.5 text-xs text-ink/50 capitalize">{monthLabel(income.date)} · {income.categories?.name ?? "Óflokkað"}</p>
+                      </div>
+                      <p className="shrink-0 font-bold text-moss">{money(Number(income.amount), currency)}</p>
+                    </div>
+                    <form action={deleteMonthlyIncome} className="mt-3 flex justify-end border-t border-line/8 pt-3">
+                      <input type="hidden" name="id" value={income.id} />
+                      <Button variant="danger" className="h-9 w-9 p-0" title="Eyða">
+                        <Trash2 size={16} />
+                      </Button>
+                    </form>
+                  </article>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full min-w-[560px] text-left text-sm">
               <thead className="text-ink/55">
                 <tr>
                   <th className="pb-3">Mánuður</th>
@@ -130,7 +155,9 @@ export default async function IncomePage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+                </table>
+              </div>
+            </>
           ) : (
             <EmptyState>Skráðu fyrstu mánaðartekjurnar hér að ofan.</EmptyState>
           )}

@@ -38,7 +38,7 @@ export function ThemeToggle({ className, compact = false }: { className?: string
       onClick={toggleTheme}
       className={clsx(
         "focus-ring border border-line/15 bg-surface/80 text-ink shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-accent",
-        compact ? "grid h-10 w-10 place-items-center rounded-md" : "inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold",
+        compact ? "grid h-9 w-9 place-items-center rounded-md sm:h-10 sm:w-10" : "inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold",
         className
       )}
       aria-label={isDark ? "Skipta yfir í ljóst þema" : "Skipta yfir í dökkt þema"}
