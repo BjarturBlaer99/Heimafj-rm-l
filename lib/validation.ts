@@ -55,11 +55,18 @@ export const budgetSchema = z.object({
 
 export const billSchema = z.object({
   id: z.string().uuid().optional(),
+  month: z.string().regex(/^\d{4}-\d{2}$/).transform((value) => `${value}-01`),
   name: z.string().trim().min(2).max(80),
   category_id: z.preprocess((value) => (value === "" ? null : value), z.string().uuid().nullable().optional()),
   amount: z.coerce.number().positive(),
   due_day: z.coerce.number().int().min(1).max(31),
   is_active: z.preprocess((value) => value === "on" || value === "true", z.boolean())
+});
+
+export const billDeleteSchema = z.object({
+  id: z.string().uuid(),
+  month: z.string().regex(/^\d{4}-\d{2}$/),
+  scope: z.enum(["month", "all"])
 });
 
 export const billPaymentSchema = z.object({

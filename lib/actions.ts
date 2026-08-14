@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketEntrySchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
+import { billDeleteSchema, billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketEntrySchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
 
 async function userId() {
   const supabase = await createClient();
@@ -169,18 +169,69 @@ export async function saveBill(formData: FormData) {
     category_id: data.category_id || null,
     is_active: data.is_active
   };
-  const result = data.id
-    ? await supabase.from("bills").update(payload).eq("id", data.id).eq("user_id", id)
-    : await supabase.from("bills").insert(payload);
+  let result;
+
+  if (data.id) {
+    result = await supabase
+      .from("bills")
+      .update(payload)
+      .eq("id", data.id)
+      .eq("user_id", id)
+      .eq("month", data.month);
+  } else {
+    let seriesQuery = supabase
+      .from("bills")
+      .select("series_id")
+      .eq("user_id", id)
+      .eq("name", data.name)
+      .order("month", { ascending: false })
+      .limit(1);
+
+    seriesQuery = data.category_id
+      ? seriesQuery.eq("category_id", data.category_id)
+      : seriesQuery.is("category_id", null);
+
+    const { data: existingSeries, error: seriesError } = await seriesQuery.maybeSingle();
+    if (seriesError) throw new Error(seriesError.message);
+
+    result = await supabase.from("bills").insert({
+      ...payload,
+      month: data.month,
+      ...(existingSeries?.series_id ? { series_id: existingSeries.series_id } : {})
+    });
+  }
+
+  if (result.error?.code === "23505") {
+    throw new Error("Reikningur með þessu heiti er þegar skráður í mánuðinum.");
+  }
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/bills");
+  revalidatePath("/dashboard");
+  revalidatePath("/monthly-overview");
+  redirect(`/bills?month=${data.month.slice(0, 7)}&success=bill_saved`);
 }
 
 export async function deleteBill(formData: FormData) {
   const { supabase, userId: id } = await userId();
-  const result = await supabase.from("bills").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
+  const data = billDeleteSchema.parse(formDataObject(formData));
+  const month = `${data.month}-01`;
+  const { data: bill, error: billError } = await supabase
+    .from("bills")
+    .select("id, series_id, month")
+    .eq("id", data.id)
+    .eq("user_id", id)
+    .single();
+  if (billError) throw new Error(billError.message);
+  if (bill.month !== month) throw new Error("Reikningurinn tilheyrir ekki völdum mánuði.");
+
+  const result = data.scope === "all"
+    ? await supabase.from("bills").delete().eq("series_id", bill.series_id).eq("user_id", id)
+    : await supabase.from("bills").delete().eq("id", bill.id).eq("user_id", id).eq("month", month);
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/bills");
+  revalidatePath("/dashboard");
+  revalidatePath("/monthly-overview");
+  redirect(`/bills?month=${data.month}&success=${data.scope === "all" ? "bill_deleted_all" : "bill_deleted_month"}`);
 }
 
 export async function markBillPaid(formData: FormData) {
@@ -188,11 +239,12 @@ export async function markBillPaid(formData: FormData) {
   const data = billPaymentSchema.parse(formDataObject(formData));
   const { data: bill, error: billError } = await supabase
     .from("bills")
-    .select("id, name, category_id, due_day")
+    .select("id, name, category_id, due_day, month")
     .eq("id", data.bill_id)
     .eq("user_id", id)
     .single();
   if (billError) throw new Error(billError.message);
+  if (bill.month !== `${data.month}-01`) throw new Error("Reikningurinn tilheyrir ekki völdum mánuði.");
 
   const [year, month] = data.month.split("-").map(Number);
   const lastDay = new Date(year, month, 0).getDate();
@@ -228,6 +280,7 @@ export async function markBillPaid(formData: FormData) {
   revalidatePath("/expenses");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
+  revalidatePath("/monthly-overview");
   redirect(`/bills?month=${data.month}&success=bill_paid`);
 }
 
@@ -251,6 +304,7 @@ export async function deleteBillPayment(formData: FormData) {
   revalidatePath("/expenses");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
+  revalidatePath("/monthly-overview");
 }
 
 export async function saveMonthlyIncome(formData: FormData) {

@@ -69,6 +69,8 @@ NEXT_PUBLIC_SITE_URL="https://your-app-name.vercel.app"
    - [supabase/schema.sql](</C:/Users/bjarturbg/OneDrive - Public Administration/Desktop/Finance app/supabase/schema.sql>)
    - [supabase/savings-buckets-update.sql](</C:/Users/bjarturbg/OneDrive - Public Administration/Desktop/Finance app/supabase/savings-buckets-update.sql>)
 
+Existing databases must also rerun `supabase/bills-update.sql` after pulling the monthly bills update. The migration keeps paid historical months, assigns unscoped legacy bills to the current month, and does not copy them into future months.
+
 ## Local Development
 
 Install dependencies:

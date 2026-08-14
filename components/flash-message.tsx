@@ -2,7 +2,10 @@ const messages: Record<string, { tone: "success" | "error"; text: string }> = {
   imported: { tone: "success", text: "Færslurnar voru fluttar inn." },
   imported_partial: { tone: "success", text: "Nýjar færslur voru fluttar inn og duplicate færslum var sleppt." },
   imported_duplicates: { tone: "success", text: "Engar nýjar færslur fundust. Duplicate færslum var sleppt." },
+  bill_saved: { tone: "success", text: "Reikningurinn var vistaður fyrir valinn mánuð." },
   bill_paid: { tone: "success", text: "Reikningurinn var merktur greiddur og útgjaldafærsla var búin til." },
+  bill_deleted_month: { tone: "success", text: "Reikningnum var eytt úr völdum mánuði." },
+  bill_deleted_all: { tone: "success", text: "Sama reikningi var eytt úr öllum mánuðum." },
   savings_added: { tone: "success", text: "Sparnaðarupphæðin var bætt við." }
 };
 

@@ -17,7 +17,7 @@ function monthLabel(month: string) {
 
 export default async function BillsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const month = params.month ?? currentMonth();
+  const month = params.month && /^\d{4}-\d{2}$/.test(params.month) ? params.month : currentMonth();
   const [categories, billsResult] = await Promise.all([getCategories(), getBillsForMonth(month)]);
   const currency = "ISK";
   const expenseCategories = categories.filter((category) => category.type !== "income");
@@ -29,12 +29,12 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader title="Reikningar" description="Haltu utan um endurteknar greiðslur og sjáðu hvað er greitt eða ógreitt í hverjum mánuði." />
+      <PageHeader title="Reikningar" description="Skráðu reikninga fyrir einn mánuð í einu og sjáðu hvað er greitt eða ógreitt." />
       <FlashMessage code={params.success} />
 
       {!billsResult.schemaReady ? (
         <Card>
-          <EmptyState>Keyrðu `supabase/bills-update.sql` í Supabase til að virkja reikninga.</EmptyState>
+          <EmptyState>Keyrðu uppfærða `supabase/bills-update.sql` í Supabase til að virkja mánaðarbundna reikninga.</EmptyState>
         </Card>
       ) : (
         <>
@@ -59,8 +59,9 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
           </Card>
 
           <Card className="mb-5">
-            <SectionHeader title="Nýr reikningur" description="Þegar reikningur er merktur greiddur verður hann að útgjaldafærslu í völdum mánuði." />
+            <SectionHeader title="Nýr reikningur" description={`Reikningurinn verður aðeins skráður í ${monthLabel(month)} og færist ekki sjálfkrafa í næsta mánuð.`} />
             <form action={saveBill} className="grid gap-3 md:grid-cols-[1fr_150px_120px_1fr_auto]">
+              <input type="hidden" name="month" value={month} />
               <input className={inputClass} name="name" placeholder="Heiti reiknings" required />
               <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" placeholder="Upphæð" required />
               <input className={inputClass} name="due_day" type="number" min="1" max="31" defaultValue={1} required />
@@ -99,7 +100,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                         {!bill.is_active ? <span className="rounded-md bg-muted px-2 py-1 text-xs font-semibold text-ink/55">Óvirkur</span> : null}
                       </div>
                       <p className="mt-1 text-sm text-ink/55">
-                        Gjalddagi {bill.due_day}. hvers mánaðar · {bill.categories?.name ?? "Óflokkað"}
+                        Gjalddagi {bill.due_day}. í mánuðinum · {bill.categories?.name ?? "Óflokkað"}
                       </p>
                     </div>
 
@@ -131,6 +132,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                     <summary className="cursor-pointer text-sm font-semibold text-accent">Breyta reikningi</summary>
                     <form action={saveBill} className="mt-3 grid gap-3 md:grid-cols-[1fr_150px_120px_1fr_auto]">
                       <input type="hidden" name="id" value={bill.id} />
+                      <input type="hidden" name="month" value={month} />
                       <input className={inputClass} name="name" defaultValue={bill.name} required />
                       <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" defaultValue={Number(bill.amount)} required />
                       <input className={inputClass} name="due_day" type="number" min="1" max="31" defaultValue={bill.due_day} required />
@@ -152,18 +154,37 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                         </Button>
                       </div>
                     </form>
-                    <form action={deleteBill} className="mt-2">
-                      <input type="hidden" name="id" value={bill.id} />
-                      <ConfirmButton variant="danger" confirmMessage={`Ertu viss um að þú viljir eyða reikningnum "${bill.name}"?`}>
-                        <Trash2 size={16} />
-                        Eyða reikningi
-                      </ConfirmButton>
-                    </form>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <form action={deleteBill}>
+                        <input type="hidden" name="id" value={bill.id} />
+                        <input type="hidden" name="month" value={month} />
+                        <input type="hidden" name="scope" value="month" />
+                        <ConfirmButton
+                          variant="secondary"
+                          confirmMessage={`Eyða reikningnum "${bill.name}" aðeins úr ${monthLabel(month)}? Greidd útgjaldafærsla helst áfram í færslum.`}
+                        >
+                          <Trash2 size={16} />
+                          Eyða úr þessum mánuði
+                        </ConfirmButton>
+                      </form>
+                      <form action={deleteBill}>
+                        <input type="hidden" name="id" value={bill.id} />
+                        <input type="hidden" name="month" value={month} />
+                        <input type="hidden" name="scope" value="all" />
+                        <ConfirmButton
+                          variant="danger"
+                          confirmMessage={`Eyða reikningnum "${bill.name}" úr öllum mánuðum? Þessa aðgerð er ekki hægt að afturkalla. Greiddar útgjaldafærslur haldast áfram í færslum.`}
+                        >
+                          <Trash2 size={16} />
+                          Eyða úr öllum mánuðum
+                        </ConfirmButton>
+                      </form>
+                    </div>
                   </details>
                 </Card>
               ))
             ) : (
-              <EmptyState>Engir reikningar skráðir enn. Bættu við fyrsta reikningnum hér að ofan og merktu hann svo greiddan fyrir mánuðinn.</EmptyState>
+              <EmptyState>Engir reikningar skráðir í þessum mánuði. Bættu við reikningi hér að ofan; hann færist ekki sjálfkrafa í næsta mánuð.</EmptyState>
             )}
             </div>
           </section>

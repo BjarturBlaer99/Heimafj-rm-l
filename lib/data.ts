@@ -89,7 +89,13 @@ export async function getBillsForMonth(month = currentMonth()) {
   const { supabase } = await getAuthed();
   const monthDate = monthStart(month);
   const [billsResult, paymentsResult] = await Promise.all([
-    supabase.from("bills").select("*, categories(id, name, type)").order("is_active", { ascending: false }).order("due_day").order("name"),
+    supabase
+      .from("bills")
+      .select("*, categories(id, name, type)")
+      .eq("month", monthDate)
+      .order("is_active", { ascending: false })
+      .order("due_day")
+      .order("name"),
     supabase.from("bill_payments").select("*").eq("month", monthDate)
   ]);
 
@@ -226,11 +232,18 @@ export async function getMonthlyOverviewData(month = currentMonth()) {
 }
 
 export async function getOverviewMonths(limit = 18) {
-  const [transactions, budgets, contributions] = await Promise.all([getTransactions(), getAllBudgets(), getSavingsContributions()]);
+  const { supabase } = await getAuthed();
+  const [transactions, budgets, contributions, billsResult] = await Promise.all([
+    getTransactions(),
+    getAllBudgets(),
+    getSavingsContributions(),
+    supabase.from("bills").select("month")
+  ]);
   const months = new Set<string>([currentMonth()]);
   transactions.forEach((item) => months.add(item.date.slice(0, 7)));
   budgets.forEach((item) => months.add(item.month.slice(0, 7)));
   contributions.forEach((item) => months.add(item.date.slice(0, 7)));
+  (billsResult.data ?? []).forEach((item) => months.add(item.month.slice(0, 7)));
   return [...months].sort((left, right) => right.localeCompare(left)).slice(0, limit);
 }
 

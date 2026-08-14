@@ -86,7 +86,9 @@ export type SavingsBucketEntry = {
 export type Bill = {
   id: string;
   user_id: string;
+  series_id: string;
   category_id: string | null;
+  month: string;
   name: string;
   amount: number;
   due_day: number;

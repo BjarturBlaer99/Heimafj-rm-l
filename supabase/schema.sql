@@ -48,13 +48,16 @@ create table public.budgets (
 create table public.bills (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  series_id uuid not null default gen_random_uuid(),
   category_id uuid references public.categories(id) on delete set null,
+  month date not null constraint bills_month_first_day_check check (extract(day from month) = 1),
   name text not null,
   amount numeric(12,2) not null check (amount > 0),
   due_day integer not null check (due_day between 1 and 31),
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint bills_user_series_month_key unique (user_id, series_id, month)
 );
 
 create table public.bill_payments (
@@ -117,7 +120,9 @@ create index transactions_user_id_date_idx on public.transactions(user_id, date 
 create index transactions_category_id_idx on public.transactions(category_id);
 create index budgets_user_id_month_idx on public.budgets(user_id, month);
 create index bills_user_id_idx on public.bills(user_id);
-create index bills_user_id_active_idx on public.bills(user_id, is_active);
+create index bills_user_id_month_idx on public.bills(user_id, month);
+create index bills_user_id_series_idx on public.bills(user_id, series_id);
+create index bills_user_id_month_active_idx on public.bills(user_id, month, is_active);
 create index bill_payments_user_id_month_idx on public.bill_payments(user_id, month);
 create index bill_payments_bill_id_idx on public.bill_payments(bill_id);
 create index bill_payments_transaction_id_idx on public.bill_payments(transaction_id);
