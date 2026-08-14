@@ -18,7 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChartShadowFilter } from "@/components/ui/chart-shadow-filter";
-import type { MarketPoint, MarketSnapshot, StockSnapshot } from "@/lib/market-data";
+import { TradingViewMarketWidget } from "@/components/tradingview-market-widget";
+import type { MarketPoint, MarketSnapshot } from "@/lib/market-data";
 import { cn } from "@/lib/utils";
 
 type MarketTab = "stocks" | "funds" | "fx" | "economy";
@@ -42,13 +43,6 @@ const cardVariants: Variants = {
     transition: { duration: 0.44, ease: [0.22, 1, 0.36, 1] }
   }
 };
-
-const stockNumber = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
 
 const icelandicMonths = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."];
 
@@ -198,8 +192,17 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
   );
 }
 
-export function StatusBadge({ status, minimal = false }: { status: "live" | "sample"; minimal?: boolean }) {
+export function StatusBadge({ status, minimal = false }: { status: "live" | "sample" | "unavailable"; minimal?: boolean }) {
   if (status === "sample") return <Badge variant="neutral">Sýnigögn</Badge>;
+  if (status === "unavailable") {
+    if (!minimal) return <Badge variant="neutral">Ekki tiltækt</Badge>;
+    return (
+      <span className="mt-1 flex shrink-0 items-center gap-1.5 text-[11px] font-semibold text-ink/40" title="Gögn ekki tiltæk">
+        <span className="h-2 w-2 rounded-full bg-ink/25" />
+        <span className="sr-only">Gögn ekki tiltæk</span>
+      </span>
+    );
+  }
   if (!minimal) return <Badge variant="success">Uppfært</Badge>;
 
   return (
@@ -284,6 +287,7 @@ function SummaryCards({ data }: { data: MarketSnapshot }) {
     <motion.div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" variants={cardGridVariants} initial="hidden" animate="visible">
       {cards.map((card) => {
         const Icon = card.icon;
+        const available = card.status === "live";
         return (
           <motion.div key={card.id} variants={cardVariants} whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 420, damping: 30 }} className="h-full min-w-0">
             <Card className="h-full min-h-[176px] overflow-hidden p-0 transition-colors duration-200 hover:border-accent/25">
@@ -300,59 +304,32 @@ function SummaryCards({ data }: { data: MarketSnapshot }) {
                   </div>
                   <StatusBadge status={card.status} minimal />
                 </div>
-                <div className="mt-4 flex items-end justify-between gap-3">
-                  <p className="text-2xl font-bold leading-none">
-                    <AnimatedNumber value={card.value} format={card.format} />
-                  </p>
-                  <ChangeBadge value={card.change} suffix={card.changeSuffix} inverse={card.inverse} />
-                </div>
-                <div className="mt-auto pt-2">
-                  <MiniTrend points={card.points} color={card.color} />
-                  <p className="mt-1 text-[11px] text-ink/40">{sourceDate(card.asOf)}</p>
-                </div>
+                {available ? (
+                  <>
+                    <div className="mt-4 flex items-end justify-between gap-3">
+                      <p className="text-2xl font-bold leading-none">
+                        <AnimatedNumber value={card.value} format={card.format} />
+                      </p>
+                      <ChangeBadge value={card.change} suffix={card.changeSuffix} inverse={card.inverse} />
+                    </div>
+                    <div className="mt-auto pt-2">
+                      <MiniTrend points={card.points} color={card.color} />
+                      <p className="mt-1 text-[11px] text-ink/40">{sourceDate(card.asOf)}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="mt-5 flex min-h-[88px] items-center rounded-md border border-line/10 bg-muted/45 px-4">
+                    <div>
+                      <p className="text-sm font-bold">Gögn ekki tiltæk</p>
+                      <p className="mt-1 text-xs text-ink/45">Reyndu aftur síðar.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           </motion.div>
         );
       })}
-    </motion.div>
-  );
-}
-
-function AssetPanel({ assets, kind }: { assets: StockSnapshot[]; kind: "stock" | "fund" }) {
-  const isFund = kind === "fund";
-
-  return (
-    <motion.div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" variants={cardGridVariants} initial="hidden" animate="visible">
-      {assets.map((asset) => (
-        <motion.div key={asset.symbol} variants={cardVariants} whileHover={{ y: -3 }} className="min-w-0">
-          <Card className="h-full min-h-[220px] overflow-hidden">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className={cn(
-                  "grid h-10 w-10 shrink-0 place-items-center rounded-md text-sm font-black",
-                  isFund ? "bg-violet/10 text-violet" : "bg-accent/10 text-accent"
-                )}>
-                  {asset.symbol.slice(0, 3)}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-bold">{asset.name}</p>
-                  <p className="text-xs font-semibold text-ink/45">{asset.symbol}</p>
-                </div>
-              </div>
-              <StatusBadge status={asset.status} />
-            </div>
-            <div className="mt-5 flex items-end justify-between gap-3">
-              <p className="text-2xl font-bold"><AnimatedNumber value={asset.value} format={stockNumber.format} /></p>
-              <ChangeBadge value={asset.changePercent} />
-            </div>
-            <div className="mt-3">
-              <MiniTrend points={asset.series} color={asset.change >= 0 ? "rgb(var(--color-moss))" : "rgb(var(--color-coral))"} />
-            </div>
-            <p className="mt-2 text-xs text-ink/45">{isFund ? "Lokaverð sjóðs" : "Lokaverð"} {sourceDate(asset.asOf)}</p>
-          </Card>
-        </motion.div>
-      ))}
     </motion.div>
   );
 }
@@ -375,11 +352,20 @@ function FxPanel({ data }: { data: MarketSnapshot }) {
               </div>
               <StatusBadge status={currency.status} />
             </div>
-            <div className="mt-4 flex items-end justify-between gap-3">
-              <p className="text-2xl font-bold"><AnimatedNumber value={currency.value} format={formatRate} /></p>
-              <ChangeBadge value={currency.changePercent} />
-            </div>
-            <MiniTrend points={currency.series} color={index % 2 ? "rgb(var(--color-lagoon))" : "rgb(var(--color-accent))"} />
+            {currency.status === "live" ? (
+              <>
+                <div className="mt-4 flex items-end justify-between gap-3">
+                  <p className="text-2xl font-bold"><AnimatedNumber value={currency.value} format={formatRate} /></p>
+                  <ChangeBadge value={currency.changePercent} />
+                </div>
+                <MiniTrend points={currency.series} color={index % 2 ? "rgb(var(--color-lagoon))" : "rgb(var(--color-accent))"} />
+              </>
+            ) : (
+              <div className="mt-5 rounded-md border border-line/10 bg-muted/45 px-4 py-7">
+                <p className="text-sm font-bold">Gögn ekki tiltæk</p>
+                <p className="mt-1 text-xs text-ink/45">Reyndu aftur síðar.</p>
+              </div>
+            )}
           </Card>
         </motion.div>
       ))}
@@ -396,12 +382,20 @@ function EconomyPanel({ data }: { data: MarketSnapshot }) {
             <p className="text-xs font-semibold text-ink/45">Síðustu 12 mánuðir</p>
             <h3 className="mt-1 text-lg font-bold">Verðbólga</h3>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-coral">{formatPercent(data.inflation.value)}</p>
-            <p className="text-xs text-ink/45">VNV {formatDecimal(data.inflation.index)}</p>
-          </div>
+          {data.inflation.status === "live" ? (
+            <div className="text-right">
+              <p className="text-2xl font-bold text-coral">{formatPercent(data.inflation.value)}</p>
+              <p className="text-xs text-ink/45">VNV {formatDecimal(data.inflation.index)}</p>
+            </div>
+          ) : <StatusBadge status="unavailable" />}
         </div>
-        <MarketChart points={data.inflation.series} color="rgb(var(--color-coral))" valueLabel="Verðbólga" />
+        {data.inflation.status === "live" ? (
+          <MarketChart points={data.inflation.series} color="rgb(var(--color-coral))" valueLabel="Verðbólga" />
+        ) : (
+          <div className="mt-5 grid h-[210px] place-items-center rounded-md border border-line/10 bg-muted/45 text-sm font-bold text-ink/50">
+            Gögn ekki tiltæk
+          </div>
+        )}
       </Card>
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -409,9 +403,17 @@ function EconomyPanel({ data }: { data: MarketSnapshot }) {
             <p className="text-xs font-semibold text-ink/45">Vextir á 7 daga innlánum</p>
             <h3 className="mt-1 text-lg font-bold">Meginvextir</h3>
           </div>
-          <p className="text-2xl font-bold text-violet">{formatPercent(data.policyRate.value)}</p>
+          {data.policyRate.status === "live" ? (
+            <p className="text-2xl font-bold text-violet">{formatPercent(data.policyRate.value)}</p>
+          ) : <StatusBadge status="unavailable" />}
         </div>
-        <MarketChart points={data.policyRate.series} color="rgb(var(--color-violet))" valueLabel="Meginvextir" />
+        {data.policyRate.status === "live" ? (
+          <MarketChart points={data.policyRate.series} color="rgb(var(--color-violet))" valueLabel="Meginvextir" />
+        ) : (
+          <div className="mt-5 grid h-[210px] place-items-center rounded-md border border-line/10 bg-muted/45 text-sm font-bold text-ink/50">
+            Gögn ekki tiltæk
+          </div>
+        )}
       </Card>
     </div>
   );
@@ -489,8 +491,8 @@ export function MarketOverview({
                 exit={{ opacity: 0, y: -5 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               >
-                {tab === "stocks" ? <AssetPanel assets={data.stocks} kind="stock" /> : null}
-                {tab === "funds" ? <AssetPanel assets={data.funds} kind="fund" /> : null}
+                {tab === "stocks" ? <TradingViewMarketWidget kind="stocks" /> : null}
+                {tab === "funds" ? <TradingViewMarketWidget kind="funds" /> : null}
                 {tab === "fx" ? <FxPanel data={data} /> : null}
                 {tab === "economy" ? <EconomyPanel data={data} /> : null}
               </motion.div>
@@ -500,7 +502,7 @@ export function MarketOverview({
 
         {!compact ? (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink/40">
-            <p>Heimildir: Hagstofa Íslands, IS-Macro og Alpha Vantage.</p>
+            <p>Heimildir: Hagstofa Íslands, IS-Macro og TradingView.</p>
             <p>Sótt {sourceTimestamp(data.generatedAt)}</p>
           </div>
         ) : null}

@@ -50,11 +50,12 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
               "object-src 'none'",
               "form-action 'self'",
-              "img-src 'self' data: blob:",
+              "img-src 'self' data: blob: https://*.tradingview.com",
               "font-src 'self'",
               "style-src 'self' 'unsafe-inline'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co"
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://s3.tradingview.com",
+              "frame-src https://s.tradingview.com https://www.tradingview.com https://*.tradingview.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.tradingview.com wss://*.tradingview.com"
             ].join("; ")
           }
         ]
