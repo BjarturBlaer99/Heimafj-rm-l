@@ -37,7 +37,7 @@ export function AppFooter({
           : "mt-auto border-t border-line/10 bg-surface/55 text-ink"
       }
     >
-      <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-5 lg:py-12">
+      <div className="mx-auto w-full max-w-[1440px] px-3 py-10 sm:px-5 lg:px-6 lg:py-12 xl:px-8">
         <div className={showProductLinks ? "grid gap-10 md:grid-cols-[1.25fr_0.75fr_1fr] lg:gap-14" : "grid gap-10 md:grid-cols-2 md:gap-16"}>
           <div className="max-w-md">
             <Link href={mode === "demo" ? "/" : "/dashboard"} className="focus-ring inline-flex rounded-md text-lg font-extrabold leading-none transition hover:opacity-75">

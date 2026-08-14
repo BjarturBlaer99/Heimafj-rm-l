@@ -64,7 +64,7 @@ export function TopNav({ email }: { email?: string }) {
 
   return (
     <nav className="ml-auto min-w-0 flex-1 lg:ml-5">
-      <div className="mx-auto hidden w-fit min-w-0 items-center justify-center gap-0.5 lg:flex">
+      <div className="mx-auto hidden w-fit min-w-0 items-center justify-center lg:flex">
         {nav.map((item) => {
           const active = isActive(pathname, item.href);
           return (
@@ -73,7 +73,7 @@ export function TopNav({ email }: { email?: string }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={clsx(
-                "focus-ring inline-flex h-9 items-center rounded-md px-2.5 text-[13px] font-semibold transition xl:px-3",
+                "focus-ring inline-flex h-9 items-center rounded-md px-1.5 text-[12px] font-semibold transition xl:px-2.5 xl:text-[13px] 2xl:px-3",
                 active ? "bg-accent/10 text-accent" : "text-ink/55 hover:bg-muted/70 hover:text-ink"
               )}
             >

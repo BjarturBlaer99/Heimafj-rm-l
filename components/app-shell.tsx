@@ -7,8 +7,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function AppShell({ children, email }: { children: React.ReactNode; email?: string }) {
   return (
     <div className="flex min-h-screen flex-col bg-paper text-ink">
-      <header className="header-enter sticky top-0 z-30 bg-paper/90 px-2 py-2 backdrop-blur-xl sm:px-5 sm:py-3">
-        <div className="mx-auto flex min-h-14 max-w-[1200px] items-center gap-2 rounded-lg border border-line/10 bg-surface/90 px-2.5 py-2 shadow-soft sm:min-h-[60px] sm:gap-3 sm:px-4">
+      <header className="header-enter sticky top-0 z-30 w-full border-b border-line/10 bg-surface/90 shadow-[0_1px_0_rgba(var(--color-line)/0.03)] backdrop-blur-xl">
+        <div className="flex min-h-14 w-full min-w-0 items-center gap-2 px-3 py-2 sm:min-h-16 sm:gap-3 sm:px-5 lg:px-6 xl:px-8">
           <Link href="/dashboard" className="focus-ring flex min-w-0 shrink-0 items-center rounded-md px-1 py-1 transition hover:opacity-80" aria-label="Fara á yfirlit">
             <span className="whitespace-nowrap text-[15px] font-extrabold leading-none sm:text-base">Mín <span className="text-accent">fjármál</span></span>
           </Link>
@@ -30,7 +30,7 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
       </header>
 
       <main className="min-w-0 flex-1 pb-8 lg:pb-10">
-        <div className="app-workspace page-enter mx-auto min-w-0 max-w-[1200px] px-3 py-4 sm:px-5 sm:py-7">{children}</div>
+        <div className="app-workspace page-enter mx-auto w-full min-w-0 max-w-[1440px] px-3 py-4 sm:px-5 sm:py-7 lg:px-6 xl:px-8">{children}</div>
       </main>
       <AppFooter reserveMobileNavSpace />
       <MobileBottomNav />

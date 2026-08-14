@@ -434,9 +434,9 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-        className="sticky top-0 z-30 bg-paper/90 px-2 py-2 backdrop-blur-xl sm:px-5 sm:py-3"
+        className="sticky top-0 z-30 w-full border-b border-line/10 bg-surface/90 shadow-[0_1px_0_rgba(var(--color-line)/0.03)] backdrop-blur-xl"
       >
-        <div className="mx-auto flex min-h-14 max-w-[1200px] items-center gap-2 rounded-lg border border-line/10 bg-surface/90 px-2.5 py-2 shadow-soft sm:min-h-[60px] sm:gap-3 sm:px-4">
+        <div className="flex min-h-14 w-full min-w-0 items-center gap-2 px-3 py-2 sm:min-h-16 sm:gap-3 sm:px-5 lg:px-6 xl:px-8">
           <button
             type="button"
             onClick={() => navigate("overview")}
@@ -446,7 +446,7 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
             <span className="whitespace-nowrap text-[15px] font-extrabold leading-none sm:text-base">Mín <span className="text-accent">fjármál</span></span>
           </button>
 
-          <nav className="mx-auto hidden items-center gap-0.5 lg:flex" aria-label="Sýningarvalmynd">
+          <nav className="mx-auto hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="Sýningarvalmynd">
             {views.map((item) => {
               const active = view === item.id;
               return (
@@ -492,7 +492,7 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
         </div>
       </motion.header>
 
-      <main className="mx-auto min-w-0 w-full max-w-[1200px] flex-1 px-3 pb-10 pt-5 sm:px-5 sm:pt-7 lg:pb-12">
+      <main className="mx-auto w-full min-w-0 max-w-[1440px] flex-1 px-3 pb-10 pt-5 sm:px-5 sm:pt-7 lg:px-6 lg:pb-12 xl:px-8">
         <div className="mb-5">
           <div>
             <Badge>Sýningarútgáfa</Badge>
