@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
 import type { PieSectorDataItem } from "recharts/types/polar/Pie";
+import { ChartShadowFilter } from "@/components/ui/chart-shadow-filter";
 import { money, percent } from "@/lib/format";
 
 const axisColor = "rgb(var(--color-ink) / 0.68)";
@@ -12,7 +13,8 @@ const tooltipStyle = {
   backgroundColor: "rgb(var(--color-surface))",
   border: "1px solid rgb(var(--color-line) / 0.16)",
   borderRadius: "8px",
-  color: "rgb(var(--color-ink))"
+  color: "rgb(var(--color-ink))",
+  boxShadow: "0 14px 32px rgb(var(--shadow-soft) / 0.18)"
 };
 
 function compactAxisValue(value: number) {
@@ -54,17 +56,26 @@ function renderActivePieSector(props: PieSectorDataItem) {
 }
 
 export function TrendChart({ data, height = 220 }: { data: Array<Record<string, string | number>>; height?: number }) {
+  const incomeShadowId = useId().replace(/:/g, "");
+  const expenseShadowId = useId().replace(/:/g, "");
+  const savingsShadowId = useId().replace(/:/g, "");
+
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-visible [&_svg]:overflow-visible">
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
+          <defs>
+            <ChartShadowFilter id={incomeShadowId} color="rgb(var(--color-accent))" opacity={0.2} />
+            <ChartShadowFilter id={expenseShadowId} color="rgb(var(--color-coral))" opacity={0.2} />
+            <ChartShadowFilter id={savingsShadowId} color="rgb(var(--color-lagoon))" opacity={0.2} />
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis dataKey="month" interval="preserveStartEnd" minTickGap={18} tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} tickLine={false} />
           <YAxis width={46} tickFormatter={compactAxisValue} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} />
-          <Area type="monotone" dataKey="income" name="Tekjur" stroke="rgb(var(--color-accent))" fill="rgb(var(--color-accent) / 0.14)" />
-          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="rgb(var(--color-coral))" fill="rgb(var(--color-coral) / 0.14)" />
-          <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="rgb(var(--color-lagoon))" fill="rgb(var(--color-lagoon) / 0.14)" />
+          <Area type="monotone" dataKey="income" name="Tekjur" stroke="rgb(var(--color-accent))" strokeWidth={2.25} fill="rgb(var(--color-accent) / 0.12)" filter={`url(#${incomeShadowId})`} />
+          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="rgb(var(--color-coral))" strokeWidth={2.25} fill="rgb(var(--color-coral) / 0.12)" filter={`url(#${expenseShadowId})`} />
+          <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="rgb(var(--color-lagoon))" strokeWidth={2.25} fill="rgb(var(--color-lagoon) / 0.12)" filter={`url(#${savingsShadowId})`} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -107,9 +118,7 @@ export function Sparkline({
               <stop offset="62%" stopColor={color} stopOpacity={0.1} />
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
-            <filter id={shadowId} x="-20%" y="-40%" width="140%" height="200%">
-              <feDropShadow dx="0" dy="4" stdDeviation="3.5" floodColor={color} floodOpacity="0.28" />
-            </filter>
+            <ChartShadowFilter id={shadowId} color={color} />
           </defs>
           <YAxis hide domain={[0, 100]} />
           <Area
@@ -158,15 +167,7 @@ export function PieBreakdown({
         <ResponsiveContainer width="100%" height="100%">
           <PieChart margin={{ top: 16, right: 16, bottom: 16, left: 16 }}>
             <defs>
-              <filter id={pieShadowId} x="-35%" y="-35%" width="170%" height="180%">
-                <feDropShadow
-                  dx="0"
-                  dy="8"
-                  stdDeviation="7"
-                  floodColor="rgb(var(--shadow-soft))"
-                  floodOpacity="0.2"
-                />
-              </filter>
+              <ChartShadowFilter id={pieShadowId} color="rgb(var(--shadow-soft))" opacity={0.24} blur={6} offsetY={7} />
             </defs>
             <Pie
               data={[{ value: total || 1 }]}
@@ -275,16 +276,20 @@ export function PieBreakdown({
 
 export function CategoryBars({ data }: { data: Array<{ name: string; value: number }> }) {
   const chartHeight = Math.max(220, data.length * 38);
+  const barShadowId = useId().replace(/:/g, "");
 
   return (
-    <div className="min-w-0 overflow-hidden">
+    <div className="min-w-0 overflow-visible [&_svg]:overflow-visible">
       <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <ChartShadowFilter id={barShadowId} color="rgb(var(--color-accent))" opacity={0.24} blur={3} offsetY={3} />
+          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis type="number" tickFormatter={compactAxisValue} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
           <YAxis type="category" dataKey="name" width={88} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [money(Number(value)), "Upphæð"]} />
-          <Bar dataKey="value" name="Upphæð" fill="rgb(var(--color-accent))" radius={[0, 6, 6, 0]} barSize={18} />
+          <Bar dataKey="value" name="Upphæð" fill="rgb(var(--color-accent))" radius={[0, 6, 6, 0]} barSize={18} filter={`url(#${barShadowId})`} />
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -14,11 +14,12 @@ import { MapPinIcon } from "@phosphor-icons/react/dist/csr/MapPin";
 import { RulerIcon } from "@phosphor-icons/react/dist/csr/Ruler";
 import { motion, MotionConfig, useReducedMotion, type Variants } from "motion/react";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ChartShadowFilter } from "@/components/ui/chart-shadow-filter";
 import { money } from "@/lib/format";
 import type { HousingSeries, RealEstateSnapshot } from "@/lib/real-estate-data";
 import { cn } from "@/lib/utils";
@@ -120,6 +121,8 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
   const [activeId, setActiveId] = useState<HousingSeries["id"]>("all");
   const reduceMotion = useReducedMotion();
   const active = series.find((item) => item.id === activeId) ?? series[0];
+  const gradientId = useId().replace(/:/g, "");
+  const shadowId = useId().replace(/:/g, "");
 
   return (
     <Card className="overflow-hidden">
@@ -162,9 +165,16 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
         })}
       </div>
 
-      <div className="mt-4 h-[260px] min-w-0 sm:h-[310px]">
+      <div className="mt-4 h-[260px] min-w-0 overflow-visible sm:h-[310px] [&_svg]:overflow-visible">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={active.points} margin={{ top: 10, right: 10, left: -8, bottom: 0 }}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgb(var(--color-accent))" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="rgb(var(--color-accent))" stopOpacity={0.02} />
+              </linearGradient>
+              <ChartShadowFilter id={shadowId} color="rgb(var(--color-accent))" opacity={0.28} blur={4} offsetY={4} />
+            </defs>
             <CartesianGrid vertical={false} stroke="rgb(var(--color-line) / 0.1)" strokeDasharray="3 4" />
             <XAxis dataKey="label" axisLine={false} tickLine={false} minTickGap={30} tick={{ fill: "rgb(var(--color-ink) / 0.45)", fontSize: 11 }} />
             <YAxis domain={["dataMin - 12", "dataMax + 8"]} axisLine={false} tickLine={false} width={48} tick={{ fill: "rgb(var(--color-ink) / 0.45)", fontSize: 11 }} />
@@ -175,7 +185,8 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
                 border: "1px solid rgb(var(--color-line) / 0.14)",
                 borderRadius: 8,
                 color: "rgb(var(--color-ink))",
-                fontSize: 12
+                fontSize: 12,
+                boxShadow: "0 14px 32px rgb(var(--shadow-soft) / 0.18)"
               }}
               formatter={(value: number) => [formatDecimal(Number(value), 1), "Vísitala"]}
               labelStyle={{ color: "rgb(var(--color-ink) / 0.55)" }}
@@ -186,7 +197,8 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
               name="Vísitala"
               stroke="rgb(var(--color-accent))"
               strokeWidth={2.5}
-              fill="rgb(var(--color-accent) / 0.1)"
+              fill={`url(#${gradientId})`}
+              filter={`url(#${shadowId})`}
               dot={false}
               activeDot={{ r: 4, fill: "rgb(var(--color-accent))", strokeWidth: 0 }}
               isAnimationActive={!reduceMotion}

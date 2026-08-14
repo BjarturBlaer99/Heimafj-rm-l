@@ -384,40 +384,45 @@ async function fetchMarketAssetsLive() {
   }
 
   const definitions: MarketAssetDefinition[] = [...stockDefinitions, ...fundDefinitions];
-  const [probeDefinition, ...remainingDefinitions] = definitions;
-  let probe: StockSnapshot;
+  const assetsBySymbol = new Map<string, StockSnapshot>();
+  const fallbackBySymbol = new Map<string, StockSnapshot>(
+    [...fallbackStocks, ...fallbackFunds].map((asset) => [asset.symbol, asset] as const)
+  );
 
-  try {
-    probe = await fetchMarketAsset(probeDefinition, apiKey);
-  } catch (error) {
-    logMarketAssetFailures({ [marketAssetFailureReason(error)]: 1 });
-    throw error;
-  }
-
-  const assets = [probe];
-
-  for (let index = 0; index < remainingDefinitions.length; index += marketAssetBatchSize) {
-    const batch = remainingDefinitions.slice(index, index + marketAssetBatchSize);
+  for (let index = 0; index < definitions.length; index += marketAssetBatchSize) {
+    const batch = definitions.slice(index, index + marketAssetBatchSize);
     const results = await Promise.allSettled(
       batch.map((definition) => fetchMarketAsset(definition, apiKey))
     );
     const failures: Record<string, number> = {};
 
-    results.forEach((result) => {
+    results.forEach((result, resultIndex) => {
+      const definition = batch[resultIndex]!;
       if (result.status === "fulfilled") {
-        assets.push(result.value);
+        assetsBySymbol.set(result.value.symbol, result.value);
         return;
       }
 
       const reason = marketAssetFailureReason(result.reason);
       failures[reason] = (failures[reason] ?? 0) + 1;
+      const fallback = fallbackBySymbol.get(definition.symbol);
+      if (fallback) assetsBySymbol.set(definition.symbol, fallback);
     });
 
     if (Object.keys(failures).length > 0) {
       logMarketAssetFailures(failures);
-      throw new Error("Alpha Vantage market refresh was incomplete");
+    }
+
+    if (failures["rate-limit"] || failures["invalid-key"]) {
+      break;
     }
   }
+
+  const assets = definitions.map((definition) => {
+    const asset = assetsBySymbol.get(definition.symbol) ?? fallbackBySymbol.get(definition.symbol);
+    if (!asset) throw new Error(`Missing market fallback for ${definition.symbol}`);
+    return asset;
+  });
 
   return {
     stocks: assets.slice(0, stockDefinitions.length),
@@ -511,7 +516,7 @@ const fallbackFunds: StockSnapshot[] = [
 const getInflationCached = unstable_cache(fetchInflation, ["market-inflation-v1"], { revalidate: 21_600 });
 const getPolicyRateCached = unstable_cache(fetchPolicyRate, ["market-policy-rate-v1"], { revalidate: 3_600 });
 const getFxRatesCached = unstable_cache(fetchFxRates, ["market-fx-v1"], { revalidate: 3_600 });
-const getMarketAssetsLiveCached = unstable_cache(fetchMarketAssetsLive, ["market-assets-live-v1"], {
+const getMarketAssetsLiveCached = unstable_cache(fetchMarketAssetsLive, ["market-assets-live-v2"], {
   revalidate: 86_400
 });
 const getMarketAssetsRetryCached = unstable_cache(async () => {
@@ -520,7 +525,7 @@ const getMarketAssetsRetryCached = unstable_cache(async () => {
   } catch {
     return { stocks: fallbackStocks, funds: fallbackFunds };
   }
-}, ["market-assets-retry-v1"], { revalidate: 21_600 });
+}, ["market-assets-retry-v2"], { revalidate: 21_600 });
 
 async function getMarketAssets() {
   return process.env.ALPHA_VANTAGE_API_KEY?.trim()

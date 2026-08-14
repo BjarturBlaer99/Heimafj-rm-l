@@ -17,6 +17,7 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ChartShadowFilter } from "@/components/ui/chart-shadow-filter";
 import type { MarketPoint, MarketSnapshot, StockSnapshot } from "@/lib/market-data";
 import { cn } from "@/lib/utils";
 
@@ -115,9 +116,10 @@ export function ChangeBadge({ value, suffix = "%", inverse = false }: { value: n
 function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) {
   const reduceMotion = useReducedMotion();
   const gradientId = useId().replace(/:/g, "");
+  const shadowId = useId().replace(/:/g, "");
 
   return (
-    <div className="h-14 min-w-0" aria-hidden="true">
+    <div className="h-14 min-w-0 overflow-visible [&_svg]:overflow-visible" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={points} margin={{ top: 6, right: 2, bottom: 0, left: 2 }}>
           <defs>
@@ -125,6 +127,7 @@ function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) 
               <stop offset="0%" stopColor={color} stopOpacity={0.24} />
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
+            <ChartShadowFilter id={shadowId} color={color} opacity={0.3} blur={3} offsetY={3} />
           </defs>
           <Area
             type="monotone"
@@ -132,6 +135,7 @@ function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) 
             stroke={color}
             strokeWidth={2}
             fill={`url(#${gradientId})`}
+            filter={`url(#${shadowId})`}
             isAnimationActive={!reduceMotion}
             animationDuration={700}
             animationEasing="ease-out"
@@ -147,9 +151,10 @@ function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) 
 function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; color: string; valueLabel: string }) {
   const reduceMotion = useReducedMotion();
   const gradientId = useId().replace(/:/g, "");
+  const shadowId = useId().replace(/:/g, "");
 
   return (
-    <div className="h-[210px] min-w-0">
+    <div className="h-[210px] min-w-0 overflow-visible [&_svg]:overflow-visible">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={points} margin={{ top: 12, right: 8, bottom: 0, left: 8 }}>
           <defs>
@@ -157,6 +162,7 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
               <stop offset="0%" stopColor={color} stopOpacity={0.25} />
               <stop offset="100%" stopColor={color} stopOpacity={0.01} />
             </linearGradient>
+            <ChartShadowFilter id={shadowId} color={color} opacity={0.26} blur={4} offsetY={4} />
           </defs>
           <CartesianGrid vertical={false} stroke="rgb(var(--color-line) / 0.1)" strokeDasharray="3 4" />
           <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "rgb(var(--color-ink) / 0.48)", fontSize: 11 }} minTickGap={24} />
@@ -167,7 +173,8 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
               border: "1px solid rgb(var(--color-line) / 0.14)",
               borderRadius: 8,
               color: "rgb(var(--color-ink))",
-              fontSize: 12
+              fontSize: 12,
+              boxShadow: "0 14px 32px rgb(var(--shadow-soft) / 0.18)"
             }}
             formatter={(value: number) => [formatDecimal(Number(value)), valueLabel]}
             labelStyle={{ color: "rgb(var(--color-ink) / 0.55)" }}
@@ -179,6 +186,7 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
             stroke={color}
             strokeWidth={2.25}
             fill={`url(#${gradientId})`}
+            filter={`url(#${shadowId})`}
             isAnimationActive={!reduceMotion}
             animationDuration={800}
             animationEasing="ease-out"
