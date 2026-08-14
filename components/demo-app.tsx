@@ -493,15 +493,11 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
       </motion.header>
 
       <main className="mx-auto min-w-0 w-full max-w-[1200px] flex-1 px-3 pb-10 pt-5 sm:px-5 sm:pt-7 lg:pb-12">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-5">
           <div>
             <Badge>Sýningarútgáfa</Badge>
             <p className="mt-2 text-sm text-ink/55">Sýnigögn · breytingar vistast ekki</p>
           </div>
-          <Button type="button" variant="ghost" size="sm" className="hidden w-fit sm:inline-flex" onClick={() => navigate("overview")}>
-            <HouseIcon size={17} weight="duotone" />
-            Heim
-          </Button>
         </div>
 
         <AnimatePresence mode="wait" initial={false}>
