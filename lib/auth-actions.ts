@@ -114,6 +114,12 @@ export async function forgotPasswordAction(_: AuthState, formData: FormData): Pr
   });
 
   if (error) {
+    if (error.code === "over_email_send_rate_limit" || error.status === 429) {
+      return {
+        error: "Of margar endurstillingarbeiðnir hafa verið sendar. Bíddu í allt að eina klukkustund og reyndu aftur."
+      };
+    }
+
     return { error: "Ekki tókst að senda beiðnina. Reyndu aftur síðar." };
   }
 
