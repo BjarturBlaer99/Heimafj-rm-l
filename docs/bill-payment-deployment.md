@@ -1,5 +1,7 @@
 # Bill linking and savings deployment prerequisites
 
+Production status: both migrations were applied and verified on 18 September 2026. See the [release record](releases/2026-09-18.md). The instructions below also apply to other environments and future installations.
+
 Apply these two migrations to the intended Supabase project **before** deploying the new web actions:
 
 1. `supabase/bill-payment-integrity-update.sql`

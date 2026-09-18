@@ -1,5 +1,7 @@
 # Website audit implementation
 
+Release update: the web changes and both database migrations are now in production. See the [18 September release record](releases/2026-09-18.md). The implementation and pre-release checks below document the earlier readiness pass.
+
 Implemented locally on 18 September 2026. No production deployment or production data changes.
 
 ## Delivered
