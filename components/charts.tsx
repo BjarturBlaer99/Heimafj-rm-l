@@ -4,17 +4,19 @@ import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
 import type { PieSectorDataItem } from "recharts/types/polar/Pie";
-import { ChartShadowFilter } from "@/components/ui/chart-shadow-filter";
 import { money, percent } from "@/lib/format";
 
 const axisColor = "rgb(var(--color-ink) / 0.68)";
-const gridColor = "rgb(var(--color-line) / 0.12)";
+const gridColor = "rgb(var(--color-line) / 0.07)";
 const tooltipStyle = {
   backgroundColor: "rgb(var(--color-surface))",
   border: "1px solid rgb(var(--color-line) / 0.16)",
   borderRadius: "8px",
   color: "rgb(var(--color-ink))",
-  boxShadow: "0 14px 32px rgb(var(--shadow-soft) / 0.18)"
+  boxShadow: "0 4px 20px rgb(var(--shadow-soft) / 0.08)",
+  maxWidth: "min(240px, calc(100vw - 64px))",
+  whiteSpace: "normal" as const,
+  overflowWrap: "anywhere" as const
 };
 
 function compactAxisValue(value: number) {
@@ -39,10 +41,10 @@ function PieTooltip({ active, payload, total }: { active?: boolean; payload?: Pi
   const value = Number(entry.payload?.value ?? entry.value ?? 0);
 
   return (
-    <div className="pointer-events-none min-w-[150px] rounded-md border border-line/15 bg-surface px-3 py-2.5 text-ink shadow-soft">
+    <div className="pointer-events-none min-w-[150px] max-w-[min(240px,calc(100vw-64px))] break-words rounded-md border border-line/15 bg-surface px-3 py-2.5 text-ink shadow-soft">
       <div className="flex items-center gap-2">
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: entry.color }} />
-        <p className="text-sm font-semibold">{name}</p>
+        <p className="min-w-0 flex-1 break-words text-sm font-semibold">{name}</p>
       </div>
       <p className="mt-1 text-sm font-bold">{money(value)}</p>
       <p className="text-xs text-ink/55">{percent(total > 0 ? (value / total) * 100 : 0)}</p>
@@ -56,28 +58,24 @@ function renderActivePieSector(props: PieSectorDataItem) {
 }
 
 export function TrendChart({ data, height = 220 }: { data: Array<Record<string, string | number>>; height?: number }) {
-  const incomeShadowId = useId().replace(/:/g, "");
-  const expenseShadowId = useId().replace(/:/g, "");
-  const savingsShadowId = useId().replace(/:/g, "");
-
   return (
     <div className="min-w-0 overflow-visible [&_svg]:overflow-visible">
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
-          <defs>
-            <ChartShadowFilter id={incomeShadowId} color="rgb(var(--color-accent))" opacity={0.2} />
-            <ChartShadowFilter id={expenseShadowId} color="rgb(var(--color-coral))" opacity={0.2} />
-            <ChartShadowFilter id={savingsShadowId} color="rgb(var(--color-lagoon))" opacity={0.2} />
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+          <CartesianGrid vertical={false} strokeDasharray="3 4" stroke={gridColor} />
           <XAxis dataKey="month" interval="preserveStartEnd" minTickGap={18} tick={{ fill: axisColor, fontSize: 11 }} axisLine={{ stroke: gridColor }} tickLine={false} />
           <YAxis width={46} tickFormatter={compactAxisValue} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
-          <Tooltip contentStyle={tooltipStyle} />
-          <Area type="monotone" dataKey="income" name="Tekjur" stroke="rgb(var(--color-accent))" strokeWidth={2.25} fill="rgb(var(--color-accent) / 0.12)" filter={`url(#${incomeShadowId})`} />
-          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="rgb(var(--color-coral))" strokeWidth={2.25} fill="rgb(var(--color-coral) / 0.12)" filter={`url(#${expenseShadowId})`} />
-          <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="rgb(var(--color-lagoon))" strokeWidth={2.25} fill="rgb(var(--color-lagoon) / 0.12)" filter={`url(#${savingsShadowId})`} />
+          <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => Number(value).toLocaleString("is-IS", { maximumFractionDigits: 2 })} />
+          <Area type="monotone" dataKey="income" name="Tekjur" stroke="rgb(var(--color-accent))" strokeWidth={2.25} fill="rgb(var(--color-accent) / 0.055)" isAnimationActive={false} />
+          <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="rgb(var(--color-coral))" strokeWidth={2} fill="transparent" isAnimationActive={false} />
+          <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="rgb(var(--color-lagoon))" strokeWidth={2} fill="transparent" isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-ink/65" aria-label="Skýringar á línuriti">
+        <span className="inline-flex items-center gap-2"><span className="h-0.5 w-3.5 rounded bg-accent" />Tekjur</span>
+        <span className="inline-flex items-center gap-2"><span className="h-0.5 w-3.5 rounded bg-coral" />Útgjöld</span>
+        <span className="inline-flex items-center gap-2"><span className="h-0.5 w-3.5 rounded bg-lagoon" />Sparnaður</span>
+      </div>
     </div>
   );
 }
@@ -92,7 +90,6 @@ export function Sparkline({
   color?: string;
 }) {
   const gradientId = useId().replace(/:/g, "");
-  const shadowId = useId().replace(/:/g, "");
   const chartData = useMemo(() => {
     const values = data.map((point) => Number(point[dataKey])).filter(Number.isFinite);
     const minimum = values.length ? Math.min(...values) : 0;
@@ -114,11 +111,10 @@ export function Sparkline({
         <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 6, left: 4 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.34} />
-              <stop offset="62%" stopColor={color} stopOpacity={0.1} />
+              <stop offset="0%" stopColor={color} stopOpacity={0.13} />
+              <stop offset="62%" stopColor={color} stopOpacity={0.04} />
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
-            <ChartShadowFilter id={shadowId} color={color} />
           </defs>
           <YAxis hide domain={[0, 100]} />
           <Area
@@ -127,9 +123,7 @@ export function Sparkline({
             stroke={color}
             strokeWidth={2}
             fill={`url(#${gradientId})`}
-            filter={`url(#${shadowId})`}
-            animationDuration={700}
-            animationEasing="ease-out"
+            isAnimationActive={false}
             dot={false}
             activeDot={false}
           />
@@ -159,16 +153,12 @@ export function PieBreakdown({
   ];
   const total = data.reduce((sum, item) => sum + item.value, 0);
   const [activeIndex, setActiveIndex] = useState<number>();
-  const pieShadowId = useId().replace(/:/g, "");
 
   return (
-    <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-center">
+    <div className="grid min-w-0 gap-5">
       <div className="relative h-[230px] min-w-0 sm:h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart margin={{ top: 16, right: 16, bottom: 16, left: 16 }}>
-            <defs>
-              <ChartShadowFilter id={pieShadowId} color="rgb(var(--shadow-soft))" opacity={0.24} blur={6} offsetY={7} />
-            </defs>
             <Pie
               data={[{ value: total || 1 }]}
               dataKey="value"
@@ -188,11 +178,11 @@ export function PieBreakdown({
               cornerRadius={5}
               stroke="rgb(var(--color-surface))"
               strokeWidth={3}
-              filter={`url(#${pieShadowId})`}
               activeIndex={activeIndex}
               activeShape={renderActivePieSector}
               onMouseEnter={(_entry, index) => setActiveIndex(index)}
               onMouseLeave={() => setActiveIndex(undefined)}
+              isAnimationActive={false}
             >
               {data.map((entry, index) => (
                 <Cell key={entry.name} fill={colors[index % colors.length]} />
@@ -205,7 +195,7 @@ export function PieBreakdown({
               {money(total)}
             </text>
             <Tooltip
-              allowEscapeViewBox={{ x: true, y: true }}
+              allowEscapeViewBox={{ x: false, y: true }}
               content={<PieTooltip total={total} />}
               cursor={false}
               wrapperStyle={{ zIndex: 30, outline: "none" }}
@@ -221,8 +211,8 @@ export function PieBreakdown({
           const share = total > 0 ? (entry.value / total) * 100 : 0;
           const itemClassName = `group flex min-w-0 items-start gap-2.5 rounded-md border bg-surface/80 px-3 py-2.5 transition duration-200 ${
             isActive
-              ? "-translate-y-px border-accent/30 shadow-[0_8px_22px_rgb(var(--shadow-soft)/0.12)]"
-              : "border-line/10 hover:-translate-y-px hover:border-accent/20 hover:shadow-[0_8px_22px_rgb(var(--shadow-soft)/0.08)]"
+              ? "border-accent/20 bg-accent/5"
+              : "border-transparent hover:border-line/10 hover:bg-muted/35"
           }`;
           const content = (
             <>
@@ -231,8 +221,8 @@ export function PieBreakdown({
                 style={{ backgroundColor: colors[index % colors.length] }}
               />
               <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-start justify-between gap-3">
-                  <p className="min-w-0 truncate text-sm font-semibold">{entry.name}</p>
+                <div className="flex min-w-0 flex-col items-start gap-1">
+                  <p className="min-w-0 break-words text-sm font-semibold">{entry.name}</p>
                   <p className="shrink-0 text-sm font-bold">{money(entry.value)}</p>
                 </div>
                 <div className="mt-1.5 flex items-center gap-2">
@@ -276,22 +266,24 @@ export function PieBreakdown({
 
 export function CategoryBars({ data }: { data: Array<{ name: string; value: number }> }) {
   const chartHeight = Math.max(220, data.length * 38);
-  const barShadowId = useId().replace(/:/g, "");
 
   return (
     <div className="min-w-0 overflow-visible [&_svg]:overflow-visible">
       <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-          <defs>
-            <ChartShadowFilter id={barShadowId} color="rgb(var(--color-accent))" opacity={0.24} blur={3} offsetY={3} />
-          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis type="number" tickFormatter={compactAxisValue} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
-          <YAxis type="category" dataKey="name" width={88} tick={{ fill: axisColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+          <YAxis type="category" dataKey="name" width={88} tick={<CategoryAxisTick />} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [money(Number(value)), "Upphæð"]} />
-          <Bar dataKey="value" name="Upphæð" fill="rgb(var(--color-accent))" radius={[0, 6, 6, 0]} barSize={18} filter={`url(#${barShadowId})`} />
+          <Bar dataKey="value" name="Upphæð" fill="rgb(var(--color-accent))" radius={[0, 6, 6, 0]} barSize={18} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
+}
+
+function CategoryAxisTick({ x = 0, y = 0, payload }: { x?: number; y?: number; payload?: { value: string } }) {
+  const name = payload?.value ?? "";
+  const label = name.length > 12 ? `${name.slice(0, 11)}…` : name;
+  return <text x={x} y={y} dy={4} textAnchor="end" fill={axisColor} fontSize={11}><title>{name}</title>{label}</text>;
 }

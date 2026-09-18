@@ -6,7 +6,7 @@ import { ReceiptIcon as ReceiptText } from "@phosphor-icons/react/dist/ssr/Recei
 import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
 import Link from "next/link";
 import { PieBreakdown } from "@/components/charts";
-import { Button, Card, EmptyState, Field, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
 import { getMonthlyOverviewData, getOverviewMonths } from "@/lib/data";
 import { currentMonth, money, percent } from "@/lib/format";
 
@@ -44,13 +44,9 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
 
   return (
     <>
-      <PageHeader title="Mánaðaryfirlit" description="Farðu yfir tekjur, útgjöld, reikninga og stöðu eins mánaðar í einni heildarmynd." />
-
-      <Card className="mb-5">
-        <SectionHeader title="Velja mánuð" description="Skiptu á milli mánaða án þess að missa yfirsýnina." />
-        <form className="grid gap-3 sm:grid-cols-[1fr_auto]">
-          <Field label="Mánuður">
-            <select className={inputClass} name="month" defaultValue={month}>
+      <PageHeader title="Mánaðaryfirlit" description="Tekjur, útgjöld og reikningar mánaðarins. Allt í einni yfirsýn." action={
+        <form className="flex min-w-0 items-center gap-2" aria-label="Velja mánuð">
+            <select className={`${inputClass} sm:!w-44`} name="month" defaultValue={month} aria-label="Mánuður">
               {months.includes(month) ? null : <option value={month}>{monthLabel(month)}</option>}
               {months.map((item) => (
                 <option key={item} value={item}>
@@ -58,14 +54,11 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
                 </option>
               ))}
             </select>
-          </Field>
-          <div className="flex items-end">
-            <Button className="w-full sm:w-auto" type="submit" variant="secondary">
+            <Button className="min-h-11 shrink-0" type="submit" variant="secondary">
               Skoða
             </Button>
-          </div>
         </form>
-      </Card>
+      } />
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => {
@@ -80,27 +73,27 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
         <Card>
           <SectionHeader title={monthLabel(month)} description="Helstu tölur valda mánaðarins." action={<CalendarDays size={19} className="text-accent" weight="duotone" />} />
           <div className="grid gap-3 text-sm">
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4">
               <span className="text-ink/55">Heildartekjur</span>
               <span className="font-bold text-moss">{money(data.income, currency)}</span>
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4">
               <span className="text-ink/55">Heildarútgjöld</span>
               <span className="font-bold text-coral">{money(data.expenses, currency)}</span>
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4">
               <span className="text-ink/55">Útgjaldafærslur</span>
               <span className="font-bold">{data.expenseTransactions.length}</span>
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4">
               <span className="text-ink/55">Meðalútgjöld á dag</span>
               <span className="font-bold">{money(averageDailyExpense, currency)}</span>
             </div>
-            <div className="flex justify-between gap-4 border-t border-line/10 pt-3">
+            <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4 border-t border-line/10 pt-3">
               <span className="text-ink/55">Eftir mánuðinn</span>
               <span className={`font-bold ${monthBalanceTone}`}>{money(data.savings, currency)}</span>
             </div>
-            <div className="flex justify-between gap-4">
+            <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4">
               <span className="text-ink/55">Sparnaðarfærslur</span>
               <span className="font-bold">{money(data.savingsContributed, currency)}</span>
             </div>
@@ -111,12 +104,12 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
           <SectionHeader title="Áætlun mánaðar" description="Raunútgjöld borin saman við skráða áætlun." />
           {budgetAmount > 0 ? (
             <>
-              <div className="mb-2 flex justify-between text-sm">
+              <div className="mb-2 flex flex-col gap-1 text-sm min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-3">
                 <span>{money(data.expenses, currency)} notað</span>
                 <span>{money(budgetAmount, currency)} áætlað</span>
               </div>
               <ProgressBar value={budgetUsage} />
-              <div className="mt-3 flex justify-between text-sm text-ink/55">
+              <div className="mt-3 flex flex-col gap-1 text-sm min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-3 text-ink/55">
                 <span>{percent(budgetUsage)}</span>
                 <span className={budgetUsage > 100 ? "font-semibold text-coral" : "font-semibold text-moss"}>
                   {budgetUsage > 100 ? "Yfir áætlun" : `${money(Math.max(0, budgetAmount - data.expenses), currency)} eftir`}
@@ -141,9 +134,9 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
           {data.expenseTransactions.length ? (
             <div className="divide-y divide-line/10">
               {data.expenseTransactions.slice(0, 8).map((tx) => (
-                <Link key={tx.id} href={`/transactions?month=${month}&type=expense&search=${encodeURIComponent(tx.note ?? "")}`} className="flex items-center justify-between gap-4 py-3 text-sm transition hover:text-accent">
+                <Link key={tx.id} href={`/transactions?month=${month}&type=expense&search=${encodeURIComponent(tx.note ?? "")}`} className="flex flex-col items-start gap-1 py-3 min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between min-[400px]:gap-4 text-sm transition hover:text-accent">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">{tx.note || "Færsla"}</p>
+                    <p className="break-words font-semibold">{tx.note || "Færsla"}</p>
                     <p className="text-ink/55">{tx.date} · {tx.categories?.name ?? "Óflokkað"}</p>
                   </div>
                   <p className="shrink-0 font-bold text-coral">{money(Number(tx.amount), currency)}</p>
@@ -166,12 +159,12 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
               {data.bills.map((bill) => (
                 <Link
                   key={bill.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm transition hover:bg-muted"
+                  className="flex flex-col items-start gap-1 rounded-lg min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between min-[400px]:gap-3 border border-line/10 bg-surface/70 px-3 py-2 text-sm transition hover:bg-muted"
                   href={`/bills?month=${month}`}
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     {bill.payment ? <CheckCircle2 className="shrink-0 text-moss" size={17} /> : <Circle className="shrink-0 text-ink/35" size={17} />}
-                    <span className="truncate font-semibold">{bill.name}</span>
+                    <span className="break-words font-semibold">{bill.name}</span>
                   </span>
                   <span className={bill.payment ? "font-bold text-moss" : "font-bold text-coral"}>
                     {money(Number(bill.payment?.amount ?? bill.amount), currency)}
@@ -189,9 +182,9 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
           {data.transactions.length ? (
             <div className="divide-y divide-line/10">
               {data.transactions.slice(0, 8).map((tx) => (
-                <div key={tx.id} className="flex justify-between gap-4 py-3 text-sm">
+                <div key={tx.id} className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4 py-3 text-sm">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">{tx.note || "Færsla"}</p>
+                    <p className="break-words font-semibold">{tx.note || "Færsla"}</p>
                     <p className="text-ink/55">{tx.date} · {tx.categories?.name ?? "Óflokkað"}</p>
                   </div>
                   <p className={tx.type === "income" ? "shrink-0 font-bold text-moss" : "shrink-0 font-bold text-coral"}>

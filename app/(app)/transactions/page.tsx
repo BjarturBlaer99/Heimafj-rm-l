@@ -1,240 +1,80 @@
+import { ActionForm } from "@/components/action-form";
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
+import { FileArrowUpIcon } from "@phosphor-icons/react/dist/ssr/FileArrowUp";
+
 import Link from "next/link";
 import { ConfirmButton } from "@/components/confirm-button";
 import { CsvImporter } from "@/components/csv-importer";
 import { FlashMessage } from "@/components/flash-message";
-import { Button, Card, EmptyState, Field, PageHeader, SectionHeader, inputClass } from "@/components/ui";
-import { deleteAllTransactions, deleteTransaction, saveTransaction } from "@/lib/actions";
-import { getCategories, getTransactions } from "@/lib/data";
+import { Button, DateInput, EmptyState, Field, PageHeader, inputClass } from "@/components/ui";
+import { buttonVariants } from "@/components/ui/button";
+import { deleteAllTransactions, saveTransaction } from "@/lib/actions";
+import { getAuthed, getCategories, getTransactions } from "@/lib/data";
 import { currentMonth, isoDate, money } from "@/lib/format";
-
-type Transaction = Awaited<ReturnType<typeof getTransactions>>[number];
-type Category = Awaited<ReturnType<typeof getCategories>>[number];
-
-function TransactionEditor({ transaction, categories, summary }: { transaction: Transaction; categories: Category[]; summary: string }) {
-  return (
-    <details>
-      <summary className="cursor-pointer">{summary}</summary>
-      <form action={saveTransaction} className="mt-3 grid gap-2">
-        <input type="hidden" name="id" value={transaction.id} />
-        <input className={inputClass} name="note" defaultValue={transaction.note ?? ""} required />
-        <input className={inputClass} name="amount" type="number" step="0.01" min="0.01" defaultValue={Number(transaction.amount)} required />
-        <input className={inputClass} name="date" type="date" defaultValue={transaction.date} required />
-        <select className={inputClass} name="type" defaultValue={transaction.type}>
-          <option value="expense">Útgjöld</option>
-          <option value="income">Tekjur</option>
-        </select>
-        <select className={inputClass} name="category_id" defaultValue={transaction.category_id ?? ""}>
-          <option value="">Óflokkað</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <Button type="submit" variant="secondary">
-          Vista breytingar
-        </Button>
-      </form>
-    </details>
-  );
-}
+import { resolveTransactionPeriod, transactionPeriodQuery } from "@/lib/transaction-period";
+import { TransactionPeriodFields } from "@/components/transaction-period-fields";
+import { TransactionLedger } from "@/components/transaction-ledger";
+import styles from "./transactions.module.css";
 
 export default async function TransactionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const month = params.month ?? currentMonth();
-  const [categories, transactions] = await Promise.all([
+  const period = resolveTransactionPeriod(params, currentMonth());
+  const [categories, transactions, { user }] = await Promise.all([
     getCategories(),
-    getTransactions({
-      month,
-      type: params.type,
-      category: params.category,
-      search: params.search,
-      from: params.from,
-      to: params.to
-    })
+    getTransactions({ ...period, type: params.type, category: params.category, search: params.search, id: params.id }), getAuthed()
   ]);
   const currency = "ISK";
-  const selectableCategories = categories.filter((category) =>
-    params.type === "income" ? category.type !== "expense" : params.type === "expense" ? category.type !== "income" : true
-  );
+  const selectableCategories = categories.filter((category) => params.type === "income" ? category.type !== "expense" : params.type === "expense" ? category.type !== "income" : true);
+  const income = transactions.reduce((sum, tx) => sum + (tx.type === "income" ? Number(tx.amount) : 0), 0);
+  const expenses = transactions.reduce((sum, tx) => sum + (tx.type === "expense" ? Number(tx.amount) : 0), 0);
+  const hasFilters = Boolean(params.type || params.category || params.search || params.id);
 
   return (
-    <>
-      <PageHeader
-        title="Færslur"
-        description="Skráðu, flokkaðu og leitaðu í öllum tekju- og útgjaldafærslum á einum stað."
-        action={
-          transactions.length ? (
-            <form action={deleteAllTransactions}>
-              <ConfirmButton variant="danger" confirmMessage="Ertu viss um að þú viljir eyða öllum færslum? Þetta er ekki hægt að afturkalla.">
-                <Trash2 size={16} />
-                Eyða öllum færslum
-              </ConfirmButton>
-            </form>
-          ) : null
-        }
-      />
+    <div className={styles.page}>
+      <PageHeader title="Færslur" description="Allar hreyfingar á einum stað. Finndu færslu, breyttu flokkun eða bættu við nýrri."
+        action={<div className={styles.headerActions}><a href="#import-transactions" className={buttonVariants({ variant: "secondary" })}><FileArrowUpIcon size={17} aria-hidden="true" />Flytja inn skrá</a><a href="#new-transaction" className={buttonVariants()}><Plus size={17} aria-hidden="true" />Ný færsla</a></div>} />
       <FlashMessage code={params.success} imported={params.imported} skipped={params.skipped} />
 
-      <Card className="mb-5">
-        <SectionHeader title="Ný færsla" description="Bættu handvirkt við tekju- eða útgjaldafærslu." />
-        <form action={saveTransaction} className="grid gap-3 md:grid-cols-[1fr_130px_140px_140px_1fr_auto]">
-          <input className={inputClass} name="note" placeholder="Lýsing" required />
-          <input className={inputClass} name="amount" type="number" step="0.01" min="0.01" placeholder="Upphæð" required />
-          <select className={inputClass} name="type" required>
-            <option value="expense">Útgjöld</option>
-            <option value="income">Tekjur</option>
-          </select>
-          <input className={inputClass} name="date" type="date" defaultValue={isoDate()} required />
-          <select className={inputClass} name="category_id">
-            <option value="">Óflokkað</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-          <Button type="submit">
-            <Plus size={17} />
-            Bæta við
-          </Button>
-        </form>
-      </Card>
+      <dl className={styles.summary} aria-label="Samantekt fyrir valdar síur" data-scroll-reveal>
+        <div><dt>Tekjur</dt><dd>{money(income, currency)}</dd><p>{period.label}</p></div>
+        <div><dt>Útgjöld</dt><dd>{money(expenses, currency)}</dd><p>{period.label}</p></div>
+        <div className={styles.netSummary}><dt>Mismunur</dt><dd data-negative={income - expenses < 0}>{money(income - expenses, currency)}</dd><p>Tekjur að frádregnum útgjöldum</p></div>
+      </dl>
 
-      <Card className="mb-5">
-        <SectionHeader title="Sía færslur" description="Þrengdu niðurstöður eftir tímabili, tegund, flokki eða leitarorði." />
-        <form className="grid gap-3 md:grid-cols-6">
-          <Field label="Mánuður">
-            <input className={inputClass} name="month" type="month" defaultValue={month} />
-          </Field>
-          <Field label="Frá">
-            <input className={inputClass} name="from" type="date" defaultValue={params.from} />
-          </Field>
-          <Field label="Til">
-            <input className={inputClass} name="to" type="date" defaultValue={params.to} />
-          </Field>
-          <Field label="Tegund">
-            <select className={inputClass} name="type" defaultValue={params.type ?? ""}>
-              <option value="">Allt</option>
-              <option value="income">Tekjur</option>
-              <option value="expense">Útgjöld</option>
-            </select>
-          </Field>
-          <Field label="Flokkur">
-            <select className={inputClass} name="category" defaultValue={params.category ?? ""}>
-              <option value="">Allir flokkar</option>
-              {selectableCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Leit">
-            <input className={inputClass} name="search" defaultValue={params.search} placeholder="Lýsing" />
-          </Field>
-          <div className="md:col-span-6">
-            <Button type="submit" variant="secondary" className="w-full sm:w-auto">
-              Sía færslur
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      <div className="mb-5">
-        <CsvImporter categories={categories} />
-      </div>
-
-      <Card>
-        <SectionHeader title="Skráðar færslur" description={`${transactions.length} færslur fundust fyrir valdar síur.`} />
-        {transactions.length ? (
-          <>
-            <div className="grid gap-2 sm:hidden">
-              {transactions.map((tx) => (
-                <article key={tx.id} className="min-w-0 rounded-md border border-line/10 bg-muted/25 p-3">
-                  <div className="flex min-w-0 items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">{tx.note || "Færsla"}</p>
-                      <p className="mt-0.5 text-xs text-ink/50">{tx.date}</p>
-                    </div>
-                    <p className={tx.type === "income" ? "shrink-0 font-bold text-moss" : "shrink-0 font-bold text-coral"}>
-                      {tx.type === "income" ? "+" : "-"}{money(Number(tx.amount), currency)}
-                    </p>
-                  </div>
-                  <div className="mt-3 flex min-w-0 items-center justify-between gap-3 border-t border-line/8 pt-3 text-xs">
-                    {tx.category_id ? (
-                      <Link className="min-w-0 truncate font-semibold text-accent" href={`/transactions/category/${tx.category_id}?month=${month}&type=${tx.type}`}>
-                        {tx.categories?.name ?? "Óflokkað"}
-                      </Link>
-                    ) : (
-                      <span className="min-w-0 truncate text-ink/50">{tx.categories?.name ?? "Óflokkað"}</span>
-                    )}
-                    <span className="shrink-0 rounded-md bg-surface px-2 py-1 font-semibold text-ink/55">{tx.type === "income" ? "Tekjur" : "Útgjöld"}</span>
-                  </div>
-                  <div className="mt-3 flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1 text-sm font-semibold text-accent">
-                      <TransactionEditor transaction={tx} categories={categories} summary="Breyta færslu" />
-                    </div>
-                    <form action={deleteTransaction}>
-                      <input type="hidden" name="id" value={tx.id} />
-                      <Button variant="danger" className="h-9 w-9 p-0" title="Eyða">
-                        <Trash2 size={16} />
-                      </Button>
-                    </form>
-                  </div>
-                </article>
-              ))}
+      <section className={styles.ledger} aria-labelledby="transactions-heading">
+        <div className={styles.sectionHeading} data-scroll-reveal><div><h2 id="transactions-heading">Skráðar færslur</h2><p>{transactions.length} færslur fyrir valdar síur</p></div></div>
+        <section className={styles.filterPanel} aria-labelledby="transaction-filters-heading" data-scroll-reveal>
+          <div className={styles.filterHeading}><h3 id="transaction-filters-heading">Leita og sía</h3><p>{period.label} · {transactions.length} færslur</p></div>
+          <form className={styles.filters}>
+            <TransactionPeriodFields key={`${period.period}-${period.month}-${period.from}-${period.to}`} period={period.period} month={period.month ?? currentMonth()} from={period.from} to={period.to} />
+            <div className={styles.searchFields}>
+              <Field label="Leit"><input className={inputClass} name="search" defaultValue={params.search} placeholder="Leita eftir lýsingu" /></Field>
+              <Field label="Tegund"><select className={inputClass} name="type" defaultValue={params.type ?? ""}><option value="">Allar færslur</option><option value="income">Tekjur</option><option value="expense">Útgjöld</option></select></Field>
+              <Field label="Flokkur"><select className={inputClass} name="category" defaultValue={params.category ?? ""}><option value="">Allir flokkar</option>{selectableCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></Field>
             </div>
-            <div className="hidden overflow-x-auto sm:block">
-              <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="text-ink/55">
-              <tr>
-                <th className="pb-3">Dagsetning</th>
-                <th className="pb-3">Lýsing</th>
-                <th className="pb-3">Flokkur</th>
-                <th className="pb-3">Tegund</th>
-                <th className="pb-3 text-right">Upphæð</th>
-                <th className="pb-3 text-right">Aðgerðir</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line/10">
-              {transactions.map((tx) => (
-                <tr key={tx.id}>
-                  <td className="py-3">{tx.date}</td>
-                  <td className="py-3 font-semibold">
-                    <TransactionEditor transaction={tx} categories={categories} summary={tx.note || "Færsla"} />
-                  </td>
-                  <td className="py-3">
-                    {tx.category_id ? (
-                      <Link className="font-semibold text-accent underline-offset-2 hover:underline" href={`/transactions/category/${tx.category_id}?month=${month}&type=${tx.type}`}>
-                        {tx.categories?.name ?? "Óflokkað"}
-                      </Link>
-                    ) : (
-                      tx.categories?.name ?? "Óflokkað"
-                    )}
-                  </td>
-                  <td className="py-3">{tx.type === "income" ? "Tekjur" : "Útgjöld"}</td>
-                  <td className="py-3 text-right font-bold">{money(Number(tx.amount), currency)}</td>
-                  <td className="py-3 text-right">
-                    <form action={deleteTransaction}>
-                      <input type="hidden" name="id" value={tx.id} />
-                      <Button variant="danger" className="h-9 w-9 p-0" title="Eyða">
-                        <Trash2 size={16} />
-                      </Button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-              </table>
-            </div>
-          </>
-        ) : (
-          <EmptyState>Engar færslur fundust. Bættu við færslu handvirkt eða flyttu inn CSV/Excel skrá hér að ofan.</EmptyState>
-        )}
-      </Card>
-    </>
+            <div className={styles.filterActions}>{hasFilters ? <Link href={`/transactions?${transactionPeriodQuery(period)}`} className={styles.clearFilters}>Hreinsa síur</Link> : null}<Button type="submit" variant="secondary">Sía færslur</Button></div>
+          </form>
+        </section>
+        {params.id ? <p className="px-6 py-3 text-sm text-ink/60">Valin færsla · <Link className="text-accent" href={`/transactions?${transactionPeriodQuery(period)}`}>Sjá allt tímabilið</Link></p> : null}
+        {transactions.length ? <TransactionLedger transactions={transactions} categories={categories} /> : <div className={styles.empty} data-scroll-reveal><EmptyState>Engar færslur fundust fyrir þessar síur. Prófaðu annað tímabil eða bættu við fyrstu færslunni.</EmptyState></div>}
+      </section>
+
+      <section id="new-transaction" className={styles.newEntry} aria-labelledby="new-transaction-heading" data-scroll-reveal>
+        <div className={styles.sectionHeading}><div><h2 id="new-transaction-heading">Ný færsla</h2><p>Skráðu tekjur eða útgjöld handvirkt.</p></div><Plus size={19} aria-hidden="true" /></div>
+        <ActionForm resetOnSuccess action={saveTransaction} className={styles.newEntryForm}>
+          <Field label="Lýsing"><input className={inputClass} name="note" placeholder="T.d. matarinnkaup" required /></Field>
+          <Field label="Upphæð"><input className={inputClass} name="amount" type="number" step="0.01" min="0.01" placeholder="0 kr." required /></Field>
+          <Field label="Tegund"><select className={inputClass} name="type" required><option value="expense">Útgjöld</option><option value="income">Tekjur</option></select></Field>
+          <Field label="Dagsetning"><DateInput name="date" type="date" defaultValue={isoDate()} required /></Field>
+          <Field label="Flokkur"><select className={inputClass} name="category_id"><option value="">Óflokkað</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></Field>
+          <Button type="submit"><Plus size={17} aria-hidden="true" />Bæta við færslu</Button>
+        </ActionForm>
+      </section>
+
+      <CsvImporter categories={categories} userId={user.id} />
+
+      {transactions.length ? <section className={styles.management} aria-labelledby="transaction-management-heading" data-scroll-reveal><h2 id="transaction-management-heading">Umsjón færslna</h2><div><p>Þessi aðgerð eyðir öllum skráðum færslum, líka þeim sem birtast ekki í völdum síum.</p><ActionForm action={deleteAllTransactions}><ConfirmButton variant="danger" confirmMessage="Ertu viss um að þú viljir eyða öllum færslum? Þetta er ekki hægt að afturkalla."><Trash2 size={16} aria-hidden="true" />Eyða öllum færslum</ConfirmButton></ActionForm></div></section> : null}
+    </div>
   );
 }

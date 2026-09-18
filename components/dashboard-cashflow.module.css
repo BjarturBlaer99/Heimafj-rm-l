@@ -1,0 +1,214 @@
+.cashflow {
+  min-width: 0;
+  color: rgb(var(--color-ink));
+  font-variant-numeric: tabular-nums;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+  color: rgb(var(--color-ink) / 0.68);
+  font-size: 12px;
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.incomeKey,
+.expenseKey {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.incomeKey,
+.incomeBar {
+  background: rgb(var(--color-moss));
+}
+
+.expenseKey,
+.expenseBar {
+  background: rgb(var(--color-ink) / 0.74);
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.axis {
+  position: relative;
+  height: 176px;
+  color: rgb(var(--color-ink) / 0.68);
+  font-size: 11px;
+  line-height: 1;
+  text-align: right;
+}
+
+.axis > span {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.plot {
+  position: relative;
+  min-width: 0;
+}
+
+.grid {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 176px;
+  pointer-events: none;
+}
+
+.grid > span {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px solid rgb(var(--color-line) / 0.08);
+}
+
+.months {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--month-count), minmax(0, 1fr));
+  gap: 4px;
+}
+
+.months > .month {
+  display: flex;
+  /* Six tall targets share the plot width, including in narrow desktop cards. */
+  min-width: 0;
+  flex-direction: column;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.month:hover {
+  background: rgb(var(--color-line) / 0.035);
+}
+
+.month:focus-visible {
+  outline: 2px solid rgb(var(--color-accent));
+  outline-offset: 3px;
+}
+
+.bars {
+  display: flex;
+  width: 100%;
+  height: 176px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  opacity: 0.7;
+}
+
+.month[aria-pressed="true"] .bars,
+.month:hover .bars,
+.month:focus-visible .bars {
+  opacity: 1;
+}
+
+.incomeBar,
+.expenseBar {
+  width: 28%;
+  max-width: 18px;
+  border-radius: 3px 3px 0 0;
+}
+
+.monthName {
+  display: grid;
+  width: 100%;
+  height: 44px;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  color: rgb(var(--color-ink) / 0.68);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.month[aria-pressed="true"] .monthName {
+  border-bottom-color: rgb(var(--color-ink));
+  color: rgb(var(--color-ink));
+  font-weight: 650;
+}
+
+.details {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgb(var(--color-line) / 0.09);
+}
+
+.selectedMonth {
+  margin: 0 0 12px;
+  color: rgb(var(--color-ink) / 0.68);
+  font-size: 12px;
+}
+
+.values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.values dt {
+  margin-bottom: 5px;
+  color: rgb(var(--color-ink) / 0.68);
+  font-size: 12px;
+}
+
+.values dd {
+  min-height: 3em;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.values .incomeValue {
+  color: rgb(var(--color-moss));
+}
+
+.values .negativeValue {
+  color: rgb(var(--color-coral));
+}
+
+.empty {
+  display: grid;
+  min-height: 320px;
+  place-items: center;
+  color: rgb(var(--color-ink) / 0.68);
+  font-size: 13px;
+}
+
+@media (min-width: 640px) {
+  .chart {
+    gap: 16px;
+  }
+
+  .axis,
+  .grid,
+  .bars {
+    height: 196px;
+  }
+
+  .values dd {
+    font-size: 17px;
+  }
+}

@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
+    // Keep quick return visits in this browser; actions invalidate saved data.
+    staleTimes: {
+      dynamic: 30,
+      static: 30
+    },
     serverActions: {
       bodySizeLimit: "4mb"
     }
@@ -53,7 +58,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.tradingview.com",
               "font-src 'self'",
               "style-src 'self' 'unsafe-inline'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://s3.tradingview.com",
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://s3.tradingview.com`,
               "frame-src https://s.tradingview.com https://www.tradingview.com https://*.tradingview.com",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.tradingview.com wss://*.tradingview.com"
             ].join("; ")

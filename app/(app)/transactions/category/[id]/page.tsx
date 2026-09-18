@@ -62,9 +62,9 @@ export default async function CategoryTransactionsPage({
             <div className="grid gap-2 sm:hidden">
               {transactions.map((transaction) => (
                 <article key={transaction.id} className="rounded-md border border-line/10 bg-muted/25 p-3">
-                  <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-col items-start gap-2 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-3">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold">{transaction.note || "Færsla"}</p>
+                      <p className="break-words font-semibold">{transaction.note || "Færsla"}</p>
                       <p className="mt-0.5 text-xs text-ink/50">{transaction.date} · {transaction.type === "income" ? "Tekjur" : "Útgjöld"}</p>
                     </div>
                     <p className={transaction.type === "income" ? "shrink-0 font-bold text-moss" : "shrink-0 font-bold text-coral"}>

@@ -10,9 +10,9 @@ export function AnimatedProgress({ value, className }: { value: number; classNam
     <div className={cn("h-2 overflow-hidden rounded-full bg-line/10", className)}>
       <motion.div
         className={cn("h-full rounded-full", value > 100 ? "bg-coral" : "bg-lagoon")}
-        initial={{ width: 0 }}
+        initial={false}
         animate={{ width: `${clamped}%` }}
-        transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
       />
     </div>
   );

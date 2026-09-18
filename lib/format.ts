@@ -1,6 +1,7 @@
 export function money(value: number, currency = "ISK") {
   const numericValue = Number(value);
-  const roundedValue = Number.isFinite(numericValue) ? Math.round(numericValue) : 0;
+  if (!Number.isFinite(numericValue)) return "—";
+  const roundedValue = Math.round(numericValue);
   const sign = roundedValue < 0 ? "-" : "";
   const groupedValue = Math.abs(roundedValue)
     .toString()

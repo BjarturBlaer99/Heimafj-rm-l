@@ -13,38 +13,35 @@ import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHem
 import { InvoiceIcon } from "@phosphor-icons/react/dist/csr/Invoice";
 import { PiggyBankIcon } from "@phosphor-icons/react/dist/csr/PiggyBank";
 import { ReceiptIcon } from "@phosphor-icons/react/dist/csr/Receipt";
-import { TrendDownIcon } from "@phosphor-icons/react/dist/csr/TrendDown";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
 import { UserPlusIcon } from "@phosphor-icons/react/dist/csr/UserPlus";
-import { WalletIcon } from "@phosphor-icons/react/dist/csr/Wallet";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
-import { AnimatePresence, motion, MotionConfig, type Variants } from "motion/react";
+import { motion, MotionConfig } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { DashboardOverview } from "@/components/dashboard-overview";
+import { demoDashboardData, demoDisplayTransactions, demoMonth } from "@/components/demo-dashboard-data";
 import { AppFooter } from "@/components/app-footer";
-import { CategoryBars, PieBreakdown, Sparkline, TrendChart } from "@/components/charts";
-import { ChangeBadge, MarketOverview, StatusBadge } from "@/components/market-overview";
-import { RealEstateOverview } from "@/components/real-estate-overview";
+import { BrandMark } from "@/components/brand-mark";
+import { CategoryBars, PieBreakdown, TrendChart } from "@/components/charts";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   demoBills,
   demoCategories,
   demoSavings,
   demoSummary,
-  demoTransactions,
   demoTrend,
   type DemoTransaction
 } from "@/lib/demo-data";
 import { money } from "@/lib/format";
-import type { MarketSnapshot } from "@/lib/market-data";
-import type { RealEstateSnapshot } from "@/lib/real-estate-data";
 import { cn } from "@/lib/utils";
 
 type DemoView = "overview" | "transactions" | "bills" | "savings" | "realEstate" | "markets" | "analytics";
@@ -70,175 +67,52 @@ const transactionFilters: Array<{ id: TransactionFilter; label: string }> = [
   { id: "saving", label: "Sparnaður" }
 ];
 
-const statGridVariants: Variants = {
-  hidden: {},
-  visible: {
-    transition: {
-      delayChildren: 0.04,
-      staggerChildren: 0.055
-    }
-  }
-};
-
-const statCardVariants: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.985 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] }
-  }
-};
-
-function ViewHeading({ title, description }: { title: string; description: string }) {
+function ViewHeading({ title, description, period }: { title: string; description: string; period?: string }) {
   return (
-    <header className="mb-5 sm:mb-6">
-      <h2 className="text-[1.65rem] font-bold leading-tight sm:text-3xl">{title}</h2>
-      <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink/50">{description}</p>
+    <header data-scroll-reveal="" className="mb-6 flex flex-wrap items-center justify-between gap-4 sm:mb-7">
+      <div>
+        <h1 className="page-heading">{title}</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/55">{description}</p>
+      </div>
+      {period ? (
+        <span className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-line/15 bg-surface px-3.5 py-2.5 text-xs font-semibold text-ink/70">
+          <CalendarDotsIcon size={16} className="text-ink/45" />
+          {period}
+        </span>
+      ) : null}
     </header>
   );
 }
 
-function trendChange(data: Array<Record<string, string | number>>, dataKey: string) {
-  const latest = Number(data.at(-1)?.[dataKey] ?? 0);
-  const previous = Number(data.at(-2)?.[dataKey] ?? 0);
-  if (!Number.isFinite(latest) || !Number.isFinite(previous) || previous === 0) return 0;
-  return ((latest - previous) / Math.abs(previous)) * 100;
+function Overview({ onNavigate, marketContent }: { onNavigate: (view: DemoView, transactionHref?: string) => void; marketContent: ReactNode }) {
+  const router = useRouter();
+  function followDashboardLink(href: string) {
+    const path = href.split(/[?#]/)[0];
+    if (href.includes("#new-transaction") || href.includes("#import-transactions")) { router.push("/signup"); return; }
+    if (path.startsWith("/transactions")) { onNavigate("transactions", href); return; }
+    if (path === "/income") { onNavigate("transactions", "/transactions?type=income"); return; }
+    if (path === "/bills") { onNavigate("bills"); return; }
+    if (path === "/savings-goals") { onNavigate("savings"); return; }
+    if (path === "/markets") { onNavigate("markets"); return; }
+    onNavigate("analytics");
+  }
+  return <DashboardOverview data={demoDashboardData} month={demoMonth} today="2026-06-18" onNavigate={followDashboardLink} marketContent={marketContent} />;
 }
 
-function Overview({ onNavigate, marketData }: { onNavigate: (view: DemoView) => void; marketData: MarketSnapshot }) {
-  const monthBalanceTone = demoSummary.balance > 0 ? "text-moss" : demoSummary.balance < 0 ? "text-coral" : "text-ink";
-  const monthBalanceColor = demoSummary.balance > 0
-    ? "rgb(var(--color-moss))"
-    : demoSummary.balance < 0
-      ? "rgb(var(--color-coral))"
-      : "rgb(var(--color-ink))";
-  const balanceRate = demoSummary.income > 0 ? (demoSummary.balance / demoSummary.income) * 100 : 0;
-  const stats = [
-    { label: "Tekjur", value: demoSummary.income, format: money, tone: "text-moss", iconTone: "bg-moss/10 text-moss", color: "rgb(var(--color-moss))", icon: TrendUpIcon, view: "analytics" as const, key: "income", change: trendChange(demoTrend, "income"), inverse: false },
-    { label: "Útgjöld", value: demoSummary.expenses, format: money, tone: "text-coral", iconTone: "bg-coral/10 text-coral", color: "rgb(var(--color-coral))", icon: TrendDownIcon, view: "analytics" as const, key: "expenses", change: trendChange(demoTrend, "expenses"), inverse: true },
-    { label: "Eftir mánuðinn", value: demoSummary.balance, format: money, tone: monthBalanceTone, iconTone: demoSummary.balance > 0 ? "bg-moss/10 text-moss" : demoSummary.balance < 0 ? "bg-coral/10 text-coral" : "bg-muted text-ink", color: monthBalanceColor, icon: WalletIcon, view: "analytics" as const, key: "savings", change: trendChange(demoTrend, "savings"), inverse: false }
-  ];
+function Transactions({ initialHref }: { initialHref?: string }) {
+  const target = new URL(initialHref ?? "/transactions", "https://demo.invalid");
+  const selectedId = target.searchParams.get("id");
+  const category = target.pathname.startsWith("/transactions/category/") ? decodeURIComponent(target.pathname.split("/").at(-1) ?? "") : null;
+  const selectedRow = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (selectedId) selectedRow.current?.focus(); }, [selectedId]);
+  const [filter, setFilter] = useState<TransactionFilter>(target.searchParams.get("type") === "income" ? "income" : target.searchParams.get("type") === "expense" ? "expense" : "all");
+  const visibleTransactions = demoDisplayTransactions.filter((transaction) => (filter === "all" || transaction.kind === filter) && (!category || transaction.category === category));
 
   return (
     <>
-      <ViewHeading title="Yfirlit" description={demoSummary.month} />
-
-      <motion.div className="grid gap-3 sm:grid-cols-3" variants={statGridVariants} initial="hidden" animate="visible">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <motion.div
-              key={stat.label}
-              variants={statCardVariants}
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ type: "spring", stiffness: 420, damping: 28 }}
-              className="group h-full min-w-0"
-            >
-              <Card className="h-full min-h-[176px] overflow-hidden p-0 transition-colors duration-200 group-hover:border-accent/25">
-                <button type="button" onClick={() => onNavigate(stat.view)} className="focus-ring flex h-full w-full flex-col p-4 text-left sm:p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-md", stat.iconTone)}>
-                        <Icon size={19} weight="duotone" />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold leading-tight">{stat.label}</p>
-                        <p className="mt-1 text-xs leading-snug text-ink/45">{demoSummary.month}</p>
-                      </div>
-                    </div>
-                    <span className="sm:hidden lg:block"><StatusBadge status="sample" minimal /></span>
-                  </div>
-                  <div className="mt-4 flex items-end justify-between gap-3">
-                    <p className={cn("text-2xl font-bold leading-none", stat.tone)}>
-                      <AnimatedNumber value={stat.value} format={stat.format} />
-                    </p>
-                    <span className="sm:hidden lg:block"><ChangeBadge value={stat.change} inverse={stat.inverse} /></span>
-                  </div>
-                  <div className="mt-auto pt-2">
-                    <Sparkline data={demoTrend} dataKey={stat.key} color={stat.color} />
-                    <p className="mt-1 text-[11px] text-ink/40">Síðustu sex mánuðir</p>
-                  </div>
-                </button>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </motion.div>
-
-      <div className="mt-5 grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.75fr)]">
-        <Card className="h-full">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-bold">Tekjur, útgjöld og sparnaður</h3>
-              <p className="mt-1 text-xs text-ink/50">Síðustu sex mánuðir</p>
-            </div>
-            <ChartLineUpIcon size={20} className="text-accent" weight="duotone" />
-          </div>
-          <TrendChart data={demoTrend} height={260} />
-        </Card>
-
-        <Card className="h-full">
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon size={20} className={monthBalanceTone} weight="duotone" />
-            <h3 className="font-bold">Mánaðarstaða</h3>
-          </div>
-          <p className={cn("mt-5 text-3xl font-bold", monthBalanceTone)}>
-            {demoSummary.balance > 0 ? "Góð" : demoSummary.balance < 0 ? "Þarf athygli" : "Jafnvægi"}
-          </p>
-          <p className="mt-1 text-sm text-ink/55">{Math.round(balanceRate)}% af tekjum eru eftir.</p>
-          <div className="mt-6 grid gap-4">
-            <div>
-              <div className="mb-1.5 flex justify-between text-xs font-semibold">
-                <span>Sparnaðarhlutfall</span>
-                <span>{Math.round(balanceRate)}%</span>
-              </div>
-              <AnimatedProgress value={Math.max(0, Math.min(balanceRate, 100))} />
-            </div>
-            <div>
-              <div className="mb-1.5 flex justify-between text-xs font-semibold">
-                <span>Reikningar greiddir</span>
-                <span>3 af 5</span>
-              </div>
-              <AnimatedProgress value={60} />
-            </div>
-          </div>
-          <Button type="button" variant="ghost" size="sm" onClick={() => onNavigate("savings")} className="motion-link mt-6 px-0 text-accent hover:bg-transparent hover:text-accent">
-            Skoða sparnað
-            <ArrowRightIcon size={16} />
-          </Button>
-        </Card>
-      </div>
-
-      <Card className="mt-5">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h3 className="font-bold">Útgjöld eftir flokkum</h3>
-            <p className="mt-1 text-xs text-ink/50">{demoSummary.month}</p>
-          </div>
-          <Button type="button" variant="ghost" size="sm" onClick={() => onNavigate("analytics")} className="text-accent hover:text-accent">
-            Greining
-          </Button>
-        </div>
-        <PieBreakdown data={demoCategories} />
-      </Card>
-
-      <div className="mt-7 border-t border-line/10 pt-7">
-        <MarketOverview data={marketData} compact />
-      </div>
-    </>
-  );
-}
-
-function Transactions() {
-  const [filter, setFilter] = useState<TransactionFilter>("all");
-  const visibleTransactions = demoTransactions.filter((transaction) => filter === "all" || transaction.kind === filter);
-
-  return (
-    <>
-      <ViewHeading title="Færslur" description={`${demoSummary.transactionCount} færslur í ${demoSummary.month.toLowerCase()}`} />
-      <div className="mb-4 flex max-w-full gap-1 overflow-x-auto rounded-md border border-line/10 bg-muted/45 p-1 sm:w-fit">
+      <ViewHeading title="Færslur" description={`${visibleTransactions.length} sýnifærslur í ${demoSummary.month.toLowerCase()}${category ? ` · ${category}` : ""}`} />
+      <p className="mb-4 text-xs leading-relaxed text-ink/65">Færslur merktar „Aðrar færslur“ taka saman fleiri sýniútgjöld í sama flokki. <Link href="/signup" className="text-accent underline underline-offset-2">Stofnaðu aðgang til að skrá eigin færslur.</Link></p>
+      <div className="fade-in mb-4 flex max-w-full gap-1 overflow-x-auto rounded-md border border-line/10 bg-muted/45 p-1 sm:w-fit">
         {transactionFilters.map((item) => (
           <Button
             key={item.id}
@@ -257,13 +131,13 @@ function Transactions() {
       <Card className="overflow-hidden p-0 sm:p-0">
         <div className="divide-y divide-line/10">
           {visibleTransactions.map((transaction) => (
-            <div key={transaction.id} className="flex min-w-0 items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
+            <div key={transaction.id} id={`transaction-${transaction.id}`} ref={transaction.id === selectedId ? selectedRow : undefined} tabIndex={transaction.id === selectedId ? -1 : undefined} className="scroll-mt-24 focus:outline-none focus:bg-accent/5 flex min-w-0 flex-col items-start gap-2 px-4 py-3.5 min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between min-[400px]:gap-3 sm:px-5">
               <div className="flex min-w-0 items-center gap-3">
                 <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-md", transaction.kind === "income" ? "bg-moss/10 text-moss" : transaction.kind === "saving" ? "bg-accent/10 text-accent" : "bg-coral/10 text-coral")}>
                   {transaction.kind === "income" ? <TrendUpIcon size={19} weight="duotone" /> : transaction.kind === "saving" ? <PiggyBankIcon size={19} weight="duotone" /> : <ReceiptIcon size={19} weight="duotone" />}
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate font-semibold">{transaction.merchant}</p>
+                  <p className="break-words font-semibold">{transaction.merchant}</p>
                   <p className="truncate text-xs text-ink/50">{transaction.category} · {transaction.date}</p>
                 </div>
               </div>
@@ -284,15 +158,15 @@ function Bills() {
 
   return (
     <>
-      <ViewHeading title="Reikningar" description={demoSummary.month} />
-      <div className="mb-5 grid gap-3 sm:grid-cols-2">
+      <ViewHeading title="Reikningar" description="Greiðslur mánaðarins og það sem er fram undan." period={demoSummary.month} />
+      <div className="reveal-group mb-5 grid gap-3 sm:grid-cols-2">
         <Card>
           <p className="text-sm font-semibold text-ink/55">Greitt</p>
-          <p className="mt-2 text-2xl font-bold text-moss"><AnimatedNumber value={paidTotal} format={money} /></p>
+          <p className="mt-3 text-2xl font-bold tracking-tight text-ink"><AnimatedNumber value={paidTotal} format={money} /></p>
         </Card>
         <Card>
           <p className="text-sm font-semibold text-ink/55">Ógreitt</p>
-          <p className="mt-2 text-2xl font-bold text-coral"><AnimatedNumber value={unpaidTotal} format={money} /></p>
+          <p className="mt-3 text-2xl font-bold tracking-tight text-ink"><AnimatedNumber value={unpaidTotal} format={money} /></p>
         </Card>
       </div>
       <Card className="overflow-hidden p-0 sm:p-0">
@@ -332,12 +206,13 @@ function Savings() {
             <PiggyBankIcon size={23} weight="duotone" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-ink/55">Heildarsparnaður</p>
+            <h2 className="text-sm font-semibold text-ink/55">Heildarsparnaður</h2>
             <p className="text-2xl font-bold"><AnimatedNumber value={totalSaved} format={money} /></p>
           </div>
         </div>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <h2 className="mb-4 font-semibold">Sparnaðarmarkmið</h2>
+      <div className="reveal-group grid gap-4 lg:grid-cols-2">
         {demoSavings.map((saving) => {
           const progress = (saving.current / saving.target) * 100;
           return (
@@ -367,22 +242,22 @@ function Analytics() {
       <Card>
         <div className="mb-4 flex items-center gap-2">
           <ChartLineUpIcon size={20} className="text-accent" weight="duotone" />
-          <h3 className="font-bold">Mánaðarleg þróun</h3>
+          <h2 className="font-bold">Mánaðarleg þróun</h2>
         </div>
         <TrendChart data={demoTrend} height={300} />
       </Card>
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
+      <div className="reveal-group mt-5 grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
         <Card>
           <div className="mb-4 flex items-center gap-2">
             <ChartDonutIcon size={20} className="text-accent" weight="duotone" />
-            <h3 className="font-bold">Flokkar</h3>
+            <h2 className="font-bold">Flokkar</h2>
           </div>
           <PieBreakdown data={demoCategories} />
         </Card>
         <Card>
           <div className="mb-4 flex items-center gap-2">
             <CalendarDotsIcon size={20} className="text-accent" weight="duotone" />
-            <h3 className="font-bold">Samanburður</h3>
+            <h2 className="font-bold">Samanburður</h2>
           </div>
           <CategoryBars data={demoCategories.slice(0, 5)} />
         </Card>
@@ -391,88 +266,176 @@ function Analytics() {
   );
 }
 
-function RealEstate({ data }: { data: RealEstateSnapshot }) {
-  return (
-    <>
-      <ViewHeading title="Fasteignir" description="Markaðsgögn, lánareiknivél og eignir til skoðunar" />
-      <RealEstateOverview data={data} />
-    </>
-  );
-}
+// Menu state changes should not rerender the active section's charts and widgets.
+const DemoViewContent = memo(function DemoViewContent({
+  view,
+  onNavigate,
+  marketContent,
+  marketSummary,
+  realEstateContent,
+  transactionHref
+}: {
+  view: DemoView;
+  onNavigate: (view: DemoView, transactionHref?: string) => void;
+  marketContent: ReactNode;
+  marketSummary: ReactNode;
+  transactionHref?: string;
+  realEstateContent: ReactNode;
+}) {
+  switch (view) {
+    case "overview": return <Overview onNavigate={onNavigate} marketContent={marketSummary} />;
+    case "transactions": return <Transactions initialHref={transactionHref} />;
+    case "bills": return <Bills />;
+    case "savings": return <Savings />;
+    case "realEstate": return <><ViewHeading title="Fasteignir" description="Markaðsgögn, lánareiknivél og eignir til skoðunar" />{realEstateContent}</>;
+    case "markets": return <><ViewHeading title="Markaðir" description="Hlutabréf, sjóðir, gengi og íslenska hagkerfið" />{marketContent}</>;
+    case "analytics": return <Analytics />;
+  }
+});
 
-function Markets({ data }: { data: MarketSnapshot }) {
-  return (
-    <>
-      <ViewHeading title="Markaðir" description="Hlutabréf, sjóðir, gengi og íslenska hagkerfið" />
-      <MarketOverview data={data} />
-    </>
-  );
-}
-
-export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnapshot; realEstateData: RealEstateSnapshot }) {
-  const [view, setView] = useState<DemoView>("overview");
+export function DemoApp({ marketContent, marketSummary, realEstateContent, initialView = "overview" }: { marketContent: ReactNode; marketSummary: ReactNode; realEstateContent: ReactNode; initialView?: DemoView }) {
+  const [transactionHref, setTransactionHref] = useState<string | undefined>();
+  const [view, setView] = useState<DemoView>(initialView);
   const [moreOpen, setMoreOpen] = useState(false);
+  const moreTriggerRef = useRef<HTMLButtonElement>(null);
+  const moreDialogRef = useRef<HTMLDivElement>(null);
+  const moreCloseRef = useRef<HTMLButtonElement>(null);
+  const restoreMoreFocus = useRef(true);
+  const currentView = views.find((item) => item.id === view)!;
 
   useEffect(() => {
-    document.body.style.overflow = moreOpen ? "hidden" : "";
+    if (!moreOpen) return;
+    const trigger = moreTriggerRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    moreCloseRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMoreOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = moreDialogRef.current;
+      const controls = Array.from(dialog?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]') ?? [])
+        .filter((element) => element.getClientRects().length > 0);
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (!first || !last) return;
+      const outsideDialog = !dialog?.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || outsideDialog)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || outsideDialog)) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    function handleViewportChange() {
+      if (desktop.matches) {
+        restoreMoreFocus.current = false;
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    desktop.addEventListener("change", handleViewportChange);
+    handleViewportChange();
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      desktop.removeEventListener("change", handleViewportChange);
+      if (restoreMoreFocus.current) trigger?.focus();
     };
   }, [moreOpen]);
 
-  function navigate(nextView: DemoView) {
+  const navigate = useCallback((nextView: DemoView, targetHref?: string) => {
+    setTransactionHref(targetHref);
     setMoreOpen(false);
     setView(nextView);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
 
   return (
     <MotionConfig reducedMotion="user">
       <TooltipProvider delayDuration={280}>
-        <div className="flex min-h-screen flex-col bg-paper text-ink">
-      <motion.header
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-        className="sticky top-0 z-30 w-full border-b border-line/10 bg-surface/90 shadow-[0_1px_0_rgba(var(--color-line)/0.03)] backdrop-blur-xl"
-      >
-        <div className="flex min-h-14 w-full min-w-0 items-center gap-2 px-3 py-2 sm:min-h-16 sm:gap-3 sm:px-5 lg:px-6 xl:px-8">
+        <div className="flex min-h-screen flex-col bg-paper text-ink lg:pl-[232px]">
+      <aside className="fade-in app-sidebar fixed inset-y-0 left-0 z-40 hidden w-[232px] flex-col overflow-y-auto px-4 py-6 lg:flex">
+        <button
+          type="button"
+          onClick={() => navigate("overview")}
+          className="focus-ring flex shrink-0 items-center gap-3 rounded-lg px-3 text-left"
+          aria-label="Mín fjármál — fara á yfirlit"
+        >
+          <BrandMark />
+          <span className="product-wordmark text-[21px]">Mín fjármál</span>
+        </button>
+
+        <nav className="mt-10 shrink-0 space-y-8" aria-label="Sýningarvalmynd">
+          {[
+            { label: "Fjármál", items: mobilePrimaryViews },
+            { label: "Markaðir og greining", items: mobileMoreViews }
+          ].map((group) => (
+            <div key={group.label}>
+              <p className="sidebar-section-label mb-3 px-3">{group.label}</p>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const active = view === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigate(item.id)}
+                      aria-current={active ? "page" : undefined}
+                      className={cn("sidebar-link focus-ring flex w-full items-center gap-3 px-3 py-2.5 text-left", active && "sidebar-link-active")}
+                    >
+                      <Icon size={20} className="shrink-0" weight={active ? "fill" : "regular"} />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        <div className="mt-auto shrink-0 border-t border-line/10 pt-4">
+          <Link href="/login" className="sidebar-link focus-ring flex items-center gap-3 px-3 py-2.5">
+            <UserCircleIcon size={20} />
+            <span>Innskráning</span>
+          </Link>
+          <p className="mt-5 px-3 text-[11px] text-ink/55">© 2026 Mín fjármál</p>
+        </div>
+      </aside>
+
+      <header className="fade-in workspace-topbar sticky top-0 z-30 w-full">
+        <div className="flex min-h-[72px] w-full min-w-0 items-center gap-3 px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => navigate("overview")}
-            className="focus-ring flex shrink-0 items-center rounded-md px-1 py-1 transition hover:opacity-80"
+            className="focus-ring flex shrink-0 items-center gap-2.5 rounded-lg lg:hidden"
             aria-label="Fara á yfirlit"
           >
-            <span className="whitespace-nowrap text-[15px] font-extrabold leading-none sm:text-base">Mín <span className="text-accent">fjármál</span></span>
+            <BrandMark className="h-8 w-8" />
+            <span className="whitespace-nowrap text-sm font-bold tracking-tight">Mín fjármál</span>
           </button>
 
-          <nav className="mx-auto hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="Sýningarvalmynd">
-            {views.map((item) => {
-              const active = view === item.id;
-              return (
-                <Button
-                  key={item.id}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(item.id)}
-                  aria-current={active ? "page" : undefined}
-                  className={cn("relative overflow-hidden bg-transparent hover:bg-transparent", active ? "text-accent" : "text-ink/55 hover:text-ink")}
-                >
-                  {active ? <motion.span layoutId="desktop-nav-active" className="absolute inset-0 rounded-md bg-accent/10" transition={{ type: "spring", stiffness: 430, damping: 34 }} /> : null}
-                  <span className="relative z-10">{item.label}</span>
-                </Button>
-              );
-            })}
-          </nav>
+          <div className="hidden items-center gap-3 text-sm lg:flex" aria-label="Núverandi hluti">
+            <span className="text-ink/40">Mín fjármál</span>
+            <span className="text-ink/25" aria-hidden="true">/</span>
+            <span className="font-semibold text-ink/75">{currentView.label}</span>
+          </div>
 
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
             <ThemeToggle compact />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
                   href="/login"
-                  className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-md border border-line/15 bg-surface text-sm font-bold text-ink/65 shadow-sm transition hover:-translate-y-px hover:border-accent/30 hover:bg-muted hover:text-ink sm:h-10 sm:w-auto sm:gap-2 sm:px-2.5"
+                  className="focus-ring inline-flex h-11 w-11 lg:h-9 items-center justify-center rounded-lg text-sm font-semibold text-ink/60 transition-colors hover:bg-muted hover:text-ink sm:w-auto sm:gap-2 sm:px-2.5"
                   aria-label="Innskráning"
                 >
                   <UserCircleIcon size={19} weight="duotone" />
@@ -481,7 +444,7 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
               </TooltipTrigger>
               <TooltipContent className="md:hidden">Innskráning</TooltipContent>
             </Tooltip>
-            <Button asChild className="motion-link h-9 w-9 px-0 sm:h-10 sm:w-auto sm:px-3">
+            <Button asChild className="h-11 w-11 lg:h-9 px-0 sm:w-auto sm:px-3.5">
               <Link href="/signup" aria-label="Stofna aðgang">
                 <UserPlusIcon className="sm:hidden" size={18} weight="duotone" />
                 <span className="hidden sm:inline">Stofna aðgang</span>
@@ -490,42 +453,21 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
             </Button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      <main className="mx-auto w-full min-w-0 max-w-[1440px] flex-1 px-3 pb-10 pt-5 sm:px-5 sm:pt-7 lg:px-6 lg:pb-12 xl:px-8">
-        <div className="mb-5">
-          <div>
-            <Badge>Sýningarútgáfa</Badge>
-            <p className="mt-2 text-sm text-ink/55">Sýnigögn · breytingar vistast ekki</p>
-          </div>
+      <main id="main-content" className="app-workspace workspace-content mx-auto w-full min-w-0 max-w-[1360px] flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pb-12">
+        <div className="fade-in mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-accent/10 bg-accent/[0.035] px-3.5 py-2.5 text-xs">
+          <span className="inline-flex items-center gap-2 font-semibold text-accent"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Sýningarútgáfa</span>
+          <span className="text-ink/50">Tilbúin fjármálagögn fyrir júní 2026 · engin tenging við bankareikning.</span>
         </div>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={view}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {view === "overview" ? <Overview onNavigate={navigate} marketData={marketData} /> : null}
-            {view === "transactions" ? <Transactions /> : null}
-            {view === "bills" ? <Bills /> : null}
-            {view === "savings" ? <Savings /> : null}
-            {view === "realEstate" ? <RealEstate data={realEstateData} /> : null}
-            {view === "markets" ? <Markets data={marketData} /> : null}
-            {view === "analytics" ? <Analytics /> : null}
-          </motion.div>
-        </AnimatePresence>
+        <DemoViewContent key={view + (transactionHref ?? "")} view={view} onNavigate={navigate} transactionHref={transactionHref} marketContent={marketContent} marketSummary={marketSummary} realEstateContent={realEstateContent} />
       </main>
 
       <AppFooter mode="demo" onDemoNavigate={navigate} reserveMobileNavSpace />
 
-      <motion.nav
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.34, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line/10 bg-surface/95 shadow-[0_-8px_24px_rgba(var(--shadow-soft)/0.08)] backdrop-blur-xl lg:hidden"
+      <nav
+        className="fade-in fixed inset-x-0 bottom-0 z-40 border-t border-line/15 bg-surface lg:hidden"
         aria-label="Sýningarvalmynd"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
@@ -549,10 +491,15 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
             );
           })}
           <motion.button
+            ref={moreTriggerRef}
             type="button"
-            onClick={() => setMoreOpen(true)}
+            onClick={() => {
+              restoreMoreFocus.current = true;
+              setMoreOpen(true);
+            }}
             aria-current={moreOpen || mobileMoreViews.some((item) => item.id === view) ? "page" : undefined}
             aria-expanded={moreOpen}
+            aria-haspopup="dialog"
             aria-controls="demo-mobile-more-menu"
             whileTap={{ scale: 0.94 }}
             className={cn(
@@ -565,31 +512,27 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
             <span className="relative z-10">Meira</span>
           </motion.button>
         </div>
-      </motion.nav>
+      </nav>
 
-      <AnimatePresence>
         {moreOpen ? (
-          <motion.div className="fixed inset-0 z-50 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <button type="button" className="absolute inset-0 h-full w-full bg-black/35 backdrop-blur-[2px]" aria-label="Loka valmynd" onClick={() => setMoreOpen(false)} />
-            <motion.div
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <button type="button" className="fade-in-quick absolute inset-0 h-full w-full bg-black/35 backdrop-blur-[2px]" aria-label="Loka valmynd" tabIndex={-1} onClick={() => setMoreOpen(false)} />
+            <div
+              ref={moreDialogRef}
               id="demo-mobile-more-menu"
               role="dialog"
               aria-modal="true"
-              aria-label="Fleiri sýningarsíður"
-              initial={{ y: 28 }}
-              animate={{ y: 0 }}
-              exit={{ y: 28 }}
-              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-x-0 bottom-0 rounded-t-lg border-t border-line/10 bg-surface px-4 pb-5 pt-3 text-ink shadow-[0_-16px_40px_rgba(var(--shadow-soft)/0.16)]"
+              aria-labelledby="demo-mobile-more-title"
+              className="fade-in-quick absolute inset-x-0 bottom-0 mx-auto max-h-[80dvh] max-w-lg overflow-y-auto rounded-t-lg border-t border-line/10 bg-surface px-4 pb-5 pt-3 text-ink shadow-[0_-16px_40px_rgba(var(--shadow-soft)/0.16)]"
               style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
             >
               <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-line/20" />
               <div className="flex items-center justify-between gap-4 py-2">
                 <div>
-                  <p className="text-lg font-bold">Meira</p>
+                  <h2 id="demo-mobile-more-title" className="text-lg font-bold">Meira</h2>
                   <p className="text-xs text-ink/50">Fleiri hlutar sýningarútgáfunnar</p>
                 </div>
-                <button type="button" className="focus-ring grid h-10 w-10 shrink-0 place-items-center rounded-md text-ink/60 transition hover:bg-muted hover:text-ink" aria-label="Loka valmynd" onClick={() => setMoreOpen(false)}>
+                <button ref={moreCloseRef} type="button" className="focus-ring grid h-11 w-11 shrink-0 place-items-center rounded-md text-ink/60 transition hover:bg-muted hover:text-ink" aria-label="Loka valmynd" onClick={() => setMoreOpen(false)}>
                   <XIcon size={22} weight="bold" />
                 </button>
               </div>
@@ -614,10 +557,9 @@ export function DemoApp({ marketData, realEstateData }: { marketData: MarketSnap
                   );
                 })}
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         ) : null}
-      </AnimatePresence>
         </div>
       </TooltipProvider>
     </MotionConfig>

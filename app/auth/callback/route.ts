@@ -12,13 +12,23 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const nextParam = url.searchParams.get("next") ?? "/dashboard";
-  const next = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard";
+  // URL parsing normalizes backslashes and control characters. Validate the
+  // resolved origin as well as the leading slash before attaching auth cookies.
+  let destination = new URL("/dashboard", url.origin);
+  if (nextParam.startsWith("/")) {
+    try {
+      const candidate = new URL(nextParam, url.origin);
+      if (candidate.origin === url.origin) destination = candidate;
+    } catch {
+      // Malformed redirect destinations fall back to the authenticated overview.
+    }
+  }
 
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=invalid_auth_link", url.origin));
   }
 
-  const response = NextResponse.redirect(new URL(next, url.origin));
+  const response = NextResponse.redirect(destination);
   const { key, url: supabaseUrl } = getSupabaseConfig();
 
   const supabase = createServerClient(

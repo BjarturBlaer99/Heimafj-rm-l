@@ -1,39 +1,26 @@
-import { UserCircleIcon } from "@phosphor-icons/react/dist/ssr/UserCircle";
-import Link from "next/link";
 import { AppFooter } from "@/components/app-footer";
-import { MobileBottomNav, TopNav } from "@/components/app-nav";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { DesktopSidebar, MobileBottomNav, TopNav } from "@/components/app-nav";
+import { RefreshOnReturn } from "@/components/refresh-on-return";
+import { ActionFeedbackProvider } from "@/components/action-feedback";
 
 export function AppShell({ children, email }: { children: React.ReactNode; email?: string }) {
   return (
-    <div className="flex min-h-screen flex-col bg-paper text-ink">
-      <header className="header-enter sticky top-0 z-30 w-full border-b border-line/10 bg-surface/90 shadow-[0_1px_0_rgba(var(--color-line)/0.03)] backdrop-blur-xl">
-        <div className="flex min-h-14 w-full min-w-0 items-center gap-2 px-3 py-2 sm:min-h-16 sm:gap-3 sm:px-5 lg:px-6 xl:px-8">
-          <Link href="/dashboard" className="focus-ring flex min-w-0 shrink-0 items-center rounded-md px-1 py-1 transition hover:opacity-80" aria-label="Fara á yfirlit">
-            <span className="whitespace-nowrap text-[15px] font-extrabold leading-none sm:text-base">Mín <span className="text-accent">fjármál</span></span>
-          </Link>
-
-          <TopNav email={email} />
-
-          <div className="ml-auto hidden shrink-0 items-center gap-2 lg:flex">
-            <ThemeToggle compact />
-            <Link
-              href="/settings"
-              className="focus-ring grid h-10 w-10 place-items-center rounded-md border border-line/15 bg-surface/80 text-ink/65 shadow-sm transition hover:border-accent/30 hover:bg-muted hover:text-accent"
-              title={email ? `Stillingar: ${email}` : "Stillingar"}
-              aria-label="Stillingar"
-            >
-              <UserCircleIcon size={20} weight="duotone" />
-            </Link>
-          </div>
+    <ActionFeedbackProvider>
+      <div className="min-h-screen bg-paper text-ink">
+        <RefreshOnReturn />
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-accent focus:ring-2 focus:ring-accent">Fara í efni</a>
+        <DesktopSidebar email={email} />
+        <div className="flex min-h-screen min-w-0 flex-col lg:pl-[232px]">
+          <header className="fade-in workspace-topbar sticky top-0 z-30 flex h-16 min-w-0 items-center px-4 sm:px-6 lg:px-8">
+            <TopNav email={email} />
+          </header>
+          <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 pb-6 outline-none lg:pb-8">
+            <div className="app-workspace workspace-content mx-auto w-full min-w-0 max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">{children}</div>
+          </main>
+          <AppFooter reserveMobileNavSpace showProductLinks={false} />
         </div>
-      </header>
-
-      <main className="min-w-0 flex-1 pb-8 lg:pb-10">
-        <div className="app-workspace page-enter mx-auto w-full min-w-0 max-w-[1440px] px-3 py-4 sm:px-5 sm:py-7 lg:px-6 xl:px-8">{children}</div>
-      </main>
-      <AppFooter reserveMobileNavSpace />
-      <MobileBottomNav />
-    </div>
+        <MobileBottomNav />
+      </div>
+    </ActionFeedbackProvider>
   );
 }

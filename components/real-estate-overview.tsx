@@ -12,37 +12,21 @@ import { HeartIcon } from "@phosphor-icons/react/dist/csr/Heart";
 import { HouseLineIcon } from "@phosphor-icons/react/dist/csr/HouseLine";
 import { MapPinIcon } from "@phosphor-icons/react/dist/csr/MapPin";
 import { RulerIcon } from "@phosphor-icons/react/dist/csr/Ruler";
-import { motion, MotionConfig, useReducedMotion, type Variants } from "motion/react";
+import { motion, MotionConfig, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import { useId, useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ChartShadowFilter } from "@/components/ui/chart-shadow-filter";
+import { Card } from "@/components/ui";
 import { money } from "@/lib/format";
 import type { HousingSeries, RealEstateSnapshot } from "@/lib/real-estate-data";
 import { cn } from "@/lib/utils";
 
 type LocationFilter = "all" | "capital" | "outside";
 
-const revealGroup: Variants = {
-  hidden: {},
-  visible: { transition: { delayChildren: 0.05, staggerChildren: 0.065 } }
-};
-
-const revealItem: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.99 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] }
-  }
-};
-
 const inputClass =
-  "focus-ring h-10 w-full rounded-md border border-line/15 bg-muted/45 px-3 text-sm font-semibold text-ink transition hover:border-accent/30 focus:bg-surface";
+  "focus-ring h-11 w-full min-w-0 rounded-md border border-line/15 bg-muted/45 px-3 text-base font-semibold text-ink lg:text-sm transition hover:border-accent/30 focus:bg-surface";
 
 const icelandicMonths = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."];
 
@@ -122,7 +106,6 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
   const reduceMotion = useReducedMotion();
   const active = series.find((item) => item.id === activeId) ?? series[0];
   const gradientId = useId().replace(/:/g, "");
-  const shadowId = useId().replace(/:/g, "");
 
   return (
     <Card className="overflow-hidden">
@@ -173,7 +156,6 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
                 <stop offset="0%" stopColor="rgb(var(--color-accent))" stopOpacity={0.2} />
                 <stop offset="100%" stopColor="rgb(var(--color-accent))" stopOpacity={0.02} />
               </linearGradient>
-              <ChartShadowFilter id={shadowId} color="rgb(var(--color-accent))" opacity={0.28} blur={4} offsetY={4} />
             </defs>
             <CartesianGrid vertical={false} stroke="rgb(var(--color-line) / 0.1)" strokeDasharray="3 4" />
             <XAxis dataKey="label" axisLine={false} tickLine={false} minTickGap={30} tick={{ fill: "rgb(var(--color-ink) / 0.45)", fontSize: 11 }} />
@@ -186,7 +168,7 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
                 borderRadius: 8,
                 color: "rgb(var(--color-ink))",
                 fontSize: 12,
-                boxShadow: "0 14px 32px rgb(var(--shadow-soft) / 0.18)"
+                boxShadow: "0 4px 20px rgb(var(--shadow-soft) / 0.08)"
               }}
               formatter={(value: number) => [formatDecimal(Number(value), 1), "Vísitala"]}
               labelStyle={{ color: "rgb(var(--color-ink) / 0.55)" }}
@@ -198,7 +180,6 @@ function HousingChart({ series }: { series: HousingSeries[] }) {
               stroke="rgb(var(--color-accent))"
               strokeWidth={2.5}
               fill={`url(#${gradientId})`}
-              filter={`url(#${shadowId})`}
               dot={false}
               activeDot={{ r: 4, fill: "rgb(var(--color-accent))", strokeWidth: 0 }}
               isAnimationActive={!reduceMotion}
@@ -238,7 +219,7 @@ function MortgageCalculator() {
 
   return (
     <section aria-labelledby="mortgage-calculator-title">
-      <div className="mb-4 flex items-center gap-2">
+      <div data-scroll-reveal="" className="mb-4 flex items-center gap-2">
         <CalculatorIcon size={21} className="text-accent" weight="duotone" />
         <div>
           <h2 id="mortgage-calculator-title" className="text-xl font-bold">Lánareiknivél</h2>
@@ -346,22 +327,22 @@ function MortgageCalculator() {
           </div>
         </Card>
 
-        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-          <Card className="border-accent/20 bg-accent/5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+          <Card className="border-accent/20 bg-accent/5 sm:col-span-2 xl:col-span-1">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-ink/55">Áætluð greiðsla</p>
               <BankIcon size={20} className="text-accent" weight="duotone" />
             </div>
-            <p className="mt-3 text-2xl font-bold text-accent sm:text-3xl">{money(calculation.monthlyPayment)}</p>
+            <p className="mt-3 break-words text-2xl font-bold text-accent sm:text-3xl">{money(calculation.monthlyPayment)}</p>
             <p className="mt-1 text-xs text-ink/45">á mánuði</p>
           </Card>
           <Card>
             <p className="text-sm font-semibold text-ink/55">Lánsupphæð</p>
-            <p className="mt-3 text-xl font-bold">{money(calculation.loan)}</p>
+            <p className="mt-3 break-words text-lg font-bold lg:text-xl">{money(calculation.loan)}</p>
           </Card>
           <Card>
             <p className="text-sm font-semibold text-ink/55">Heildarvextir</p>
-            <p className="mt-3 text-xl font-bold">{money(calculation.totalInterest)}</p>
+            <p className="mt-3 break-words text-lg font-bold lg:text-xl">{money(calculation.totalInterest)}</p>
           </Card>
         </div>
       </div>
@@ -408,7 +389,7 @@ function PropertyIdeas() {
         </div>
       </Card>
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div data-scroll-reveal="" className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 id="property-ideas-title" className="text-xl font-bold">Sýnifasteignir</h2>
           <p className="mt-1 text-sm text-ink/50">Prófaðu leit, samanburð og vistun með sýnigögnum.</p>
@@ -435,12 +416,12 @@ function PropertyIdeas() {
         </div>
       </div>
 
-      <motion.div layout className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" variants={revealGroup} initial="hidden" animate="visible">
+      <motion.div layout initial={false} className="reveal-group grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {visibleListings.map((listing) => {
           const isSaved = saved.includes(listing.id);
           return (
-            <motion.div layout key={listing.id} variants={revealItem} whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 420, damping: 30 }}>
-              <Card className="h-full overflow-hidden p-0">
+            <motion.div layout key={listing.id} initial={false} whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 420, damping: 30 }}>
+              <Card className="h-full overflow-hidden p-0 sm:p-0">
                 <div className="relative aspect-[16/9] overflow-hidden border-b border-line/10">
                   <div
                     role="img"
@@ -463,12 +444,12 @@ function PropertyIdeas() {
                   </button>
                 </div>
                 <div className="p-4 sm:p-5">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col items-start gap-2">
                     <div className="min-w-0">
                       <p className="text-xs font-bold uppercase text-accent">{listing.type}</p>
-                      <h3 className="mt-1 text-lg font-bold leading-snug">{listing.title}</h3>
+                      <h3 className="mt-1 break-words text-base font-bold leading-snug sm:text-lg">{listing.title}</h3>
                     </div>
-                    <p className="shrink-0 text-lg font-bold">{money(listing.price)}</p>
+                    <p className="shrink-0 text-base font-bold sm:text-lg">{money(listing.price)}</p>
                   </div>
                   <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-ink/50">
                     <span className="inline-flex items-center gap-1.5"><MapPinIcon size={15} weight="duotone" />{listing.location}</span>
@@ -497,7 +478,7 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
         <PropertyIdeas />
 
         <div className="border-t border-line/10 pt-7">
-          <motion.div variants={revealItem} initial="hidden" animate="visible" className="relative min-h-[210px] overflow-hidden rounded-lg border border-line/15 sm:min-h-[280px]">
+          <div data-scroll-reveal="" className="relative min-h-[210px] overflow-hidden rounded-lg border border-line/15 sm:min-h-[280px]">
             <Image
               src="/images/real-estate-neighborhood.webp"
               alt="Nútímalegt íbúðarhúsnæði á Íslandi"
@@ -513,11 +494,11 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
               </div>
               <p className="max-w-md text-xs leading-relaxed text-white/75 sm:text-right">Skoðaðu verðþróun og prófaðu forsendur áður en þú tekur næsta skref.</p>
             </div>
-          </motion.div>
+          </div>
         </div>
 
-        <motion.div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" variants={revealGroup} initial="hidden" animate="visible">
-          <motion.div variants={revealItem}>
+        <div className="reveal-group grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div>
             <Card className="h-full">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-ink/55">Vísitala íbúðaverðs</p>
@@ -526,8 +507,8 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
               <p className="mt-4 text-2xl font-bold">{formatDecimal(total.value, 1)}</p>
               <p className="mt-1 text-xs text-ink/45">{sourceDate(total.asOf)}</p>
             </Card>
-          </motion.div>
-          <motion.div variants={revealItem}>
+          </div>
+          <div>
             <Card className="h-full">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-ink/55">12 mánaða breyting</p>
@@ -536,8 +517,8 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
               <div className="mt-4"><Change value={total.annualChange} /></div>
               <p className="mt-2 text-xs text-ink/45">Landið allt</p>
             </Card>
-          </motion.div>
-          <motion.div variants={revealItem}>
+          </div>
+          <div>
             <Card className="h-full">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-ink/55">Mánaðarbreyting</p>
@@ -546,8 +527,8 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
               <div className="mt-4"><Change value={total.monthlyChange} /></div>
               <p className="mt-2 text-xs text-ink/45">Síðasti birtur mánuður</p>
             </Card>
-          </motion.div>
-          <motion.div variants={revealItem}>
+          </div>
+          <div>
             <Card className="h-full">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-semibold text-ink/55">Gagnastaða</p>
@@ -556,8 +537,8 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
               <p className="mt-4 text-lg font-bold">{data.status === "live" ? "Uppfært" : "Sýnigögn"}</p>
               <p className="mt-1 text-xs text-ink/45">Hagstofa Íslands</p>
             </Card>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         <div className="border-t border-line/10 pt-7">
           <MortgageCalculator />

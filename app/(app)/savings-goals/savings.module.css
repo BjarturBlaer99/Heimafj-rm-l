@@ -1,0 +1,67 @@
+.page { min-width: 0; }
+.primaryLink { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; background: rgb(var(--color-accent)); color: rgb(var(--color-on-accent)); padding: 10px 16px; font-size: 13px; font-weight: 600; }
+.primaryLink:hover { filter: brightness(.95); }
+.primaryLink:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 4px; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 26px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 330px); gap: 24px; align-items: start; }
+.mainColumn { display: grid; gap: 24px; min-width: 0; }
+.panel { background: rgb(var(--color-surface)); border: 1px solid rgb(var(--color-line) / .13); border-radius: 10px; overflow: hidden; min-width: 0; scroll-margin-top: 30px; }
+.panelHeader { padding: 22px 24px; border-bottom: 1px solid rgb(var(--color-line) / .12); }
+.panelHeader h2 { font-size: 16px; font-weight: 600; }
+.panelHeader p { font-size: 12px; color: rgb(var(--color-ink) / .6); margin-top: 5px; line-height: 1.5; }
+.balanceLabels { display: flex; justify-content: space-between; gap: 15px; padding: 13px 24px; font-size: 11px; color: rgb(var(--color-ink) / .6); background: rgb(var(--color-muted) / .35); }
+.bucket { display: grid; gap: 22px; padding: 24px; border-bottom: 1px solid rgb(var(--color-line) / .11); min-width: 0; }
+.balanceRow { display: grid; width: 100%; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.bucketIndex { align-self: start; padding-top: 2px; font-size: 11px; font-variant-numeric: tabular-nums; color: rgb(var(--color-ink) / .45); }
+.bucketTitle { min-width: 0; }
+.bucketTitle h3 { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.bucketTitle p { font-size: 12px; margin-top: 5px; color: rgb(var(--color-ink) / .6); overflow-wrap: anywhere; line-height: 1.5; }
+.balance { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.contributionSection, .correctionSection { min-width: 0; border-top: 1px solid rgb(var(--color-line) / .1); padding-top: 18px; }
+.contributionSection > h4, .correctionSection > h4, .goalEdit > h3 { font-size: 13px; font-weight: 600; color: rgb(var(--color-ink) / .8); }
+.contributionForm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 14px; padding-top: 12px; }
+.correctionForm { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+.helpText { font-size: 12px; line-height: 1.6; color: rgb(var(--color-ink) / .6); margin: 4px 0 12px; }
+.balanceTotal { padding: 17px 24px; display: flex; justify-content: space-between; gap: 20px; font-size: 13px; background: rgb(var(--color-muted) / .35); }
+.balanceTotal strong { font-size: 16px; font-weight: 600; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+.history { padding: 0 24px; }
+.historyRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 15px; align-items: center; padding: 17px 0; border-bottom: 1px solid rgb(var(--color-line) / .1); }
+.historyRow:last-child { border-bottom: none; }
+.entryLabel { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.entryMeta { font-size: 12px; color: rgb(var(--color-ink) / .6); line-height: 1.6; margin-top: 3px; overflow-wrap: anywhere; }
+.entryAmount { font-size: 14px; font-weight: 600; color: rgb(var(--color-moss)); text-align: right; overflow-wrap: anywhere; }
+.empty { padding: 20px 24px; }
+.goalPanel { background: rgb(var(--color-surface)); border: 1px solid rgb(var(--color-line) / .13); border-radius: 10px; padding: 24px; min-width: 0; }
+.eyebrow { font-size: 11px; color: rgb(var(--color-ink) / .6); margin-bottom: 8px; }
+.goalPanel > h2 { font-family: Georgia, "Times New Roman", serif; font-size: 24px; line-height: 1.25; font-weight: 400; letter-spacing: -.03em; }
+.goalTitle { margin-top: 28px; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.goalDate { margin-top: 5px; color: rgb(var(--color-ink) / .6); font-size: 12px; }
+.progressHeader { display: flex; align-items: baseline; gap: 8px; margin: 24px 0 12px; flex-wrap: wrap; }
+.progressHeader span { font-size: 32px; line-height: 1; letter-spacing: -.04em; font-weight: 500; }
+.progressHeader p { font-size: 12px; color: rgb(var(--color-ink) / .6); }
+.goalAmounts { margin: 23px 0 10px; }
+.goalAmounts > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; padding: 9px 0; }
+.goalAmounts dt { font-size: 12px; color: rgb(var(--color-ink) / .65); }
+.goalAmounts dd { font-size: 13px; font-weight: 500; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+.goalAmounts .remaining { margin-top: 8px; padding-top: 16px; border-top: 1px solid rgb(var(--color-line) / .12); }
+.remaining dd { font-weight: 600; }
+.goalEdit { border-top: 1px solid rgb(var(--color-line) / .12); padding-top: 20px; margin-top: 16px; }
+.goalForm { display: grid; gap: 15px; padding-top: 12px; }
+.deleteGoal { margin-top: 12px; }
+.deleteGoal button { width: 100%; }
+.goalIntro, .goalNote { font-size: 12px; line-height: 1.7; color: rgb(var(--color-ink) / .6); }
+.goalIntro { margin: 16px 0 6px; font-size: 13px; }
+.goalNote { margin-top: 20px; padding-top: 17px; border-top: 1px solid rgb(var(--color-line) / .12); }
+.contributionPlan { padding: 16px; margin-top: 18px; background: rgb(var(--color-muted) / .55); border-radius: 8px; }
+.contributionPlan > p { font-size: 12px; color: rgb(var(--color-ink) / .7); }
+.contributionPlan > strong { display: block; font-size: 19px; font-weight: 600; margin-top: 5px; overflow-wrap: anywhere; }
+.contributionPlan > span { display: block; font-size: 12px; line-height: 1.7; color: rgb(var(--color-ink) / .65); margin-top: 9px; }
+.historyPagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 16px 24px; border-top: 1px solid rgb(var(--color-line) / .12); font-size: 12px; }
+.historyPagination > span { color: rgb(var(--color-ink) / .65); }
+.historyPagination > div { display: flex; flex-wrap: wrap; gap: 12px; }
+.historyPagination a { display: flex; align-items: center; min-height: 44px; color: rgb(var(--color-accent)); font-weight: 600; }
+.historyPagination a:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 4px; }
+@media (max-width: 1250px) { .layout { grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; } .panelHeader, .bucket, .goalPanel { padding-left: 18px; padding-right: 18px; } .balanceRow { grid-template-columns: minmax(0, 1fr) auto; } .bucketIndex { display: none; }  .balance { font-size: 16px; max-width: 180px; } .correctionForm { grid-template-columns: minmax(0, 1fr); } .balanceLabels, .balanceTotal { padding-left: 18px; padding-right: 18px; } }
+@media (max-width: 1050px) { .layout { grid-template-columns: minmax(0, 1fr); } .goalPanel { max-width: none; } .goalAmounts > div { padding: 10px 0; } .panel { scroll-margin-top: 80px; } .goalForm { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; } .goalForm > button { align-self: end; } .goalAmounts dd { font-size: 15px; } }
+@media (max-width: 640px) { .metrics { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-bottom: 22px; } .primaryLink { width: 100%; } .mainColumn { gap: 20px; } .panelHeader, .goalPanel { padding: 20px 16px; } .balanceLabels, .balanceTotal { padding-left: 16px; padding-right: 16px; } .bucket { padding: 22px 16px; gap: 20px; } .balanceRow { gap: 12px; } .balance { font-size: 15px; max-width: 140px; } .bucketTitle h3 { font-size: 14px; }  .contributionForm, .correctionForm, .goalForm { grid-template-columns: minmax(0, 1fr); } .history { padding: 0 16px; } .entryAmount { font-size: 13px; max-width: 132px; } .historyRow { gap: 10px; } .goalTitle { margin-top: 22px; } .progressHeader { margin-top: 22px; } }
+@media (max-width: 370px) { .balance { max-width: 115px; font-size: 14px; } .bucketTitle p { font-size: 11px; } .historyRow { grid-template-columns: minmax(0, 1fr); gap: 6px; } .entryAmount { text-align: left; max-width: none; } .balanceLabels { font-size: 10px; } }

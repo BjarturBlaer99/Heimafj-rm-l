@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
-const badgeVariants = cva("inline-flex w-fit items-center rounded-md border px-2.5 py-1 text-xs font-bold", {
+const badgeVariants = cva("inline-flex w-fit items-center rounded-md border px-2 py-0.5 text-[11px] font-medium", {
   variants: {
     variant: {
       default: "border-accent/20 bg-accent/10 text-accent",

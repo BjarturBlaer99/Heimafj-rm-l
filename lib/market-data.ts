@@ -49,6 +49,7 @@ export type MarketSnapshot = {
 
 const PX_CPI_URL = "https://px.hagstofa.is/pxen/api/v1/en/Efnahagur/visitolur/1_vnv/1_vnv/VIS01000.px";
 const LCE_API_URL = "https://www.lce.is/api/fixed-income";
+const CBI_TIME_SERIES_URL = "https://sedlabanki.is/xmltimeseries/Default.aspx";
 
 const requestTimeout = 8_000;
 
@@ -76,12 +77,12 @@ const fxHistorySchema = z.object({
 });
 
 const policyRateHistorySchema = z.object({
-  rate_type: z.string(),
-  tenor: z.string(),
+  rate_type: z.literal("CBIID"),
+  tenor: z.literal("1W"),
   data_points: z.array(
     z.object({
-      date: z.string(),
-      value: z.number()
+      date: z.string().date(),
+      value: z.number().finite()
     })
   )
 });
@@ -201,12 +202,8 @@ async function fetchInflation(): Promise<InflationSnapshot> {
   };
 }
 
-async function fetchPolicyRate(): Promise<PolicyRateSnapshot> {
-  const start = new Date();
-  start.setUTCFullYear(start.getUTCFullYear() - 1);
-  const url = `${LCE_API_URL}/interbank-rates/history?rate_type=CBIID&tenor=1W&start_date=${isoDate(start)}`;
-  const response = policyRateHistorySchema.parse(await fetchJson(url));
-  const allPoints = response.data_points.map((point) => ({
+function policyRateSnapshot(points: { date: string; value: number }[]): PolicyRateSnapshot {
+  const allPoints = points.slice().sort((a, b) => a.date.localeCompare(b.date)).map((point) => ({
     date: point.date,
     label: shortDateLabel(point.date),
     value: point.value
@@ -225,6 +222,47 @@ async function fetchPolicyRate(): Promise<PolicyRateSnapshot> {
     status: "live",
     series: monthlySample(allPoints)
   };
+}
+
+async function fetchCentralBankPolicyRate(start: string, end: string): Promise<PolicyRateSnapshot> {
+  // Series 75 is the CBI's seven-day term deposit rate. CSV dates use M/D/YYYY.
+  // https://sedlabanki.is/gagnatorg/xml-gogn/
+  const url = `${CBI_TIME_SERIES_URL}?DagsFra=${start}&DagsTil=${end}&TimeSeriesID=75&Type=csv`;
+  const response = await fetch(url, {
+    headers: { Accept: "text/csv" },
+    signal: AbortSignal.timeout(requestTimeout)
+  });
+  if (!response.ok) throw new Error(`Central Bank returned ${response.status}`);
+
+  const csv = await response.text();
+  const points = csv.trim().split(/\r?\n/).map((row) => {
+    const fields = row.split(";");
+    const dateParts = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s|$)/.exec(fields[6] ?? "");
+    if (fields.length !== 8 || fields[2] !== "75" || !dateParts || !fields[7].trim()) {
+      throw new Error("Invalid Central Bank policy rate row");
+    }
+    return {
+      date: `${dateParts[3]}-${dateParts[1].padStart(2, "0")}-${dateParts[2].padStart(2, "0")}`,
+      value: Number(fields[7])
+    };
+  });
+  const data = policyRateHistorySchema.parse({ rate_type: "CBIID", tenor: "1W", data_points: points });
+  return policyRateSnapshot(data.data_points);
+}
+
+async function fetchPolicyRate(): Promise<PolicyRateSnapshot> {
+  const end = new Date();
+  const start = new Date(end);
+  start.setUTCFullYear(start.getUTCFullYear() - 1);
+  const url = `${LCE_API_URL}/interbank-rates/history?rate_type=CBIID&tenor=1W&start_date=${isoDate(start)}&end_date=${isoDate(end)}`;
+
+  try {
+    const response = policyRateHistorySchema.parse(await fetchJson(url));
+    return policyRateSnapshot(response.data_points);
+  } catch (error) {
+    console.warn("Policy rate provider failed; trying the Central Bank", error);
+    return fetchCentralBankPolicyRate(isoDate(start), isoDate(end));
+  }
 }
 
 async function fetchFxRate(definition: (typeof fxDefinitions)[number]): Promise<FxSnapshot> {
@@ -307,7 +345,7 @@ const fallbackFx: FxSnapshot[] = [
 }));
 
 const getInflationCached = unstable_cache(fetchInflation, ["market-inflation-v1"], { revalidate: 21_600 });
-const getPolicyRateCached = unstable_cache(fetchPolicyRate, ["market-policy-rate-v1"], { revalidate: 3_600 });
+const getPolicyRateCached = unstable_cache(fetchPolicyRate, ["market-policy-rate-v2"], { revalidate: 3_600 });
 const getFxRatesCached = unstable_cache(fetchFxRates, ["market-fx-v1"], { revalidate: 3_600 });
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
@@ -316,6 +354,10 @@ export async function getMarketSnapshot(): Promise<MarketSnapshot> {
     getPolicyRateCached(),
     getFxRatesCached()
   ]);
+
+  if (policyRateResult.status === "rejected") {
+    console.error("Policy rate is unavailable from both providers", policyRateResult.reason);
+  }
 
   return {
     generatedAt: new Date().toISOString(),

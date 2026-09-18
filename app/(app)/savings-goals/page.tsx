@@ -1,206 +1,144 @@
-import { ChartLineUpIcon as ChartLineUp } from "@phosphor-icons/react/dist/ssr/ChartLineUp";
-import { HouseLineIcon as HouseLine } from "@phosphor-icons/react/dist/ssr/HouseLine";
-import { PiggyBankIcon as PiggyBank } from "@phosphor-icons/react/dist/ssr/PiggyBank";
+import { ActionForm } from "@/components/action-form";
+import { SavingsContributionForm } from "@/components/savings-contribution-form";
+import Link from "next/link";
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { ConfirmButton } from "@/components/confirm-button";
 import { FlashMessage } from "@/components/flash-message";
-import { Button, Card, EmptyState, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
-import { addSavingsBucketAmount, deleteSavingsGoal, saveSavingsBucket, saveSavingsGoal } from "@/lib/actions";
-import { getSavingsBucketEntries, getSavingsBuckets, getSavingsGoals } from "@/lib/data";
+import { Button, Card, DateInput, EmptyState, Field, MetricCard, PageHeader, ProgressBar, inputClass } from "@/components/ui";
+import { deleteSavingsGoal, saveSavingsBucket, saveSavingsGoal } from "@/lib/actions";
+import { getSavingsBuckets, getSavingsGoals } from "@/lib/data";
+import { getLatestSavingsEntries, getSavingsHistory } from "@/lib/savings-data";
+import { savingsPlan } from "@/lib/savings-plan";
 import { isoDate, money, percent } from "@/lib/format";
+import styles from "./savings.module.css";
+
+function dateLabel(date: string) {
+  return new Intl.DateTimeFormat("is-IS", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${date.slice(0, 10)}T12:00:00Z`));
+}
 
 export default async function SavingsGoalsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const [goals, savingsBucketsResult, savingsEntriesResult] = await Promise.all([getSavingsGoals(), getSavingsBuckets(), getSavingsBucketEntries()]);
+  const requestedHistoryPage = Number(params.history_page ?? 1);
+  const [goals, savingsBucketsResult, latestEntriesResult, savingsEntriesResult] = await Promise.all([getSavingsGoals(), getSavingsBuckets(), getLatestSavingsEntries(), getSavingsHistory(requestedHistoryPage)]);
   const currency = "ISK";
-  const latestEntriesByBucket = new Map(savingsEntriesResult.entries.map((entry) => [entry.bucket_type, entry]));
+  const balancesReady = savingsBucketsResult.schemaReady;
+  const latestEntriesByBucket = new Map(latestEntriesResult.entries.map((entry) => [entry.bucket_type, entry]));
   const totalSavings = savingsBucketsResult.buckets.reduce((sum, bucket) => sum + Number(bucket.amount), 0);
-  const housingBuckets = savingsBucketsResult.buckets.filter(
-    (bucket) => bucket.bucket_type === "serignarsparnadur" || bucket.bucket_type === "husnaedisparnadur"
-  );
+  const housingBuckets = savingsBucketsResult.buckets.filter((bucket) => bucket.bucket_type === "serignarsparnadur" || bucket.bucket_type === "husnaedisparnadur");
   const housingSavings = housingBuckets.reduce((sum, bucket) => sum + Number(bucket.amount), 0);
   const emergencyBuckets = savingsBucketsResult.buckets.filter((bucket) => bucket.bucket_type === "hlutabref" || bucket.bucket_type === "sjodir");
   const emergencySavings = emergencyBuckets.reduce((sum, bucket) => sum + Number(bucket.amount), 0);
   const totalGoal = goals[0] ?? null;
   const progress = totalGoal ? (totalSavings / Number(totalGoal.target_amount)) * 100 : 0;
   const remaining = totalGoal ? Math.max(0, Number(totalGoal.target_amount) - totalSavings) : 0;
+  const plan = totalGoal && balancesReady ? savingsPlan(totalSavings, Number(totalGoal.target_amount), totalGoal.target_date, isoDate()) : null;
 
   return (
-    <>
-      <PageHeader title="Sparnaður" description="Fylgstu með heildarsparnaði, skiptingu hans og framvindu að markmiðum." />
-
+    <div className={styles.page}>
+      <PageHeader title="Sparnaður" description="Yfirsýn yfir það sem þú hefur lagt til hliðar — og næsta markmið." action={balancesReady ? <a href="#savings-balances" className={styles.primaryLink}><Plus size={17} /> Bæta við sparnað</a> : undefined} />
       <FlashMessage code={params.success} />
 
-      <div className="mb-5 grid gap-4 md:grid-cols-3">
-        <MetricCard label="Heildarsparnaður" value={money(totalSavings, currency)} detail={`${savingsBucketsResult.buckets.length} sparnaðarflokkar`} icon={<PiggyBank size={19} weight="duotone" />} tone="moss" />
-        <MetricCard label="Húsnæðisparnaður" value={money(housingSavings, currency)} detail="Séreign og húsnæðissparnaður" icon={<HouseLine size={19} weight="duotone" />} tone="accent" />
-        <MetricCard label="Fjárfestingar" value={money(emergencySavings, currency)} detail="Hlutabréf og sjóðir" icon={<ChartLineUp size={19} weight="duotone" />} tone="violet" />
+      <div className={styles.metrics}>
+        <MetricCard label="Heildarsparnaður" value={balancesReady ? money(totalSavings, currency) : "—"} detail={balancesReady ? `${savingsBucketsResult.buckets.length} sparnaðarflokkar` : "Ekki tókst að sækja stöðu"} />
+        <MetricCard label="Húsnæðissparnaður" value={balancesReady ? money(housingSavings, currency) : "—"} detail="Séreign og húsnæðissparnaður" />
+        <MetricCard label="Fjárfestingar" value={balancesReady ? money(emergencySavings, currency) : "—"} detail="Hlutabréf og sjóðir" />
       </div>
 
-      {!savingsBucketsResult.schemaReady ? (
-        <Card className="mb-5 border-gold/60 bg-gold/10">
-          <p className="font-semibold">Sparnaðarflokkar eru ekki komnir í gagnagrunninn enn.</p>
-          <p className="mt-2 text-sm text-ink/75">
-            Til að vista heildarsparnað og skiptinguna hans þarftu að keyra
-            <code className="ml-1 rounded bg-surface px-1.5 py-0.5">supabase/savings-buckets-update.sql</code> í Supabase SQL Editor.
-          </p>
-        </Card>
-      ) : null}
+      {!balancesReady ? <Card className="mb-5"><EmptyState>Ekki tókst að sækja sparnaðarstöðuna. Engar upphæðir eru sýndar meðan gögnin eru ekki tiltæk. <a className="text-accent underline" href="/savings-goals">Reyna aftur</a></EmptyState></Card> : null}
+      {!latestEntriesResult.schemaReady ? <Card className="mb-5"><EmptyState>Ekki tókst að sækja síðasta framlag í hvern flokk. <a className="text-accent underline" href="/savings-goals">Reyna aftur</a></EmptyState></Card> : null}
 
-      <section className="mb-6">
-        <SectionHeader title="Sparnaðarflokkar" description="Skiptu raunverulegum sparnaði eftir tegund og skráðu ný framlög." />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {savingsBucketsResult.buckets.map((bucket) => (
-            <Card key={bucket.bucket_type} className="h-full">
-              <p className="text-sm font-semibold text-ink/60">{bucket.label}</p>
-              <p className="mt-2 text-xl font-bold">{money(Number(bucket.amount), currency)}</p>
-              {savingsEntriesResult.schemaReady ? (
-                <p className="mt-1 text-xs text-ink/55">
-                  Síðast bætt við:{" "}
-                  {latestEntriesByBucket.get(bucket.bucket_type)
-                    ? `${money(Number(latestEntriesByBucket.get(bucket.bucket_type)?.amount ?? 0), currency)} þann ${latestEntriesByBucket.get(bucket.bucket_type)?.date}`
-                    : "ekkert skráð enn"}
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-coral">Keyrðu `supabase/savings-bucket-entries-update.sql` til að sjá síðustu skráningu.</p>
-              )}
-              <form action={addSavingsBucketAmount} className="mt-4 grid gap-2">
-                <input type="hidden" name="bucket_type" value={bucket.bucket_type} />
-                <input type="hidden" name="label" value={bucket.label} />
-                <input className={inputClass} name="amount" type="number" min="1" step="1" placeholder="Upphæð til að bæta við" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} required />
-                <input className={inputClass} name="date" type="date" defaultValue={isoDate()} disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} required />
-                <input className={inputClass} name="note" placeholder="Athugasemd (valfrjálst)" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} />
-                <Button type="submit" variant="secondary" className="w-full" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady}>
-                  <Plus size={17} />
-                  Bæta við sparnað
-                </Button>
-              </form>
-              <details className="mt-3">
-                <summary className="cursor-pointer text-sm font-semibold text-accent">Leiðrétta heildarupphæð</summary>
-                <form action={saveSavingsBucket} className="mt-3 grid gap-2">
-                  <input type="hidden" name="bucket_type" value={bucket.bucket_type} />
-                  <input type="hidden" name="label" value={bucket.label} />
-                  <input className={inputClass} name="amount" type="number" min="0" step="1" defaultValue={Number(bucket.amount)} disabled={!savingsBucketsResult.schemaReady} />
-                  <Button type="submit" variant="secondary" className="w-full" disabled={!savingsBucketsResult.schemaReady}>
-                    Vista heildarupphæð
-                  </Button>
-                </form>
-              </details>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <Card className="mb-5">
-        <SectionHeader title="Síðustu sparnaðarskráningar" description="Nýjustu framlögin í alla sparnaðarflokka." />
-        {savingsEntriesResult.schemaReady ? (
-          savingsEntriesResult.entries.length ? (
-            <div className="divide-y divide-line/10">
-              {savingsEntriesResult.entries.slice(0, 8).map((entry) => (
-                <div key={entry.id} className="flex flex-col gap-1 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="font-semibold">{entry.label}</p>
-                    <p className="text-ink/55">
-                      {entry.date}
-                      {entry.note ? ` · ${entry.note}` : ""}
-                    </p>
+      <div className={styles.layout}>
+        <div className={styles.mainColumn}>
+          <section className={styles.panel} id="savings-balances" aria-labelledby="balances-heading">
+            <div data-scroll-reveal="" className={styles.panelHeader}><h2 id="balances-heading">Skipting sparnaðar</h2><p>Skráðu framlag í flokk eða leiðréttu núverandi stöðu.</p></div>
+            <div className={styles.balanceLabels} aria-hidden="true"><span>Sparnaðarflokkur</span><span>Núverandi staða</span></div>
+            {savingsBucketsResult.buckets.map((bucket, index) => {
+              const latestEntry = latestEntriesByBucket.get(bucket.bucket_type);
+              return (
+                <article key={bucket.bucket_type} className={styles.bucket} data-scroll-reveal>
+                  <div className={styles.balanceRow}>
+                    <span className={styles.bucketIndex} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                    <div className={styles.bucketTitle}><h3>{bucket.label}</h3><p>{latestEntriesResult.schemaReady ? latestEntry ? `Síðasta framlag ${money(Number(latestEntry.amount), currency)} · ${dateLabel(latestEntry.date)}` : "Ekkert framlag skráð enn" : "Síðasta framlag er ekki tiltækt"}</p></div>
+                    <p className={styles.balance}>{money(Number(bucket.amount), currency)}</p>
                   </div>
-                  <p className="font-bold text-lagoon">{money(Number(entry.amount), currency)}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState>Engar sparnaðarskráningar enn. Bættu við upphæð í sparnaðarflokk hér að ofan til að sjá síðustu skráningar.</EmptyState>
-          )
-        ) : (
-          <EmptyState>Keyrðu `supabase/savings-bucket-entries-update.sql` í Supabase til að virkja sparnaðarsögu.</EmptyState>
-        )}
-      </Card>
+                  <section className={styles.contributionSection}>
+                    <h4>Bæta við sparnað</h4>
+                    <SavingsContributionForm className={styles.contributionForm}>
+                      <input type="hidden" name="bucket_type" value={bucket.bucket_type} /><input type="hidden" name="label" value={bucket.label} />
+                      <Field label="Upphæð framlags"><input className={inputClass} name="amount" type="number" min="1" step="1" placeholder="0" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} required /></Field>
+                      <Field label="Dagsetning"><DateInput name="date" type="date" defaultValue={isoDate()} disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} required /></Field>
+                      <Field label="Athugasemd (valfrjálst)"><input className={inputClass} name="note" placeholder="T.d. mánaðarlegt framlag" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady} /></Field>
+                      <Button type="submit" disabled={!savingsBucketsResult.schemaReady || !savingsEntriesResult.schemaReady}><Plus size={17} /> Bæta við sparnað</Button>
+                    </SavingsContributionForm>
+                  </section>
+                  <section className={styles.correctionSection}>
+                    <h4>Leiðrétta heildarupphæð</h4>
+                    <p className={styles.helpText}>Uppfærir heildarstöðu þessa flokks í stað þess að bæta við framlagi.</p>
+                    <ActionForm action={saveSavingsBucket} className={styles.correctionForm}>
+                      <input type="hidden" name="bucket_type" value={bucket.bucket_type} /><input type="hidden" name="label" value={bucket.label} />
+                      <Field label="Ný heildarupphæð"><input className={inputClass} name="amount" type="number" min="0" step="1" defaultValue={Number(bucket.amount)} disabled={!savingsBucketsResult.schemaReady} /></Field>
+                      <Button type="submit" variant="secondary" disabled={!savingsBucketsResult.schemaReady}>Vista heildarupphæð</Button>
+                    </ActionForm>
+                  </section>
+                </article>
+              );
+            })}
+            <div className={styles.balanceTotal}><span>Samtals</span><strong>{balancesReady ? money(totalSavings, currency) : "—"}</strong></div>
+          </section>
 
-      <section className="mb-6">
-        <SectionHeader title="Heildarsparnaðarmarkmið" description="Settu eitt markmið fyrir heildarsparnaðinn; framvindan uppfærist sjálfkrafa." />
+          <section id="savings-history" className={styles.panel} aria-labelledby="savings-history-heading" data-scroll-reveal>
+            <div className={styles.panelHeader}><h2 id="savings-history-heading">Sparnaðarskráningar</h2><p>{savingsEntriesResult.schemaReady ? `${savingsEntriesResult.total} framlög skráð. Nýjustu framlögin birtast fyrst.` : "Skráningar í alla sparnaðarflokka."}</p></div>
+            {savingsEntriesResult.schemaReady ? savingsEntriesResult.entries.length ? <div className={styles.history}>{savingsEntriesResult.entries.map((entry) => <div key={entry.id} className={styles.historyRow}><div><p className={styles.entryLabel}>{entry.label}</p><p className={styles.entryMeta}>{dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</p></div><p className={styles.entryAmount}>+{money(Number(entry.amount), currency)}</p></div>)}</div> : <div className={styles.empty}><EmptyState>Engin framlög skráð enn. Veldu sparnaðarflokk hér að ofan og bættu við fyrsta framlaginu.</EmptyState></div> : <div className={styles.empty}><EmptyState>Sparnaðarsaga er ekki tiltæk sem stendur. <a className="text-accent underline" href="/savings-goals#savings-history">Reyna aftur</a></EmptyState></div>}
+            {savingsEntriesResult.schemaReady && savingsEntriesResult.pageCount > 1 ? <nav className={styles.historyPagination} aria-label="Síður sparnaðarskráninga"><span>Síða {savingsEntriesResult.page} af {savingsEntriesResult.pageCount}</span><div>{savingsEntriesResult.page > 1 ? <Link href={`/savings-goals?history_page=${savingsEntriesResult.page - 1}#savings-history`}>Fyrri síða</Link> : null}{savingsEntriesResult.page < savingsEntriesResult.pageCount ? <Link href={`/savings-goals?history_page=${savingsEntriesResult.page + 1}#savings-history`}>Næsta síða</Link> : null}</div></nav> : null}
+          </section>
+        </div>
 
-        {totalGoal ? (
-          <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <Card>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-bold">{totalGoal.title}</h3>
-                  <p className="text-sm text-ink/55">{totalGoal.target_date ? `Markdagur ${totalGoal.target_date}` : "Enginn markdagur"}</p>
-                </div>
-                <form action={deleteSavingsGoal}>
+        <aside className={styles.goalPanel} aria-labelledby="goal-heading" data-scroll-reveal>
+          <p className={styles.eyebrow}>Næsta skref</p>
+          <h2 id="goal-heading">Sparnaðarmarkmið</h2>
+          {!balancesReady ? <p className={styles.goalIntro}>Framvinda og mánaðarlegt framlag birtast þegar sparnaðarstaðan er tiltæk á ný.</p> : totalGoal ? (
+            <>
+              <h3 className={styles.goalTitle}>{totalGoal.title}</h3>
+              <p className={styles.goalDate}>{totalGoal.target_date ? `Markdagur ${dateLabel(totalGoal.target_date)}` : "Enginn markdagur"}</p>
+              <div className={styles.progressHeader}><span>{percent(progress)}</span><p>af markmiði náð</p></div>
+              <ProgressBar value={progress} />
+              <dl className={styles.goalAmounts}><div><dt>Núverandi sparnaður</dt><dd>{money(totalSavings, currency)}</dd></div><div><dt>Markupphæð</dt><dd>{money(Number(totalGoal.target_amount), currency)}</dd></div><div className={styles.remaining}><dt>Eftir að spara</dt><dd>{money(remaining, currency)}</dd></div></dl>
+              <div className={styles.contributionPlan}>
+                {plan?.status === "active" ? <><p>Mánaðarlegt framlag að markmiði</p><strong>{money(plan.monthlyAmount, currency)}</strong><span>Miðað við {plan.months} {plan.months === 1 ? "framlag" : "framlög"}, eitt í hverjum mánuði frá og með þessum mánuði til markdags. Enginn vöxtur eða ávöxtun er reiknuð.</span></> : plan?.status === "met" ? <><strong>Markupphæð náð</strong><span>Skráður sparnaður nær markmiðinu. Þú getur uppfært markmiðið hér fyrir neðan.</span></> : plan?.status === "overdue" ? <><strong>Markdagur er liðinn</strong><span>Enn vantar {money(plan.remaining, currency)}. Veldu nýjan markdag til að reikna mánaðarlegt framlag.</span></> : plan?.status === "undated" ? <><strong>Hvenær viltu ná markmiðinu?</strong><span>Veldu markdag hér fyrir neðan til að sjá hvað þarf að leggja fyrir í hverjum mánuði.</span></> : <span>Ekki tókst að reikna framlag. Athugaðu markupphæð og markdag.</span>}
+              </div>
+              <section className={styles.goalEdit}>
+                <h3>Breyta markmiði</h3>
+                <ActionForm action={saveSavingsGoal} className={styles.goalForm}>
+                  <input type="hidden" name="id" value={totalGoal.id} /><input type="hidden" name="current_amount" value={String(totalSavings)} />
+                  <Field label="Titill markmiðs"><input className={inputClass} name="title" defaultValue={totalGoal.title} placeholder="Titill markmiðs" required /></Field>
+                  <Field label="Markupphæð"><input className={inputClass} name="target_amount" type="number" min="0.01" step="0.01" defaultValue={Number(totalGoal.target_amount)} placeholder="Markupphæð" required /></Field>
+                  <Field label="Markdagur (valfrjálst)"><DateInput name="target_date" type="date" defaultValue={totalGoal.target_date ?? ""} /></Field>
+                  <Button type="submit" variant="secondary">Vista breytingar</Button>
+                </ActionForm>
+                <ActionForm action={deleteSavingsGoal} className={styles.deleteGoal}>
                   <input type="hidden" name="id" value={totalGoal.id} />
-                  <ConfirmButton
-                    variant="danger"
-                    className="h-9 w-9 p-0"
-                    title="Eyða markmiði"
-                    confirmMessage={`Ertu viss um að þú viljir eyða sparnaðarmarkmiðinu "${totalGoal.title}"?`}
-                  >
-                    <Trash2 size={16} />
-                  </ConfirmButton>
-                </form>
-              </div>
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                <div>
-                  <p className="text-sm text-ink/55">Núverandi sparnaður</p>
-                  <p className="mt-1 text-xl font-bold">{money(totalSavings, currency)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-ink/55">Markupphæð</p>
-                  <p className="mt-1 text-xl font-bold">{money(Number(totalGoal.target_amount), currency)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-ink/55">Eftir</p>
-                  <p className="mt-1 text-xl font-bold">{money(remaining, currency)}</p>
-                </div>
-              </div>
-
-              <div className="mt-5">
-                <div className="mb-2 flex justify-between text-sm">
-                  <span>Framvinda</span>
-                  <span>{percent(progress)}</span>
-                </div>
-                <ProgressBar value={progress} />
-              </div>
-            </Card>
-
-            <Card>
-              <h3 className="font-bold">Breyta markmiði</h3>
-              <form action={saveSavingsGoal} className="mt-4 grid gap-3">
-                <input type="hidden" name="id" value={totalGoal.id} />
+                  <ConfirmButton variant="danger" title="Eyða markmiði" confirmMessage={`Ertu viss um að þú viljir eyða sparnaðarmarkmiðinu "${totalGoal.title}"?`}><Trash2 size={16} /> Eyða markmiði</ConfirmButton>
+                </ActionForm>
+              </section>
+            </>
+          ) : (
+            <>
+              <p className={styles.goalIntro}>Gefðu sparnaðinum tilgang. Settu markupphæð og fylgstu með framvindunni hér.</p>
+              <ActionForm resetOnSuccess action={saveSavingsGoal} className={styles.goalForm}>
+                <Field label="Titill markmiðs"><input className={inputClass} name="title" placeholder="T.d. útborgun í íbúð" required /></Field>
+                <Field label="Markupphæð"><input className={inputClass} name="target_amount" type="number" min="0.01" step="0.01" placeholder="0" required /></Field>
+                <Field label="Markdagur (valfrjálst)"><DateInput name="target_date" type="date" /></Field>
                 <input type="hidden" name="current_amount" value={String(totalSavings)} />
-                <input className={inputClass} name="title" defaultValue={totalGoal.title} placeholder="Titill markmiðs" required />
-                <input className={inputClass} name="target_amount" type="number" min="0.01" step="0.01" defaultValue={Number(totalGoal.target_amount)} placeholder="Markupphæð" required />
-                <input className={inputClass} name="target_date" type="date" defaultValue={totalGoal.target_date ?? ""} />
-                <Button type="submit" variant="secondary">
-                  Vista breytingar
-                </Button>
-              </form>
-            </Card>
-          </div>
-        ) : (
-          <Card>
-            <form action={saveSavingsGoal} className="grid gap-3 md:grid-cols-[1fr_170px_170px_auto]">
-              <input className={inputClass} name="title" placeholder="Titill markmiðs" required />
-              <input className={inputClass} name="target_amount" type="number" min="0.01" step="0.01" placeholder="Markupphæð" required />
-              <input className={inputClass} name="target_date" type="date" />
-              <input type="hidden" name="current_amount" value={String(totalSavings)} />
-              <Button type="submit">
-                <Plus size={17} />
-                Vista markmið
-              </Button>
-            </form>
-          </Card>
-        )}
-      </section>
+                <Button type="submit"><Plus size={17} /> Vista markmið</Button>
+              </ActionForm>
+            </>
+          )}
+          <p className={styles.goalNote}>Framvindan miðast við heildarstöðu allra sparnaðarflokka og uppfærist þegar þú skráir breytingar.</p>
+        </aside>
+      </div>
 
-      {goals.length > 1 ? (
-        <Card>
-          <EmptyState>Það fundust fleiri en eitt sparnaðarmarkmið úr eldri uppsetningu. Nú er aðeins eitt heildarsparnaðarmarkmið notað hér.</EmptyState>
-        </Card>
-      ) : null}
-    </>
+      {goals.length > 1 ? <Card className="mt-5"><EmptyState>Það fundust fleiri en eitt sparnaðarmarkmið úr eldri uppsetningu. Nú er aðeins eitt heildarsparnaðarmarkmið notað hér.</EmptyState></Card> : null}
+    </div>
   );
 }

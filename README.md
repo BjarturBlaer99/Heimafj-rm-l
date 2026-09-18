@@ -1,176 +1,102 @@
-# Personal Finance App
+# Mín fjármál
 
-Personal finance web app built with Next.js App Router, TypeScript, Tailwind CSS, Supabase Auth, Supabase Postgres, Recharts, and Zod.
+An Icelandic personal finance website built with Next.js App Router, TypeScript, Supabase Auth/Postgres, React and Recharts. The public homepage explains the product; `/demo` uses sample financial records and shares the authenticated dashboard presentation.
 
-## Stack
+## Product scope
 
-- Next.js
-- TypeScript
-- Tailwind CSS
-- Supabase Auth
-- Supabase Postgres
-- Recharts
-- Zod
+- Email/password signup, login, password recovery and protected account pages.
+- Monthly income/expense summaries, transaction search, date filters and bulk categorization.
+- Manual entry and reviewed CSV/Excel **expense** imports, with optional device-local column presets and description rules.
+- Monthly bills, links to existing expense records, and deliberate copying into another month.
+- Savings buckets, contribution history and goals with monthly contribution estimates.
+- Public inflation, policy-rate, FX and property data, plus attributed TradingView embeds.
+- Light/dark appearance, visible onboarding steps, action feedback, account exports and cancellable deletion requests.
 
-## Main Features
+Amounts are in ISK. There is no automatic bank connection or currency conversion. A deletion request records intent for an operator; it does not erase the account automatically. The current website has no paid-subscription checkout. The separate `mobile/` project is outside these web checks and this release procedure.
 
-- Email/password signup and login
-- Forgot password and reset password
-- Protected app routes
-- Dashboard overview
-- Transactions with CSV/XLS/XLSX import
-- Expense analysis
-- Income tracking
-- Savings tracking and savings goal progress
-- Live inflation, policy-rate and FX market overview
-- Embedded TradingView stock and ETF market data
-- Live residential property price trends and mortgage calculator
-- Settings and categories
+## Local development
 
-## Environment Variables
-
-Create `.env.development.local` for local development and point it at the development Supabase project:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-publishable-key"
-NEXT_PUBLIC_SITE_URL="http://localhost:5173"
-```
-
-The file is ignored by Git. Local development and Vercel Preview must never use the production Supabase project.
-
-Stocks and ETFs are displayed through official TradingView widgets, so no stock API key is required. Keep the built-in TradingView attribution visible. Inflation, policy rates and FX load from their public providers; unavailable providers produce an unavailable state rather than sample market values.
-
-Use this environment split in Vercel:
-
-| Variable | Production | Preview |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Production Supabase URL | Development Supabase URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production publishable key | Development publishable key |
-| `NEXT_PUBLIC_SITE_URL` | Production app URL | Not set; Vercel supplies the deployment URL |
-
-For production, `NEXT_PUBLIC_SITE_URL` should be the real deployed URL, for example:
-
-```env
-NEXT_PUBLIC_SITE_URL="https://your-app-name.vercel.app"
-```
-
-## Supabase Setup
-
-1. Create a Supabase project.
-2. Open `Authentication > Providers`.
-3. Enable `Email`.
-4. Open `Project Settings > API`.
-5. Copy:
-   - Project URL
-   - Publishable key
-6. Open `SQL Editor`.
-7. Run:
-   - [supabase/schema.sql](</C:/Users/bjarturbg/OneDrive - Public Administration/Desktop/Finance app/supabase/schema.sql>)
-   - [supabase/savings-buckets-update.sql](</C:/Users/bjarturbg/OneDrive - Public Administration/Desktop/Finance app/supabase/savings-buckets-update.sql>)
-
-Existing databases must also rerun `supabase/bills-update.sql` after pulling the monthly bills update. The migration keeps paid historical months, assigns unscoped legacy bills to the current month, and does not copy them into future months.
-
-## Local Development
-
-Install dependencies:
+Use Node.js 22 LTS and the committed lockfile. Install from the repository root:
 
 ```bash
-npm install
+npm ci
 ```
 
-Start the app:
+Create `.env.development.local` using [`.env.example`](.env.example), with a **development** Supabase project:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL="https://your-development-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-development-publishable-key"
+NEXT_PUBLIC_SITE_URL="http://localhost:5173"
+SUPPORT_EMAIL=
+```
+
+The local environment file is ignored by Git. Set `SUPPORT_EMAIL` only to a verified, monitored address; it is a server setting displayed in Help and Settings. Do not place a Supabase secret/service-role key in any `NEXT_PUBLIC_` variable. Browser clients use only the publishable key and signed-in user session.
 
 ```bash
 npm run dev
 ```
 
-Checks:
+Development defaults to `http://localhost:5173`. If using another port, update the development site URL and Supabase redirect allowlist to match.
+
+## Checks
 
 ```bash
-npm run typecheck
 npm run lint
+npm test
 npm run build
+npm run typecheck
+npm run audit:production
 ```
 
-## Deploying To Vercel
+`npm test` / `npm run test:unit` runs an explicit list of non-browser Node test files. It covers authentication, data isolation and paging, periods/filters, transaction and import actions, feedback, bills/savings, exports/deletion requests, and market provider failure/recovery. The tests use synthetic records and mocked service boundaries; they do not require a Supabase project or mutate real accounts. The bill tests do not execute PostgreSQL triggers: database acceptance is a separate release gate.
 
-### 1. Put the project in Git
+`npm run test:database -- --tools-dir=/path/to/isolated-postgres-tools` runs the separate real-PostgreSQL integration suite against an automatically created local database. It requires the isolated test tools described in [bill payment deployment requirements](docs/bill-payment-deployment.md). It does not read the application's environment files or accept a remote database URL; it is intentionally separate from the unit runner, which uses the normal project dependencies.
 
-This folder is currently not a Git repository, so start there.
+The explicit list deliberately excludes the legacy browser scripts, including `responsive-panels.test.cjs`. Those files rely on browser packages, fixture servers and sometimes machine-specific paths; a broad `scripts/*.test.cjs` command is not the web unit suite. Perform browser acceptance through the approved computer-use workflow against an isolated preview with synthetic accounts.
 
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-```
+`next build` uses webpack and includes Next.js/TypeScript validation. Lint remains a separate check. Run standalone `typecheck` after build so generated `.next/types` are present, and avoid rebuilding or restarting Next.js in the same directory during that check. `npm audit` additionally checks the full development dependency tree. An audit result covers known advisories at the time it runs, not application or database correctness.
 
-Then create a GitHub repository and push the code:
+## Supabase setup
 
-```bash
-git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO.git
-git branch -M main
-git push -u origin main
-```
+For a **new empty development database**, enable the Email Auth provider and run [`supabase/schema.sql`](supabase/schema.sql). The schema includes the current application tables, owner policies and bill-payment integrity definitions. Do not rerun the fresh schema against an existing populated database.
 
-### 2. Import into Vercel
+Existing databases need only the updates missing from their migration history. Review and test the relevant SQL against a disposable database before production:
 
-1. Go to [Vercel](https://vercel.com).
-2. Click `Add New... > Project`.
-3. Import your GitHub repository.
-4. Let Vercel detect `Next.js`.
+| Update | Purpose |
+| --- | --- |
+| [`savings-buckets-update.sql`](supabase/savings-buckets-update.sql) | Older installations without savings buckets; contains one-time enum/trigger creation. |
+| [`savings-bucket-entries-update.sql`](supabase/savings-bucket-entries-update.sql) | Savings contribution history and its owner policies. |
+| [`bills-update.sql`](supabase/bills-update.sql) | Monthly bill records and preservation of paid history. |
+| [`bill-payment-integrity-update.sql`](supabase/bill-payment-integrity-update.sql) | Required integrity protection for linking expenses to bills. |
+| [`savings-contribution-integrity-update.sql`](supabase/savings-contribution-integrity-update.sql) | Required atomic, retry-safe savings contribution RPC used by current application actions. |
+| [`icelandic-update.sql`](supabase/icelandic-update.sql) | Legacy English defaults/ISK profile labels; does not convert financial amounts. |
 
-### 3. Add Environment Variables in Vercel
+Do not blindly run all updates: some include one-time definitions or legacy data changes. Record which updates have been applied. The current application requires both bill-payment integrity and the savings contribution RPC before promotion. See [bill payment deployment requirements](docs/bill-payment-deployment.md) for duplicate-link handling, concurrency and account-erasure checks. Application mocks are not proof that RLS and SQL triggers are installed correctly.
 
-Add these variables in the Vercel project settings using the environment split above:
+## Environments and release
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_SITE_URL`
+The repository is already connected to Git and Vercel. Review the current remote, branch and deployment target before publishing; do not initialize another repository. A code push may trigger a Vercel deployment, depending on the configured branch.
 
-Set `NEXT_PUBLIC_SITE_URL` for Production only, for example:
+| Variable | Production | Preview / local development |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production project URL | Separate development project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production publishable key | Development publishable key |
+| `NEXT_PUBLIC_SITE_URL` | Exact production origin | Preview: unset to use `VERCEL_URL`; local: matching localhost origin |
+| `SUPPORT_EMAIL` | Verified monitored address, if available | Intended test/support address or unset |
 
-```env
-NEXT_PUBLIC_SITE_URL="https://your-app-name.vercel.app"
-```
+Configure Supabase Auth URL settings separately for both projects. Production's Site URL and allowed redirects must match the production origin. Development must allow the chosen localhost origin and intended Vercel Preview origins. Keep Preview access appropriately restricted; never point it at the production database to make a test pass.
 
-### 4. Deploy
+Vercel settings are Next.js, install `npm ci`, build `npm run build`, with a Node.js version matching local verification. Use the [production release checklist](docs/production-release-checklist.md) before promotion. That checklist records database, application, browser and operational evidence; documentation alone does not authorize a deployment or a live database change.
 
-Use the default settings:
+Account exports, support and the manual deletion-request workflow are described in [account data operations](docs/account-data-operations.md). Configure an operator review cadence: there is no request notification email or background queue.
 
-- Framework Preset: `Next.js`
-- Build Command: `npm run build`
-- Install Command: `npm install`
+## Rendering and external data
 
-Then click `Deploy`.
+Navigation retains the app shell while route data streams. Links prefetch on intent; browser route entries have a 30-second stale time. Server actions invalidate affected pages. Authentication changes and returning to a tab refresh user-facing data. Personal-data loaders use React's request cache rather than a persistent cache shared across accounts.
 
-### 5. Update Supabase Auth URLs
+Public provider data loads separately from private dashboard data. Inflation, policy-rate and FX failures produce an unavailable state instead of invented values. Policy rates try IS-Macro and then the Central Bank of Iceland; successful snapshots are cached for one hour. Stocks/ETFs use TradingView embeds without a stock API key. Preserve their visible attribution.
 
-Configure both Supabase projects under `Authentication > URL Configuration`:
+The interface uses shared light/dark tokens, a desktop sidebar and mobile navigation. Sections stay open while scrolling. Visible content has a CSS entrance; offscreen sections use `ScrollReveals` to fade in on intersection. Keyboard focus and anchor navigation reveal their targets immediately. Reduced-motion preferences disable entrance animation, and content remains available if animation APIs are absent.
 
-1. Production project: set `Site URL` to the production Vercel URL and allow `https://your-app-name.vercel.app/**`.
-2. Development project: set `Site URL` to `http://localhost:5173`.
-3. Development project: allow `http://localhost:5173/**`.
-4. Development project: allow `https://*-your-vercel-team-slug.vercel.app/**` for Preview deployments.
-
-### 6. Test Production
-
-Test these flows on the deployed site:
-
-- Signup
-- Login
-- Logout
-- Forgot password
-- Reset password
-- Dashboard load
-- Transactions load
-- CSV import
-- Expense page
-- Savings page
-
-## Notes
-
-- The app uses only the Supabase publishable key in the browser.
-- Do not put a Supabase secret key in `NEXT_PUBLIC_...` variables.
-- Row Level Security protects user-owned data in Supabase.
-- This workspace is slow for local production builds because it lives in OneDrive on Windows, so Vercel is the better place to verify the real production build.
+The Next.js proxy verifies signed sessions using Supabase's public-key cache, with remote validation for legacy signing keys. Private server reads and mutations still verify the current user. Header policy and RLS complement these checks; review them and their installed database state when changing authentication or ownership behavior.

@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { ActionFeedback } from "@/lib/action-feedback";
 import { createClient } from "@/lib/supabase/server";
-import { billDeleteSchema, billPaymentSchema, billSchema, budgetSchema, categorySchema, importTransactionsSchema, monthlyIncomeSchema, profileSchema, savingsBucketEntrySchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
+import { billDeleteSchema, billSchema, budgetSchema, categorySchema, monthlyIncomeSchema, profileSchema, savingsBucketEntrySchema, savingsBucketSchema, savingsContributionSchema, savingsGoalSchema, transactionSchema } from "@/lib/validation";
 
 async function userId() {
   const supabase = await createClient();
@@ -16,15 +17,6 @@ function formDataObject(formData: FormData) {
   return Object.fromEntries(formData.entries());
 }
 
-function firstMonthFromRows(rows: Array<{ date: string }>) {
-  return rows[0]?.date.slice(0, 7) ?? "";
-}
-
-function transactionImportKey(row: { date: string; type: string; amount: number; note?: string | null }) {
-  const note = (row.note ?? "").trim().replace(/\s+/g, " ").toLowerCase();
-  return `${row.date}|${row.type}|${Number(row.amount).toFixed(2)}|${note}`;
-}
-
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
@@ -34,89 +26,44 @@ export async function signOut() {
 export async function saveTransaction(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const data = transactionSchema.parse(formDataObject(formData));
+  if (data.category_id) {
+    const category = await supabase.from("categories").select("type").eq("id", data.category_id).eq("user_id", id).single();
+    if (category.error || !category.data || category.data.type !== "both" && category.data.type !== data.type) return { message: "", error: "Veldu flokk sem passar við tegund færslunnar." };
+  }
+  if (data.id) {
+    const linked = await supabase.from("bill_payments").select("id,amount,paid_at").eq("transaction_id", data.id).eq("user_id", id);
+    if (linked.error) throw new Error("Ekki tókst að staðfesta tengingu reiknings.");
+    if (linked.data.some((payment) => Number(payment.amount) !== data.amount || payment.paid_at !== data.date || data.type !== "expense")) return { message: "", error: "Færslan er tengd greiðslu reiknings. Aftengdu greiðsluna í Reikningum áður en þú breytir upphæð, dagsetningu eða tegund." };
+  }
   const payload = { ...data, user_id: id, note: data.note || null, category_id: data.category_id || null };
   const result = data.id
     ? await supabase.from("transactions").update(payload).eq("id", data.id).eq("user_id", id)
     : await supabase.from("transactions").insert(payload);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/transactions");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: data.id ? "Færslan var uppfærð." : "Færslunni var bætt við." } satisfies ActionFeedback;
 }
 
 export async function deleteTransaction(formData: FormData) {
   const { supabase, userId: id } = await userId();
+  const linked = await supabase.from("bill_payments").select("id").eq("transaction_id", String(formData.get("id"))).eq("user_id", id);
+  if (linked.error) throw new Error("Ekki tókst að staðfesta tengingu reiknings.");
+  if (linked.data.length) return { message: "", error: "Aftengdu greiðslu reikningsins áður en þú eyðir færslunni." };
   const result = await supabase.from("transactions").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/transactions");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: "Færslunni var eytt." } satisfies ActionFeedback;
 }
 
 export async function deleteAllTransactions() {
   const { supabase, userId: id } = await userId();
+  const linked = await supabase.from("bill_payments").select("id,transaction_id").eq("user_id", id);
+  if (linked.error) throw new Error("Ekki tókst að staðfesta tengingar reikninga.");
+  if (linked.data.some((payment) => payment.transaction_id)) return { message: "", error: "Sumar færslur eru tengdar reikningum. Aftengdu greiðslurnar í Reikningum áður en þú eyðir öllum færslum." };
   const result = await supabase.from("transactions").delete().eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/transactions");
-  revalidatePath("/dashboard");
-}
-
-export async function importTransactions(formData: FormData) {
-  const result = await importTransactionsForClient(formData);
-  redirect(result.redirectTo);
-}
-
-export async function importTransactionsForClient(formData: FormData) {
-  const { supabase, userId: id } = await userId();
-  const rawRows = String(formData.get("rows") ?? "[]");
-  const rows = importTransactionsSchema.parse(JSON.parse(rawRows));
-  const dates = rows.map((row) => row.date).sort();
-  const firstDate = dates[0];
-  const lastDate = dates[dates.length - 1];
-  const existingKeys = new Set<string>();
-
-  if (firstDate && lastDate) {
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("date,type,amount,note")
-      .eq("user_id", id)
-      .gte("date", firstDate)
-      .lte("date", lastDate);
-    if (error) throw new Error(error.message);
-    (data ?? []).forEach((row) => {
-      existingKeys.add(transactionImportKey(row));
-    });
-  }
-
-  const fileKeys = new Set<string>();
-  const uniqueRows = rows.filter((row) => {
-    const key = transactionImportKey(row);
-    if (existingKeys.has(key) || fileKeys.has(key)) return false;
-    fileKeys.add(key);
-    return true;
-  });
-  const skipped = rows.length - uniqueRows.length;
-  const payload = uniqueRows.map((row) => ({
-    ...row,
-    user_id: id,
-    note: row.note || null,
-    category_id: row.category_id || null
-  }));
-  for (let index = 0; index < payload.length; index += 100) {
-    const result = await supabase.from("transactions").insert(payload.slice(index, index + 100));
-    if (result.error) throw new Error(result.error.message);
-  }
-  revalidatePath("/import");
-  revalidatePath("/transactions");
-  revalidatePath("/dashboard");
-  revalidatePath("/expenses");
-  revalidatePath("/analytics");
-  const importedMonth = firstMonthFromRows(rows);
-  const params = new URLSearchParams({
-    success: payload.length > 0 ? (skipped > 0 ? "imported_partial" : "imported") : "imported_duplicates",
-    imported: String(payload.length),
-    skipped: String(skipped)
-  });
-  if (importedMonth) params.set("month", importedMonth);
-  return { redirectTo: `/transactions?${params.toString()}` };
+  revalidatePath("/", "layout");
+  return { message: "Öllum færslum var eytt." } satisfies ActionFeedback;
 }
 
 export async function saveCategory(formData: FormData) {
@@ -127,14 +74,16 @@ export async function saveCategory(formData: FormData) {
     ? await supabase.from("categories").update(payload).eq("id", data.id).eq("user_id", id)
     : await supabase.from("categories").insert(payload);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/settings");
+  revalidatePath("/", "layout");
+  return { message: data.id ? "Flokkurinn var uppfærður." : "Flokknum var bætt við." } satisfies ActionFeedback;
 }
 
 export async function deleteCategory(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const result = await supabase.from("categories").delete().eq("id", String(formData.get("id"))).eq("user_id", id).eq("is_default", false);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/settings");
+  revalidatePath("/", "layout");
+  return { message: "Flokknum var eytt." } satisfies ActionFeedback;
 }
 
 export async function saveBudget(formData: FormData) {
@@ -145,17 +94,16 @@ export async function saveBudget(formData: FormData) {
     ? await supabase.from("budgets").update(payload).eq("id", data.id).eq("user_id", id)
     : await supabase.from("budgets").insert(payload);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/budgets");
-  revalidatePath("/expenses");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: data.id ? "Útgjaldamarkmiðið var uppfært." : "Útgjaldamarkmiðið var vistað." } satisfies ActionFeedback;
 }
 
 export async function deleteBudget(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const result = await supabase.from("budgets").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/budgets");
-  revalidatePath("/expenses");
+  revalidatePath("/", "layout");
+  return { message: "Útgjaldamarkmiðinu var eytt." } satisfies ActionFeedback;
 }
 
 export async function saveBill(formData: FormData) {
@@ -205,10 +153,8 @@ export async function saveBill(formData: FormData) {
     throw new Error("Reikningur með þessu heiti er þegar skráður í mánuðinum.");
   }
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/bills");
-  revalidatePath("/dashboard");
-  revalidatePath("/monthly-overview");
-  redirect(`/bills?month=${data.month.slice(0, 7)}&success=bill_saved`);
+  revalidatePath("/", "layout");
+  return { message: data.id ? "Reikningurinn var uppfærður." : "Reikningurinn var vistaður fyrir valinn mánuð.", redirectTo: `/bills?month=${data.month.slice(0, 7)}` } satisfies ActionFeedback;
 }
 
 export async function deleteBill(formData: FormData) {
@@ -228,85 +174,17 @@ export async function deleteBill(formData: FormData) {
     ? await supabase.from("bills").delete().eq("series_id", bill.series_id).eq("user_id", id)
     : await supabase.from("bills").delete().eq("id", bill.id).eq("user_id", id).eq("month", month);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/bills");
-  revalidatePath("/dashboard");
-  revalidatePath("/monthly-overview");
-  redirect(`/bills?month=${data.month}&success=${data.scope === "all" ? "bill_deleted_all" : "bill_deleted_month"}`);
+  revalidatePath("/", "layout");
+  return { message: data.scope === "all" ? "Reikningnum var eytt úr öllum mánuðum." : "Reikningnum var eytt úr völdum mánuði." } satisfies ActionFeedback;
 }
 
 export async function markBillPaid(formData: FormData) {
-  const { supabase, userId: id } = await userId();
-  const data = billPaymentSchema.parse(formDataObject(formData));
-  const { data: bill, error: billError } = await supabase
-    .from("bills")
-    .select("id, name, category_id, due_day, month")
-    .eq("id", data.bill_id)
-    .eq("user_id", id)
-    .single();
-  if (billError) throw new Error(billError.message);
-  if (bill.month !== `${data.month}-01`) throw new Error("Reikningurinn tilheyrir ekki völdum mánuði.");
-
-  const [year, month] = data.month.split("-").map(Number);
-  const lastDay = new Date(year, month, 0).getDate();
-  const paidDate = `${data.month}-${String(Math.min(Number(bill.due_day), lastDay)).padStart(2, "0")}`;
-  const transactionResult = await supabase
-    .from("transactions")
-    .insert({
-      user_id: id,
-      category_id: bill.category_id,
-      amount: data.amount,
-      type: "expense",
-      date: paidDate,
-      note: bill.name
-    })
-    .select("id")
-    .single();
-  if (transactionResult.error) throw new Error(transactionResult.error.message);
-
-  const paymentResult = await supabase.from("bill_payments").insert({
-    user_id: id,
-    bill_id: data.bill_id,
-    transaction_id: transactionResult.data.id,
-    month: `${data.month}-01`,
-    amount: data.amount,
-    paid_at: paidDate
-  });
-  if (paymentResult.error) {
-    await supabase.from("transactions").delete().eq("id", transactionResult.data.id).eq("user_id", id);
-    throw new Error(paymentResult.error.message);
-  }
-  revalidatePath("/bills");
-  revalidatePath("/dashboard");
-  revalidatePath("/expenses");
-  revalidatePath("/transactions");
-  revalidatePath("/analytics");
-  revalidatePath("/monthly-overview");
-  redirect(`/bills?month=${data.month}&success=bill_paid`);
+  return (await import("@/lib/bill-actions")).recordBillPayment(formData);
 }
 
 export async function deleteBillPayment(formData: FormData) {
-  const { supabase, userId: id } = await userId();
-  const { data: payment, error } = await supabase
-    .from("bill_payments")
-    .select("id, transaction_id")
-    .eq("id", String(formData.get("id")))
-    .eq("user_id", id)
-    .single();
-  if (error) throw new Error(error.message);
-  if (payment.transaction_id) {
-    const transactionResult = await supabase.from("transactions").delete().eq("id", payment.transaction_id).eq("user_id", id);
-    if (transactionResult.error) throw new Error(transactionResult.error.message);
-  }
-  const paymentResult = await supabase.from("bill_payments").delete().eq("id", payment.id).eq("user_id", id);
-  if (paymentResult.error) throw new Error(paymentResult.error.message);
-  revalidatePath("/bills");
-  revalidatePath("/dashboard");
-  revalidatePath("/expenses");
-  revalidatePath("/transactions");
-  revalidatePath("/analytics");
-  revalidatePath("/monthly-overview");
+  return (await import("@/lib/bill-actions")).unlinkBillPayment(formData);
 }
-
 export async function saveMonthlyIncome(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const data = monthlyIncomeSchema.parse(formDataObject(formData));
@@ -322,18 +200,16 @@ export async function saveMonthlyIncome(formData: FormData) {
     ? await supabase.from("transactions").update(payload).eq("id", data.id).eq("user_id", id)
     : await supabase.from("transactions").insert(payload);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/income");
-  revalidatePath("/dashboard");
-  revalidatePath("/analytics");
+  revalidatePath("/", "layout");
+  return { message: data.id ? "Tekjufærslan var uppfærð." : "Tekjurnar voru skráðar." } satisfies ActionFeedback;
 }
 
 export async function deleteMonthlyIncome(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const result = await supabase.from("transactions").delete().eq("id", String(formData.get("id"))).eq("user_id", id).eq("type", "income");
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/income");
-  revalidatePath("/dashboard");
-  revalidatePath("/analytics");
+  revalidatePath("/", "layout");
+  return { message: "Tekjufærslunni var eytt." } satisfies ActionFeedback;
 }
 
 export async function saveSavingsGoal(formData: FormData) {
@@ -344,15 +220,16 @@ export async function saveSavingsGoal(formData: FormData) {
     ? await supabase.from("savings_goals").update(payload).eq("id", data.id).eq("user_id", id)
     : await supabase.from("savings_goals").insert(payload);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/savings-goals");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: data.id ? "Sparnaðarmarkmiðið var uppfært." : "Sparnaðarmarkmiðið var vistað." } satisfies ActionFeedback;
 }
 
 export async function deleteSavingsGoal(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const result = await supabase.from("savings_goals").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/savings-goals");
+  revalidatePath("/", "layout");
+  return { message: "Sparnaðarmarkmiðinu var eytt." } satisfies ActionFeedback;
 }
 
 export async function addSavingsContribution(formData: FormData) {
@@ -360,24 +237,24 @@ export async function addSavingsContribution(formData: FormData) {
   const data = savingsContributionSchema.parse(formDataObject(formData));
   const result = await supabase.from("savings_contributions").insert({ ...data, user_id: id, note: data.note || null });
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/savings-goals");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: "Framlagið var skráð í sparnað." } satisfies ActionFeedback;
 }
 
 export async function deleteSavingsContribution(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const result = await supabase.from("savings_contributions").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/savings-goals");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: "Sparnaðarframlaginu var eytt." } satisfies ActionFeedback;
 }
 
 export async function deleteAllSavingsContributions() {
   const { supabase, userId: id } = await userId();
   const result = await supabase.from("savings_contributions").delete().eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/savings-goals");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: "Öllum sparnaðarframlögum var eytt." } satisfies ActionFeedback;
 }
 
 export async function saveSavingsBucket(formData: FormData) {
@@ -393,46 +270,26 @@ export async function saveSavingsBucket(formData: FormData) {
     { onConflict: "user_id,bucket_type" }
   );
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/savings-goals");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: "Heildarupphæð sparnaðar var uppfærð." } satisfies ActionFeedback;
 }
 
 export async function addSavingsBucketAmount(formData: FormData) {
-  const { supabase, userId: id } = await userId();
-  const data = savingsBucketEntrySchema.parse(formDataObject(formData));
-  const { data: currentBucket, error: currentError } = await supabase
-    .from("savings_buckets")
-    .select("amount")
-    .eq("user_id", id)
-    .eq("bucket_type", data.bucket_type)
-    .maybeSingle();
-  if (currentError) throw new Error(currentError.message);
-
-  const nextAmount = Number(currentBucket?.amount ?? 0) + data.amount;
-  const bucketResult = await supabase.from("savings_buckets").upsert(
-    {
-      user_id: id,
-      bucket_type: data.bucket_type,
-      label: data.label,
-      amount: nextAmount
-    },
-    { onConflict: "user_id,bucket_type" }
-  );
-  if (bucketResult.error) throw new Error(bucketResult.error.message);
-
-  const entryResult = await supabase.from("savings_bucket_entries").insert({
-    user_id: id,
-    bucket_type: data.bucket_type,
-    label: data.label,
-    amount: data.amount,
-    date: data.date,
-    note: data.note || null
+  const { supabase } = await userId();
+  const parsed = savingsBucketEntrySchema.safeParse(formDataObject(formData));
+  if (!parsed.success) return { message: "", error: "Skráðu gilda dagsetningu og upphæð yfir núlli með mest tveimur aukastöfum." } satisfies ActionFeedback;
+  const data = parsed.data;
+  const { error } = await supabase.rpc("add_savings_bucket_contribution", {
+    p_request_id: data.request_id,
+    p_bucket_type: data.bucket_type,
+    p_amount: data.amount,
+    p_date: data.date,
+    p_note: data.note || null,
+    p_label: data.label
   });
-  if (entryResult.error) throw new Error(entryResult.error.message);
-  revalidatePath("/savings-goals");
-  revalidatePath("/dashboard");
-  revalidatePath("/monthly-overview");
-  redirect("/savings-goals?success=savings_added");
+  if (error) throw new Error(error.message);
+  revalidatePath("/", "layout");
+  return { message: "Upphæðinni var bætt við sparnað." } satisfies ActionFeedback;
 }
 
 export async function deleteSavingsBucket(formData: FormData) {
@@ -443,8 +300,8 @@ export async function deleteSavingsBucket(formData: FormData) {
     .eq("user_id", id)
     .eq("bucket_type", String(formData.get("bucket_type")));
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/savings-goals");
-  revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
+  return { message: "Sparnaðarflokknum var eytt." } satisfies ActionFeedback;
 }
 
 export async function saveProfile(formData: FormData) {
@@ -452,5 +309,6 @@ export async function saveProfile(formData: FormData) {
   const data = profileSchema.parse(formDataObject(formData));
   const result = await supabase.from("profiles").update(data).eq("id", id);
   if (result.error) throw new Error(result.error.message);
-  revalidatePath("/settings");
+  revalidatePath("/", "layout");
+  return { message: "Notandaupplýsingarnar voru uppfærðar." } satisfies ActionFeedback;
 }

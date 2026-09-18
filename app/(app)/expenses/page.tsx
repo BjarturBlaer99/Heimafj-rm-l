@@ -1,21 +1,23 @@
+import { ActionForm } from "@/components/action-form";
 import { CardsIcon as WalletCards } from "@phosphor-icons/react/dist/ssr/Cards";
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { TrendDownIcon as TrendingDown } from "@phosphor-icons/react/dist/ssr/TrendDown";
 import Link from "next/link";
-import { CategoryBars } from "@/components/charts";
-import { Button, Card, EmptyState, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
+import { Button, Card, DateInput, EmptyState, MetricCard, PageHeader, ProgressBar, SectionHeader, inputClass } from "@/components/ui";
 import { deleteBudget, saveBudget } from "@/lib/actions";
 import { getAllBudgets, getBudgets, getCategories, getTransactions } from "@/lib/data";
 import { currentMonth, money } from "@/lib/format";
+import { validMonth } from "@/lib/transaction-period";
 
 function monthLabel(month: string) {
   const date = new Date(`${month}-01T00:00:00`);
   return new Intl.DateTimeFormat("is-IS", { month: "long", year: "numeric" }).format(date);
 }
 
-export default async function ExpensesPage() {
-  const month = currentMonth();
+export default async function ExpensesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const params = await searchParams;
+  const month = validMonth(params.month) ? params.month : currentMonth();
   const [categories, currentBudgets, allBudgets, transactions] = await Promise.all([
     getCategories(),
     getBudgets(month),
@@ -63,7 +65,7 @@ export default async function ExpensesPage() {
 
   return (
     <>
-      <PageHeader title="Útgjöld" description="Greindu útgjöld, settu mánaðaráætlun og fylgstu með stöðunni í rauntíma." />
+      <PageHeader title="Útgjöld" description="Sjáðu hvert peningarnir fara og berðu útgjöldin saman við áætlunina þína." action={<Link href="#expense-budget" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-onAccent"><Plus size={17} aria-hidden="true" />Setja áætlun</Link>} />
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <MetricCard label="Útgjöld í mánuðinum" value={money(expenseTotal, currency)} detail={monthLabel(month)} icon={<TrendingDown size={19} weight="duotone" />} tone="coral" />
@@ -75,27 +77,31 @@ export default async function ExpensesPage() {
         <Card>
           <SectionHeader title="Útgjöld eftir flokkum" description="Flokkar raðaðir eftir heildarupphæð í mánuðinum." />
           {categoryTotals.length ? (
-            <div className="space-y-4">
-              <CategoryBars data={categoryTotals.slice(0, 8).map((item) => ({ name: item.name, value: item.value }))} />
-              <div className="grid gap-2">
-                {categoryTotals.map((item) =>
+            <div className="divide-y divide-line/10">
+                {categoryTotals.map((item, index) => {
+                  const content = <>
+                    <span className="w-5 shrink-0 pt-0.5 text-xs text-ink/45">{String(index + 1).padStart(2, "0")}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[13px]"><span className="min-w-0 break-words font-medium text-ink">{item.name}</span><span className="whitespace-nowrap font-medium text-ink">{money(item.value, currency)}</span></div>
+                      <div className="mt-3 h-1 overflow-hidden rounded-full bg-line/5" aria-hidden="true"><div className="h-full bg-ink/65" style={{ width: `${expenseTotal > 0 ? item.value / expenseTotal * 100 : 0}%` }} /></div>
+                      <p className="mt-1.5 text-xs text-ink/55">{Math.round(expenseTotal > 0 ? item.value / expenseTotal * 100 : 0)}% útgjalda mánaðarins</p>
+                    </div>
+                  </>;
+                  return (
                   item.id ? (
                     <Link
                       key={item.id}
-                      className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/70 px-3 py-2 text-sm font-semibold text-accent transition hover:bg-muted"
+                      className="focus-ring flex items-start gap-3 py-5 transition-colors hover:bg-muted/25"
                       href={`/transactions/category/${item.id}?month=${month}&type=expense`}
                     >
-                      <span className="min-w-0 truncate">{item.name}</span>
-                      <span className="shrink-0">{money(item.value, currency)}</span>
+                      {content}
                     </Link>
                   ) : (
-                    <div key={item.name} className="flex items-center justify-between rounded-lg border border-line/10 bg-surface/60 px-3 py-2 text-sm text-ink/60">
-                      <span className="min-w-0 truncate">{item.name}</span>
-                      <span className="shrink-0">{money(item.value, currency)}</span>
+                    <div key={item.name} className="flex items-start gap-3 py-5">
+                      {content}
                     </div>
-                  )
-                )}
-              </div>
+                  ));
+                })}
             </div>
           ) : (
             <EmptyState>Engin útgjöld skráð í þessum mánuði.</EmptyState>
@@ -105,14 +111,14 @@ export default async function ExpensesPage() {
           <SectionHeader title="Mánaðarstaða" description="Samanburður útgjalda við heildaráætlun mánaðarins." />
           {currentMonthlyBudget > 0 ? (
             <div>
-              <div className="mb-2 grid grid-cols-2 gap-2 text-sm">
+              <div className="mb-2 grid grid-cols-1 gap-2 text-sm min-[400px]:grid-cols-2">
                 <span>{money(expenseTotal, currency)} notað</span>
-                <span className="text-right">{money(currentMonthlyBudget, currency)} áætlað</span>
+                <span className="min-[400px]:text-right">{money(currentMonthlyBudget, currency)} áætlað</span>
               </div>
               <ProgressBar value={currentBudgetProgress} />
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-ink/55">
+              <div className="mt-3 grid grid-cols-1 gap-2 text-sm min-[400px]:grid-cols-2 text-ink/55">
                 <span>{money(Math.max(0, currentMonthlyBudget - expenseTotal), currency)} eftir</span>
-                {currentBudgetProgress > 100 ? <span className="text-right font-semibold text-coral">Yfir áætlun</span> : <span className="text-right">Innan áætlunar</span>}
+                {currentBudgetProgress > 100 ? <span className="min-[400px]:text-right font-semibold text-coral">Yfir áætlun</span> : <span className="min-[400px]:text-right">Innan áætlunar</span>}
               </div>
             </div>
           ) : (
@@ -121,10 +127,10 @@ export default async function ExpensesPage() {
         </Card>
       </div>
 
-      <Card className="mb-5">
+      <Card id="expense-budget" className="mb-5 scroll-mt-24">
         <SectionHeader title="Útgjaldaáætlun" description="Settu heildaráætlun eða áætlun fyrir einstaka útgjaldaflokka." />
-        <form action={saveBudget} className="grid gap-3 md:grid-cols-[1fr_150px_150px_auto]">
-          <select className={inputClass} name="category_id">
+        <ActionForm resetOnSuccess action={saveBudget} className="grid gap-3 md:grid-cols-[1fr_150px_150px_auto]">
+          <select className={inputClass} name="category_id" aria-label="Flokkur áætlunar">
             <option value="">Heildaráætlun</option>
             {categories
               .filter((c) => c.type !== "income")
@@ -134,13 +140,13 @@ export default async function ExpensesPage() {
                 </option>
               ))}
           </select>
-          <input className={inputClass} name="month" type="month" defaultValue={month} required />
-          <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" placeholder="Upphæð" required />
+          <DateInput name="month" type="month" defaultValue={month} aria-label="Mánuður áætlunar" required />
+          <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" placeholder="Upphæð" aria-label="Upphæð áætlunar" required />
           <Button type="submit">
             <Plus size={17} />
             Bæta við
           </Button>
-        </form>
+        </ActionForm>
       </Card>
 
       <Card className="mb-5">
@@ -164,9 +170,9 @@ export default async function ExpensesPage() {
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-line/8 pt-3 text-xs">
                       <span className="text-ink/50">Áætlun</span>
-                      <span className="text-right font-semibold">{money(row.budgetAmount, currency)}</span>
+                      <span className="min-[400px]:text-right font-semibold">{money(row.budgetAmount, currency)}</span>
                       <span className="text-ink/50">Útgjöld</span>
-                      <span className="text-right font-semibold">{money(row.spentAmount, currency)}</span>
+                      <span className="min-[400px]:text-right font-semibold">{money(row.spentAmount, currency)}</span>
                     </div>
                     <div className="mt-3">
                       <div className="mb-1 flex justify-between text-xs text-ink/50">
@@ -243,33 +249,33 @@ export default async function ExpensesPage() {
             return (
               <Card key={budget.id}>
                 <div className="flex justify-between gap-3">
-                  <div>
-                    <h2 className="font-bold">{budget.categories?.name ?? "Heildaráætlun"}</h2>
+                  <div className="min-w-0">
+                    <h2 className="break-words font-bold">{budget.categories?.name ?? "Heildaráætlun"}</h2>
                     <p className="text-sm text-ink/55">{budget.month.slice(0, 7)}</p>
                   </div>
-                  <form action={deleteBudget}>
+                  <ActionForm action={deleteBudget} className="shrink-0">
                     <input type="hidden" name="id" value={budget.id} />
-                    <Button variant="danger" className="h-9 w-9 p-0">
+                    <Button variant="danger" className="h-9 w-9 p-0" aria-label={`Eyða áætlun: ${budget.categories?.name ?? "Heildaráætlun"}`}>
                       <Trash2 size={16} />
                     </Button>
-                  </form>
+                  </ActionForm>
                 </div>
                 <div className="mt-5">
-                  <div className="mb-2 grid grid-cols-2 gap-2 text-sm">
+                  <div className="mb-2 grid grid-cols-1 gap-2 text-sm min-[400px]:grid-cols-2">
                     <span>{money(spent, currency)} notað</span>
-                    <span className="text-right">{money(Number(budget.amount), currency)} áætlað</span>
+                    <span className="min-[400px]:text-right">{money(Number(budget.amount), currency)} áætlað</span>
                   </div>
                   <ProgressBar value={usage} />
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-ink/55">
+                  <div className="mt-2 grid grid-cols-1 gap-2 text-sm min-[400px]:grid-cols-2 text-ink/55">
                     <span>{money(Math.max(0, Number(budget.amount) - spent), currency)} eftir</span>
-                    {usage > 100 ? <span className="text-right font-semibold text-coral">Yfir áætlun</span> : <span className="text-right">Innan áætlunar</span>}
+                    {usage > 100 ? <span className="min-[400px]:text-right font-semibold text-coral">Yfir áætlun</span> : <span className="min-[400px]:text-right">Innan áætlunar</span>}
                   </div>
                 </div>
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-semibold text-accent">Breyta áætlun</summary>
-                  <form action={saveBudget} className="mt-3 grid gap-2">
+                <section className="mt-5 border-t border-line/10 pt-4" aria-labelledby={`budget-editor-${budget.id}`}>
+                  <h3 id={`budget-editor-${budget.id}`} className="text-sm font-semibold">Breyta áætlun</h3>
+                  <ActionForm action={saveBudget} className="mt-3 grid gap-2">
                     <input type="hidden" name="id" value={budget.id} />
-                    <select className={inputClass} name="category_id" defaultValue={budget.category_id ?? ""}>
+                    <select className={inputClass} name="category_id" aria-label="Flokkur áætlunar" defaultValue={budget.category_id ?? ""}>
                       <option value="">Heildaráætlun</option>
                       {categories
                         .filter((c) => c.type !== "income")
@@ -279,13 +285,13 @@ export default async function ExpensesPage() {
                           </option>
                         ))}
                     </select>
-                    <input className={inputClass} name="month" type="month" defaultValue={budget.month.slice(0, 7)} required />
-                    <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" defaultValue={Number(budget.amount)} required />
+                    <DateInput name="month" type="month" aria-label="Mánuður áætlunar" defaultValue={budget.month.slice(0, 7)} required />
+                    <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" aria-label="Upphæð áætlunar" defaultValue={Number(budget.amount)} required />
                     <Button type="submit" variant="secondary">
                       Vista breytingar
                     </Button>
-                  </form>
-                </details>
+                  </ActionForm>
+                </section>
               </Card>
             );
           })

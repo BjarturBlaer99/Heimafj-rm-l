@@ -55,7 +55,9 @@ export function TradingViewMarketWidget({ kind }: { kind: MarketWidgetKind }) {
 
     let cancelled = false;
     setState("loading");
-    container.replaceChildren();
+
+    const host = document.createElement("div");
+    host.className = "tradingview-widget-container h-full w-full";
 
     const widget = document.createElement("div");
     widget.className = "tradingview-widget-container__widget";
@@ -92,17 +94,20 @@ export function TradingViewMarketWidget({ kind }: { kind: MarketWidgetKind }) {
       if (!cancelled) setState("error");
     });
 
-    container.append(widget, script);
+    host.append(widget, script);
+    container.append(host);
 
     return () => {
       cancelled = true;
-      container.replaceChildren();
+      // A pending vendor script can still execute after removal. Keep its parent
+      // intact while detaching the entire widget (and any iframe) from the page.
+      host.remove();
     };
   }, [kind, theme]);
 
   return (
-    <Card className="overflow-hidden p-0">
-      <div className="relative h-[520px] min-w-0 sm:h-[600px]">
+    <Card className="overflow-hidden p-0 sm:p-0">
+      <div className="relative h-[min(520px,65svh)] min-h-[320px] min-w-0 sm:h-[600px]">
         <div
           ref={containerRef}
           className="absolute inset-0 [&_iframe]:h-full [&_iframe]:w-full"

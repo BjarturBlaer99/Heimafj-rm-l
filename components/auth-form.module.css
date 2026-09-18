@@ -1,0 +1,14 @@
+.form { width: 100%; }
+.eyebrow { margin-bottom: 14px; color: rgb(var(--color-ink) / .6); font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .12em; }
+.title { font-family: Georgia, "Times New Roman", serif; font-size: 38px; font-weight: 400; line-height: 1.14; letter-spacing: -.035em; }
+.description { margin-top: 14px; max-width: 365px; font-size: 14px; line-height: 1.8; color: rgb(var(--color-ink) / .65); }
+.fields { display: grid; gap: 22px; margin-top: 32px; }
+.input { height: 48px; border-radius: 8px; font-size: 16px; }
+.requirements { font-size: 12px; font-weight: 400; line-height: 1.65; color: rgb(var(--color-ink) / .64); }
+.forgot { display: inline-flex; align-items: center; justify-self: end; min-height: 32px; margin-top: -14px; border-radius: 4px; color: rgb(var(--color-accent)); font-size: 12px; font-weight: 500; }
+.alternative { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 8px; margin-top: 27px; border-top: 1px solid rgb(var(--color-line) / .13); padding-top: 19px; font-size: 13px; }
+.alternative > span { color: rgb(var(--color-ink) / .65); }
+.alternative > a { display: inline-flex; align-items: center; min-height: 32px; border-radius: 4px; color: rgb(var(--color-accent)); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .form { animation: auth-enter 340ms ease both; } }
+@keyframes auth-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 400px) { .title { font-size: 34px; } .fields { margin-top: 28px; } }

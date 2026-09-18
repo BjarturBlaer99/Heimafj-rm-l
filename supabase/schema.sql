@@ -304,3 +304,195 @@ create policy "savings_contributions_select_own" on public.savings_contributions
 create policy "savings_contributions_insert_own" on public.savings_contributions for insert with check (auth.uid() = user_id);
 create policy "savings_contributions_update_own" on public.savings_contributions for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "savings_contributions_delete_own" on public.savings_contributions for delete using (auth.uid() = user_id);
+
+-- Bill-payment integrity: keep in sync with bill-payment-integrity-update.sql.
+-- Apply before deploying existing-expense bill linking. This migration makes
+-- cross-request linking and transaction editing safe under concurrent writes.
+begin;
+set local lock_timeout = '10s';
+
+-- Keep the legacy-data audit and trigger installation in one write-free window.
+-- Reads continue; competing application writes wait until this transaction ends.
+lock table public.transactions, public.bills, public.bill_payments in share row exclusive mode;
+
+-- Do not silently resolve legacy duplicates or discard a user's payment data.
+do $$
+begin
+  if exists (select 1 from public.bill_payments where transaction_id is not null group by transaction_id having count(*) > 1) then
+    raise exception 'A transaction is linked to multiple bill payments. Review and unlink duplicate payments before applying this migration.';
+  end if;
+  if exists (
+    select 1 from public.bill_payments p
+    join public.transactions t on t.id = p.transaction_id
+    join public.bills b on b.id = p.bill_id
+    where p.user_id <> t.user_id or t.type <> 'expense'
+       or p.amount <> t.amount or p.paid_at <> t.date
+       or p.user_id <> b.user_id or p.month <> b.month
+  ) then
+    raise exception 'A linked payment differs from its expense or bill. Review and unlink inconsistent payments before applying this migration.';
+  end if;
+end $$;
+
+create unique index if not exists bill_payments_transaction_unique
+  on public.bill_payments(transaction_id) where transaction_id is not null;
+
+create or replace function public.validate_bill_payment_expense()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  linked_expense public.transactions%rowtype;
+  linked_bill public.bills%rowtype;
+begin
+  if new.transaction_id is null then
+    raise exception 'A new bill payment must link an existing expense.';
+  end if;
+  select * into linked_expense from public.transactions where id = new.transaction_id for update;
+  if not found or linked_expense.user_id <> new.user_id or linked_expense.type <> 'expense' then
+    raise exception 'The payment must link an expense owned by the same user.';
+  end if;
+  if new.amount <> linked_expense.amount or new.paid_at <> linked_expense.date then
+    raise exception 'The expense changed. Reload it before linking the payment.';
+  end if;
+  select * into linked_bill from public.bills where id = new.bill_id for update;
+  if not found or linked_bill.user_id <> new.user_id or linked_bill.month <> new.month then
+    raise exception 'The payment must match the owner and month of its bill.';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists bill_payment_expense_integrity on public.bill_payments;
+create trigger bill_payment_expense_integrity before insert or update on public.bill_payments
+  for each row execute function public.validate_bill_payment_expense();
+
+create or replace function public.protect_linked_bill_expense()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if tg_op = 'DELETE' then
+    -- auth.users has already been removed when its FK cascades run. Allow that
+    -- account-erasure cascade regardless of child-table trigger ordering;
+    -- normal expense deletion still requires unlinking the payment first.
+    if not exists (select 1 from auth.users where id = old.user_id) then
+      return old;
+    end if;
+    if exists (select 1 from public.bill_payments where transaction_id = old.id) then
+      raise exception 'Unlink the bill payment before deleting this expense.';
+    end if;
+    return old;
+  end if;
+  if (new.amount, new.date, new.type, new.user_id) is distinct from (old.amount, old.date, old.type, old.user_id)
+     and exists (select 1 from public.bill_payments where transaction_id = old.id) then
+    raise exception 'Unlink the bill payment before changing the amount, date, type or owner of this expense.';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists protect_linked_bill_expense on public.transactions;
+create trigger protect_linked_bill_expense before update or delete on public.transactions
+  for each row execute function public.protect_linked_bill_expense();
+
+create or replace function public.protect_linked_bill_identity()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if (new.month, new.user_id) is distinct from (old.month, old.user_id)
+     and exists (select 1 from public.bill_payments where bill_id = old.id) then
+    raise exception 'Unlink the bill payment before changing the month or owner of this bill.';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists protect_linked_bill_identity on public.bills;
+create trigger protect_linked_bill_identity before update on public.bills
+  for each row execute function public.protect_linked_bill_identity();
+
+-- Supabase's function defaults can explicitly grant these roles EXECUTE;
+-- revoking PUBLIC alone does not remove those independent grants.
+revoke all on function public.validate_bill_payment_expense() from public, anon, authenticated;
+revoke all on function public.protect_linked_bill_expense() from public, anon, authenticated;
+revoke all on function public.protect_linked_bill_identity() from public, anon, authenticated;
+
+commit;
+
+-- Apply before deploying atomic savings contributions.
+begin;
+
+create or replace function public.add_savings_bucket_contribution(
+  p_request_id uuid,
+  p_bucket_type public.savings_bucket_type,
+  p_amount numeric,
+  p_date date,
+  p_note text default null,
+  p_label text default null
+)
+returns table(entry_id uuid, balance numeric, already_recorded boolean)
+language plpgsql security invoker set search_path = public, pg_temp as $$
+declare
+  owner_id uuid := auth.uid();
+  entry_label text;
+  entry_note text := nullif(btrim(p_note), '');
+  recorded_id uuid;
+  recorded_entry public.savings_bucket_entries%rowtype;
+  resulting_balance numeric;
+begin
+  if owner_id is null then
+    raise exception 'Authentication is required.' using errcode = '42501';
+  end if;
+  if p_request_id is null or p_bucket_type is null or p_date is null
+     or p_date < date '0001-01-01' or p_date > date '9999-12-31'
+     or p_amount is null or not (p_amount > 0 and p_amount <= 9999999999.99)
+     or p_amount <> round(p_amount, 2) then
+    raise exception 'A request ID, bucket, date and positive amount with at most two decimals are required.' using errcode = '22023';
+  end if;
+  entry_label := coalesce(nullif(btrim(p_label), ''), case p_bucket_type
+    when 'serignarsparnadur' then 'Séreignarsparnaður'
+    when 'husnaedisparnadur' then 'Húsnæðisparnaður'
+    when 'hlutabref' then 'Hlutabréf'
+    when 'sjodir' then 'Sjóðir'
+  end);
+  if length(entry_label) > 80 or length(entry_note) > 500 then
+    raise exception 'The label or note is too long.' using errcode = '22023';
+  end if;
+
+  -- The entry UUID is the client request UUID. A retried request waits for the
+  -- first attempt to commit, then takes the existing-entry path without adding
+  -- its amount twice. RLS prevents reading another user's colliding UUID.
+  insert into public.savings_bucket_entries(id, user_id, bucket_type, label, amount, date, note)
+  values (p_request_id, owner_id, p_bucket_type, entry_label, p_amount, p_date, entry_note)
+  on conflict (id) do nothing
+  returning id into recorded_id;
+
+  if recorded_id is null then
+    select * into recorded_entry from public.savings_bucket_entries
+    where id = p_request_id and user_id = owner_id for key share;
+    if not found then
+      raise exception 'This request ID is unavailable. Start a new request.' using errcode = '22023';
+    end if;
+    if (recorded_entry.bucket_type, recorded_entry.amount, recorded_entry.date, recorded_entry.note, recorded_entry.label)
+       is distinct from (p_bucket_type, p_amount, p_date, entry_note, entry_label) then
+      raise exception 'This request was already recorded with different details.' using errcode = '22023';
+    end if;
+    select amount into resulting_balance from public.savings_buckets
+    where user_id = owner_id and bucket_type = p_bucket_type;
+    return query select p_request_id, resulting_balance, true;
+    return;
+  end if;
+
+  -- The database increments the latest locked balance. No application read /
+  -- overwrite can lose another contribution. A failure rolls the history entry
+  -- and balance change back together, including overflow and RLS failures.
+  insert into public.savings_buckets as bucket(user_id, bucket_type, label, amount)
+  values (owner_id, p_bucket_type, entry_label, p_amount)
+  on conflict (user_id, bucket_type) do update
+    set amount = bucket.amount + excluded.amount, label = excluded.label
+  returning amount into resulting_balance;
+
+  return query select p_request_id, resulting_balance, false;
+end $$;
+
+revoke all on function public.add_savings_bucket_contribution(uuid, public.savings_bucket_type, numeric, date, text, text) from public, anon;
+grant execute on function public.add_savings_bucket_contribution(uuid, public.savings_bucket_type, numeric, date, text, text) to authenticated;
+
+-- These helpers accept a target user UUID and are used only by the privileged
+-- signup trigger. Do not expose cross-owner seeding/label resets through RPC.
+revoke all on function public.seed_default_categories(uuid) from public, anon, authenticated;
+revoke all on function public.seed_savings_buckets(uuid) from public, anon, authenticated;
+
+commit;

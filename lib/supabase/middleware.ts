@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
 
-  if (path === "/" || path === "/demo") {
+  if (path === "/" || path === "/demo" || path === "/help" || path === "/privacy") {
     return response;
   }
 
@@ -31,26 +31,55 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet: CookieToSet[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          const previousCookies = response.cookies.getAll();
           response = NextResponse.next({ request });
+          previousCookies.forEach((cookie) => response.cookies.set(cookie));
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         }
       }
     }
   );
 
-  const { data } = await supabase.auth.getUser();
+  // Verify the token locally with Supabase's cached public signing keys. The
+  // SDK refreshes expired sessions and falls back to Auth for legacy HS256 JWTs.
+  // Server data loaders still fetch the current user before reading private data.
+  let authenticated = false;
+  const isAuthEntry = path === "/login" || path === "/signup";
+  try {
+    const { data, error } = await supabase.auth.getClaims();
+    authenticated = !error && Boolean(data?.claims.sub);
+    if (authenticated && isAuthEntry) {
+      // Revoked sessions must be allowed to sign in again instead of bouncing
+      // between the login page and the server's authoritative user check.
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      authenticated = !userError && Boolean(userData.user);
+    }
+  } catch {
+    // The SDK can throw for malformed/expired JWTs. Fail closed, including when
+    // untrusted cookie expiry metadata disagrees with the signed token.
+    authenticated = false;
+  }
   const isPublic = publicRoutes.has(path);
 
-  if (!data.user && !isPublic) {
+  function redirectWithCookies(pathname: string) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    url.pathname = pathname;
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
   }
 
-  if (data.user && (path === "/login" || path === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+  if (!authenticated && !isPublic) {
+    if (path.startsWith("/api/")) {
+      const unauthorized = NextResponse.json({ error: "Innskráningar er þörf." }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+      response.cookies.getAll().forEach((cookie) => unauthorized.cookies.set(cookie));
+      return unauthorized;
+    }
+    return redirectWithCookies("/login");
+  }
+
+  if (authenticated && isAuthEntry) {
+    return redirectWithCookies("/dashboard");
   }
 
   return response;

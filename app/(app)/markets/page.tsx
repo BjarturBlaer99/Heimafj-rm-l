@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { MarketOverview } from "@/components/market-overview";
+import { Suspense } from "react";
+import { DataSectionLoading } from "@/components/data-section-loading";
+import { MarketDataSection } from "@/components/market-data-section";
 import { PageHeader } from "@/components/ui";
 import { getMarketSnapshot } from "@/lib/market-data";
 
@@ -8,13 +10,15 @@ export const metadata: Metadata = {
   description: "Verðbólga, meginvextir, gengi og hlutabréf á einum stað."
 };
 
-export default async function MarketsPage() {
-  const marketData = await getMarketSnapshot();
+export default function MarketsPage() {
+  const marketData = getMarketSnapshot();
 
   return (
     <>
       <PageHeader title="Markaðir" description="Fylgstu með markaðs- og hagstærðum sem hafa áhrif á fjármálin þín." />
-      <MarketOverview data={marketData} />
+      <Suspense fallback={<DataSectionLoading label="Hleð markaðsgögnum…" chart />}>
+        <MarketDataSection data={marketData} />
+      </Suspense>
     </>
   );
 }

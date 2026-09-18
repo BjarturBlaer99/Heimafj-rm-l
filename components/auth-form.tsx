@@ -1,12 +1,12 @@
 "use client";
 
-import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import Link from "next/link";
 import { useActionState } from "react";
-import { AppFooter } from "@/components/app-footer";
-import { Button, Card, Field, inputClass } from "@/components/ui";
+import { Button, Field, inputClass } from "@/components/ui";
 import { forgotPasswordAction, loginAction, resetPasswordAction, signupAction, type AuthState } from "@/lib/auth-actions";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
+import styles from "./auth-form.module.css";
 
 export function AuthForm({
   mode,
@@ -36,39 +36,40 @@ export function AuthForm({
           ? "Veldu nýtt lykilorð"
           : "Velkomin aftur";
 
-  return (
-    <div className="flex min-h-screen flex-col bg-paper text-ink">
-      <main className="grid flex-1 place-items-center px-4 py-10 sm:py-14">
-        <Card className="w-full max-w-md border-line/15">
-        <div className="mb-8 flex items-center justify-between gap-4">
-          <Link href="/" className="focus-ring inline-flex rounded-md text-base font-extrabold">
-            Mín <span className="ml-1 text-accent">fjármál</span>
-          </Link>
-          <Link href="/" className="focus-ring inline-flex min-h-9 items-center gap-2 rounded-md px-2.5 text-sm font-semibold text-ink/60 transition hover:bg-muted hover:text-ink">
-            <HouseIcon size={17} weight="duotone" />
-            Heim
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="mt-1 text-sm text-ink/55">Örugg leið inn í persónulega fjármálayfirlitið þitt.</p>
+  const description =
+    mode === "signup"
+      ? "Skráðu upplýsingarnar þínar til að stofna aðgang."
+      : mode === "forgot"
+        ? "Sláðu inn netfangið þitt til að fá endurstillingartengil."
+        : mode === "reset"
+          ? "Veldu nýtt lykilorð fyrir aðganginn þinn."
+          : "Skráðu þig inn til að opna fjármálayfirlitið þitt.";
 
-        <form action={formAction} className="mt-6 grid gap-4">
+  const submitLabel = mode === "login" ? "Skrá inn" : mode === "forgot" ? "Senda tengil" : mode === "reset" ? "Vista nýtt lykilorð" : "Stofna aðgang";
+
+  return (
+    <div className={styles.form}>
+        <p className={styles.eyebrow}>Mín fjármál</p>
+        <h1 className={styles.title}>{title}</h1>
+        <p className={styles.description}>{description}</p>
+
+        <form action={formAction} className={styles.fields}>
           {mode === "signup" && (
             <Field label="Fullt nafn">
-              <input className={inputClass} name="fullName" autoComplete="name" required />
+              <input className={`${inputClass} ${styles.input}`} name="fullName" autoComplete="name" required />
             </Field>
           )}
 
           {mode !== "reset" && (
             <Field label="Netfang">
-              <input className={inputClass} name="email" type="email" autoComplete="email" required />
+              <input className={`${inputClass} ${styles.input}`} name="email" type="email" autoComplete="email" required />
             </Field>
           )}
 
           {mode !== "forgot" && (
             <Field label="Lykilorð">
               <input
-                className={inputClass}
+                className={`${inputClass} ${styles.input}`}
                 name="password"
                 type="password"
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -80,29 +81,34 @@ export function AuthForm({
                 required
               />
               {showPasswordPolicy ? (
-                <span id="password-requirements" className="text-xs font-normal leading-relaxed text-ink/50">
+                <span id="password-requirements" className={styles.requirements}>
                   {PASSWORD_REQUIREMENTS}
                 </span>
               ) : null}
             </Field>
           )}
 
-          {state.error ? <p className="rounded-md border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">{state.error}</p> : null}
-          {state.message ? <p className="rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm font-semibold text-moss">{state.message}</p> : null}
+          {mode === "login" && (
+            <Link href="/forgot-password" className={`focus-ring ${styles.forgot}`}>
+              Gleymt lykilorð?
+            </Link>
+          )}
 
-          <Button type="submit" disabled={pending}>
-            {pending ? "Augnablik..." : title}
+          {state.error ? <p role="alert" className="rounded-md border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-medium text-coral">{state.error}</p> : null}
+          {state.message ? <p role="status" className="rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm font-medium text-moss">{state.message}</p> : null}
+
+          <Button type="submit" disabled={pending} className="mt-1 min-h-12 w-full">
+            {pending ? "Augnablik..." : submitLabel}
+            {!pending && <ArrowRightIcon size={17} aria-hidden="true" />}
           </Button>
         </form>
 
-        <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold text-accent">
-          {mode !== "login" && <Link href="/login">Innskráning</Link>}
-          {mode !== "signup" && <Link href="/signup">Stofna aðgang</Link>}
-          {mode === "login" && <Link href="/forgot-password">Gleymt lykilorð?</Link>}
+        <div className={styles.alternative}>
+          <span>{mode === "login" ? "Ekki með aðgang?" : "Þegar með aðgang?"}</span>
+          {mode !== "login" && <Link href="/login" className="focus-ring">Innskráning</Link>}
+          {mode === "login" && <Link href="/signup" className="focus-ring">Stofna aðgang</Link>}
+          {(mode === "forgot" || mode === "reset") && <Link href="/signup" className="focus-ring">Stofna aðgang</Link>}
         </div>
-        </Card>
-      </main>
-      <AppFooter mode="demo" showProductLinks={false} />
     </div>
   );
 }

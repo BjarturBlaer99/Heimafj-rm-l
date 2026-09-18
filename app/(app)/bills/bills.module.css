@@ -1,0 +1,67 @@
+.page { min-width: 0; }
+.primaryLink { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; background: rgb(var(--color-accent)); color: rgb(var(--color-on-accent)); padding: 10px 16px; font-size: 13px; font-weight: 600; }
+.primaryLink:hover { filter: brightness(.95); }
+.primaryLink:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 4px; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+.periodBar { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin: 0 0 22px; padding: 0 0 20px; border-bottom: 1px solid rgb(var(--color-line) / .12); }
+.eyebrow { font-size: 11px; color: rgb(var(--color-ink) / .6); margin-bottom: 5px; }
+.periodTitle { font-size: 18px; font-weight: 600; }
+.periodForm { display: grid; grid-template-columns: minmax(155px, 200px) auto; gap: 10px; align-items: end; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); gap: 24px; align-items: start; }
+.ledger { min-width: 0; border: 1px solid rgb(var(--color-line) / .13); border-radius: 10px; background: rgb(var(--color-surface)); overflow: hidden; }
+.ledgerHeader { padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid rgb(var(--color-line) / .12); }
+.ledgerHeader h2 { font-size: 16px; font-weight: 600; }
+.ledgerHeader p { font-size: 12px; color: rgb(var(--color-ink) / .6); margin-top: 5px; line-height: 1.5; }
+.count { flex: 0 0 auto; display: grid; place-items: center; min-width: 28px; height: 28px; border: 1px solid rgb(var(--color-line) / .15); border-radius: 6px; font-size: 12px; color: rgb(var(--color-ink) / .65); }
+.bill { padding: 24px; border-bottom: 1px solid rgb(var(--color-line) / .11); min-width: 0; }
+.bill[data-inactive] .billSummary { opacity: .6; }
+.billSummary { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; }
+.dueDay { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 44px; border: 1px solid rgb(var(--color-line) / .13); border-radius: 6px; }
+.dueDay span { font-size: 9px; line-height: 1.4; color: rgb(var(--color-ink) / .55); }
+.dueDay strong { font-size: 18px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.billName { min-width: 0; }
+.billName h3 { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.billName p { font-size: 12px; color: rgb(var(--color-ink) / .6); margin-top: 4px; overflow-wrap: anywhere; }
+.amount { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.status { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: rgb(var(--color-ink) / .6); }
+.status[data-paid="true"] { color: rgb(var(--color-moss)); }
+.status[data-inactive] { color: rgb(var(--color-ink) / .55); }
+.billActions { display: grid; gap: 22px; margin-top: 22px; min-width: 0; }
+.formSection { min-width: 0; padding-top: 18px; border-top: 1px solid rgb(var(--color-line) / .1); }
+.formSection > h4 { font-size: 13px; font-weight: 600; color: rgb(var(--color-ink) / .8); }
+.paymentForm { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; max-width: 460px; padding-top: 12px; }
+.editForm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 14px; padding-top: 12px; }
+.quietButton { min-height: 36px; padding: 6px 0; border: 0; box-shadow: none; background: transparent; font-size: 12px; color: rgb(var(--color-ink) / .65); }
+.deleteActions { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgb(var(--color-line) / .1); display: flex; flex-wrap: wrap; gap: 8px; }
+.deleteActions button { font-size: 12px; }
+.checkbox { min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgb(var(--color-ink) / .75); }
+.checkbox input { width: 16px; height: 16px; accent-color: rgb(var(--color-accent)); }
+.newBill { padding: 24px; background: rgb(var(--color-surface)); border: 1px solid rgb(var(--color-line) / .13); border-radius: 10px; min-width: 0; scroll-margin-top: 30px; }
+.newForm { display: grid; gap: 16px; }
+.amountAndDate { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.formNote, .ledgerFooter { font-size: 12px; line-height: 1.7; color: rgb(var(--color-ink) / .58); }
+.formNote { margin-top: 16px; }
+.ledgerFooter { padding: 16px 24px; background: rgb(var(--color-muted) / .4); }
+.empty { padding: 24px; }
+.sidebar { display: grid; gap: 22px; min-width: 0; }
+.matchingPeriod { display: flex; align-items: end; justify-content: space-between; gap: 22px; padding: 20px 0; margin-bottom: 22px; border-bottom: 1px solid rgb(var(--color-line) / .12); }
+.matchingPeriod h2, .newBill > h2 { font-size: 15px; font-weight: 600; }
+.matchingPeriod p, .paymentReceipt p, .newPaymentHeading p { font-size: 12px; line-height: 1.7; color: rgb(var(--color-ink) / .65); margin-top: 5px; }
+.matchingPeriod > div { max-width: 520px; }
+.existingPaymentForm { display: grid; gap: 12px; margin-top: 12px; }
+.existingPaymentForm > button { justify-self: start; }
+.newPaymentHeading { margin-top: 26px; }
+.newPaymentHeading h4 { font-size: 13px; font-weight: 600; }
+.paymentForm { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.confirmExpense, .paymentForm > button { grid-column: 1 / -1; }
+.confirmExpense input { flex: 0 0 auto; }
+.copyForm { display: grid; gap: 10px; margin-top: 18px; }
+.copyChoice { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; font-size: 13px; line-height: 1.5; border-bottom: 1px solid rgb(var(--color-line) / .1); }
+.copyChoice input { width: 17px; height: 17px; margin-top: 2px; flex: 0 0 auto; accent-color: rgb(var(--color-accent)); }
+.copyChoice span { min-width: 0; overflow-wrap: anywhere; }
+.copyChoice small { display: block; font-size: 11px; color: rgb(var(--color-ink) / .65); margin-top: 3px; }
+@media (max-width: 760px) { .matchingPeriod { align-items: stretch; flex-direction: column; } .existingPaymentForm > button { justify-self: stretch; } }
+@media (max-width: 1250px) { .layout { grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; } .bill, .ledgerHeader, .newBill { padding-left: 18px; padding-right: 18px; } .billSummary { grid-template-columns: 38px minmax(0, 1fr) auto; gap: 11px; } .status { grid-column: 2; grid-row: 2; margin-top: -6px; } .amount { grid-column: 3; grid-row: 1 / 3; max-width: 155px; }  }
+@media (max-width: 1050px) { .layout { grid-template-columns: minmax(0, 1fr); } .newForm { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; } .newForm > button { grid-column: 2; } .newBill { scroll-margin-top: 80px; } .billSummary { grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 14px; } .status { grid-column: auto; grid-row: auto; margin-top: 0; } .amount { grid-column: auto; grid-row: auto; max-width: none; }  }
+@media (max-width: 640px) { .metrics { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-bottom: 22px; } .periodBar { align-items: stretch; flex-direction: column; gap: 15px; } .periodForm { grid-template-columns: minmax(0, 1fr) auto; } .primaryLink { width: 100%; } .billSummary { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; } .status { grid-column: 2; grid-row: 2; margin-top: -5px; } .amount { grid-column: 3; grid-row: 1 / 3; font-size: 14px; max-width: 130px; } .dueDay { width: 36px; }  .quietButton { min-height: 44px; font-size: 13px; } .newForm { grid-template-columns: minmax(0, 1fr); } .newForm > button { grid-column: auto; } .paymentForm, .editForm { grid-template-columns: minmax(0, 1fr); } .deleteActions, .deleteActions > form, .deleteActions button { width: 100%; } .ledgerHeader, .newBill { padding: 20px 16px; } .bill { padding: 22px 16px; } .ledgerFooter { padding: 15px 16px; } }
+@media (max-width: 370px) { .amount { max-width: 98px; font-size: 13px; } .billSummary { column-gap: 8px; } .billName h3 { font-size: 13px; } .periodForm { grid-template-columns: minmax(0, 1fr); }  }

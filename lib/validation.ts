@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PASSWORD_MIN_LENGTH } from "@/lib/password-policy";
+import { isCalendarDate } from "@/lib/savings-plan";
 
 export const passwordSchema = z
   .string()
@@ -105,14 +106,15 @@ export const savingsBucketSchema = z.object({
 });
 
 export const savingsBucketEntrySchema = z.object({
+  request_id: z.string().uuid(),
   bucket_type: z.enum(["serignarsparnadur", "husnaedisparnadur", "hlutabref", "sjodir"]),
   label: z.string().trim().min(1).max(80),
-  amount: z.coerce.number().positive(),
-  date: z.string().min(10).max(10),
+  amount: z.coerce.number().finite().positive().max(9_999_999_999.99).multipleOf(0.01),
+  date: z.string().refine(isCalendarDate),
   note: z.string().trim().max(500).nullable().optional()
 });
 
 export const profileSchema = z.object({
   full_name: z.string().trim().min(1).max(80),
-  currency: z.string().trim().length(3).transform((value) => value.toUpperCase())
+  currency: z.literal("ISK").default("ISK")
 });

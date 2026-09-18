@@ -9,40 +9,19 @@ import { ChartPieSliceIcon } from "@phosphor-icons/react/dist/csr/ChartPieSlice"
 import { CurrencyCircleDollarIcon } from "@phosphor-icons/react/dist/csr/CurrencyCircleDollar";
 import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
-import { AnimatePresence, motion, MotionConfig, useReducedMotion, type Variants } from "motion/react";
+import { motion, MotionConfig } from "motion/react";
 import Link from "next/link";
 import { useId, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ChartShadowFilter } from "@/components/ui/chart-shadow-filter";
+import { Card } from "@/components/ui";
 import { TradingViewMarketWidget } from "@/components/tradingview-market-widget";
 import type { MarketPoint, MarketSnapshot } from "@/lib/market-data";
 import { cn } from "@/lib/utils";
 
 type MarketTab = "stocks" | "funds" | "fx" | "economy";
-
-const cardGridVariants: Variants = {
-  hidden: {},
-  visible: {
-    transition: {
-      delayChildren: 0.06,
-      staggerChildren: 0.065
-    }
-  }
-};
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 16, scale: 0.985 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.44, ease: [0.22, 1, 0.36, 1] }
-  }
-};
 
 const icelandicMonths = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."];
 
@@ -93,7 +72,7 @@ export function ChangeBadge({ value, suffix = "%", inverse = false }: { value: n
   return (
     <span
       className={cn(
-        "inline-flex min-h-7 items-center gap-1 rounded-md border px-2 py-1 text-xs font-bold",
+        "inline-flex min-h-6 items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
         value === 0
           ? "border-line/10 bg-muted/65 text-ink/50"
           : favorable
@@ -108,9 +87,7 @@ export function ChangeBadge({ value, suffix = "%", inverse = false }: { value: n
 }
 
 function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) {
-  const reduceMotion = useReducedMotion();
   const gradientId = useId().replace(/:/g, "");
-  const shadowId = useId().replace(/:/g, "");
 
   return (
     <div className="h-14 min-w-0 overflow-visible [&_svg]:overflow-visible" aria-hidden="true">
@@ -121,7 +98,6 @@ function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) 
               <stop offset="0%" stopColor={color} stopOpacity={0.24} />
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
-            <ChartShadowFilter id={shadowId} color={color} opacity={0.3} blur={3} offsetY={3} />
           </defs>
           <Area
             type="monotone"
@@ -129,10 +105,7 @@ function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) 
             stroke={color}
             strokeWidth={2}
             fill={`url(#${gradientId})`}
-            filter={`url(#${shadowId})`}
-            isAnimationActive={!reduceMotion}
-            animationDuration={700}
-            animationEasing="ease-out"
+            isAnimationActive={false}
             dot={false}
             activeDot={false}
           />
@@ -143,9 +116,7 @@ function MiniTrend({ points, color }: { points: MarketPoint[]; color: string }) 
 }
 
 function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; color: string; valueLabel: string }) {
-  const reduceMotion = useReducedMotion();
   const gradientId = useId().replace(/:/g, "");
-  const shadowId = useId().replace(/:/g, "");
 
   return (
     <div className="h-[210px] min-w-0 overflow-visible [&_svg]:overflow-visible">
@@ -156,7 +127,6 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
               <stop offset="0%" stopColor={color} stopOpacity={0.25} />
               <stop offset="100%" stopColor={color} stopOpacity={0.01} />
             </linearGradient>
-            <ChartShadowFilter id={shadowId} color={color} opacity={0.26} blur={4} offsetY={4} />
           </defs>
           <CartesianGrid vertical={false} stroke="rgb(var(--color-line) / 0.1)" strokeDasharray="3 4" />
           <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "rgb(var(--color-ink) / 0.48)", fontSize: 11 }} minTickGap={24} />
@@ -168,7 +138,7 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
               borderRadius: 8,
               color: "rgb(var(--color-ink))",
               fontSize: 12,
-              boxShadow: "0 14px 32px rgb(var(--shadow-soft) / 0.18)"
+              boxShadow: "0 4px 20px rgb(var(--shadow-soft) / 0.08)"
             }}
             formatter={(value: number) => [formatDecimal(Number(value)), valueLabel]}
             labelStyle={{ color: "rgb(var(--color-ink) / 0.55)" }}
@@ -180,10 +150,7 @@ function MarketChart({ points, color, valueLabel }: { points: MarketPoint[]; col
             stroke={color}
             strokeWidth={2.25}
             fill={`url(#${gradientId})`}
-            filter={`url(#${shadowId})`}
-            isAnimationActive={!reduceMotion}
-            animationDuration={800}
-            animationEasing="ease-out"
+            isAnimationActive={false}
             dot={false}
           />
         </AreaChart>
@@ -284,30 +251,30 @@ function SummaryCards({ data }: { data: MarketSnapshot }) {
   ];
 
   return (
-    <motion.div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" variants={cardGridVariants} initial="hidden" animate="visible">
+    <div className="reveal-group grid grid-cols-2 gap-3 xl:grid-cols-4">
       {cards.map((card) => {
         const Icon = card.icon;
         const available = card.status === "live";
         return (
-          <motion.div key={card.id} variants={cardVariants} whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 420, damping: 30 }} className="h-full min-w-0">
-            <Card className="h-full min-h-[176px] overflow-hidden p-0 transition-colors duration-200 hover:border-accent/25">
-              <div className="flex h-full flex-col p-4 sm:p-5">
+          <motion.div key={card.id} initial={false} transition={{ type: "spring", stiffness: 420, damping: 30 }} className="h-full min-w-0">
+            <Card className="h-full min-h-[164px] overflow-hidden sm:min-h-[176px] p-0 sm:p-0 transition-colors duration-200 hover:border-accent/25">
+              <div className="flex h-full flex-col p-3 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-md", card.iconTone)}>
+                    <span className={cn("hidden h-9 w-9 shrink-0 place-items-center rounded-md sm:grid", card.iconTone)}>
                       <Icon size={19} weight="duotone" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold leading-tight">{card.label}</p>
-                      <p className="mt-1 text-xs leading-snug text-ink/45">{card.detail}</p>
+                      <p className="text-xs font-bold leading-tight sm:text-sm">{card.label}</p>
+                      <p className="mt-1 text-[11px] leading-snug text-ink/45 sm:text-xs">{card.detail}</p>
                     </div>
                   </div>
                   <StatusBadge status={card.status} minimal />
                 </div>
                 {available ? (
                   <>
-                    <div className="mt-4 flex items-end justify-between gap-3">
-                      <p className="text-2xl font-bold leading-none">
+                    <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
+                      <p className="text-2xl font-semibold leading-none tracking-tight">
                         <AnimatedNumber value={card.value} format={card.format} />
                       </p>
                       <ChangeBadge value={card.change} suffix={card.changeSuffix} inverse={card.inverse} />
@@ -318,7 +285,7 @@ function SummaryCards({ data }: { data: MarketSnapshot }) {
                     </div>
                   </>
                 ) : (
-                  <div className="mt-5 flex min-h-[88px] items-center rounded-md border border-line/10 bg-muted/45 px-4">
+                  <div className="mt-3 flex min-h-[72px] items-center rounded-md border border-line/10 bg-muted/45 px-2 sm:mt-5 sm:min-h-[88px] sm:px-4">
                     <div>
                       <p className="text-sm font-bold">Gögn ekki tiltæk</p>
                       <p className="mt-1 text-xs text-ink/45">Reyndu aftur síðar.</p>
@@ -330,15 +297,15 @@ function SummaryCards({ data }: { data: MarketSnapshot }) {
           </motion.div>
         );
       })}
-    </motion.div>
+    </div>
   );
 }
 
 function FxPanel({ data }: { data: MarketSnapshot }) {
   return (
-    <motion.div className="grid gap-3 md:grid-cols-2" variants={cardGridVariants} initial="hidden" animate="visible">
+    <div className="reveal-group grid gap-3 md:grid-cols-2">
       {data.fx.map((currency, index) => (
-        <motion.div key={currency.code} variants={cardVariants} whileHover={{ y: -2 }}>
+        <motion.div key={currency.code} initial={false}>
           <Card className="overflow-hidden">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
@@ -354,7 +321,7 @@ function FxPanel({ data }: { data: MarketSnapshot }) {
             </div>
             {currency.status === "live" ? (
               <>
-                <div className="mt-4 flex items-end justify-between gap-3">
+                <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
                   <p className="text-2xl font-bold"><AnimatedNumber value={currency.value} format={formatRate} /></p>
                   <ChangeBadge value={currency.changePercent} />
                 </div>
@@ -369,13 +336,13 @@ function FxPanel({ data }: { data: MarketSnapshot }) {
           </Card>
         </motion.div>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
 function EconomyPanel({ data }: { data: MarketSnapshot }) {
   return (
-    <div className="grid gap-3 xl:grid-cols-2">
+    <div className="reveal-group grid gap-3 xl:grid-cols-2">
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -439,7 +406,7 @@ export function MarketOverview({
   return (
     <MotionConfig reducedMotion="user">
       <section aria-labelledby="market-overview-title">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div data-scroll-reveal="" className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 id="market-overview-title" className="text-xl font-bold sm:text-2xl">Markaðspúls</h2>
@@ -461,7 +428,7 @@ export function MarketOverview({
 
         {!compact ? (
           <div className="mt-4">
-            <div className="mb-4 grid max-w-full grid-cols-2 gap-1 rounded-md border border-line/10 bg-muted/65 p-1 sm:flex sm:overflow-x-auto" role="tablist" aria-label="Markaðsgögn">
+            <div data-scroll-reveal="" className="mb-4 grid max-w-full grid-cols-2 gap-1 rounded-md border border-line/10 bg-muted/65 p-1 sm:flex sm:overflow-x-auto" role="tablist" aria-label="Markaðsgögn">
               {tabs.map((item) => {
                 const active = tab === item.id;
                 const Icon = item.icon;
@@ -482,27 +449,18 @@ export function MarketOverview({
               })}
             </div>
 
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={tab}
-                role="tabpanel"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {tab === "stocks" ? <TradingViewMarketWidget kind="stocks" /> : null}
-                {tab === "funds" ? <TradingViewMarketWidget kind="funds" /> : null}
-                {tab === "fx" ? <FxPanel data={data} /> : null}
-                {tab === "economy" ? <EconomyPanel data={data} /> : null}
-              </motion.div>
-            </AnimatePresence>
+            <div role="tabpanel">
+              {tab === "stocks" ? <TradingViewMarketWidget kind="stocks" /> : null}
+              {tab === "funds" ? <TradingViewMarketWidget kind="funds" /> : null}
+              {tab === "fx" ? <FxPanel data={data} /> : null}
+              {tab === "economy" ? <EconomyPanel data={data} /> : null}
+            </div>
           </div>
         ) : null}
 
         {!compact ? (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink/40">
-            <p>Heimildir: Hagstofa Íslands, IS-Macro og TradingView.</p>
+            <p>Heimildir: Hagstofa Íslands, Seðlabanki Íslands, IS-Macro og TradingView.</p>
             <p>Sótt {sourceTimestamp(data.generatedAt)}</p>
           </div>
         ) : null}

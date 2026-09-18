@@ -1,9 +1,10 @@
 import { CategoryBars, PieBreakdown, TrendChart } from "@/components/charts";
 import { Card, EmptyState, PageHeader, SectionHeader } from "@/components/ui";
-import { categoryTotals, getSavingsContributions, getTransactions, monthlyTrend } from "@/lib/data";
+import { buildMonthlyTrend, categoryTotals, getSavingsContributions, getTransactions } from "@/lib/data";
 
 export default async function AnalyticsPage() {
-  const [transactions, trend, contributions] = await Promise.all([getTransactions(), monthlyTrend(8), getSavingsContributions()]);
+  const [transactions, contributions] = await Promise.all([getTransactions(), getSavingsContributions()]);
+  const trend = buildMonthlyTrend(transactions, 8);
   const spending = categoryTotals(transactions.filter((tx) => tx.type === "expense"));
   const income = categoryTotals(transactions.filter((tx) => tx.type === "income"));
   const savingsTrend = contributions.reduce<Record<string, number>>((acc, item) => {

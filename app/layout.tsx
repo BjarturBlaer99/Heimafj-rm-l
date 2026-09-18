@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ScrollReveals } from "@/components/scroll-reveals";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {children}
+        <ScrollReveals />
       </body>
     </html>
   );

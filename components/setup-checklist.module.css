@@ -1,0 +1,20 @@
+.checklist { margin-bottom: 26px; border-block: 1px solid rgb(var(--color-line) / .13); padding-block: 21px; }
+.heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.heading h2 { font-size: 15px; font-weight: 600; }
+.heading p { margin-top: 4px; font-size: 12px; color: rgb(var(--color-ink) / .67); }
+.heading > span { white-space: nowrap; font-size: 12px; color: rgb(var(--color-ink) / .67); }
+.steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 23px 30px; margin-top: 22px; }
+.steps li { display: flex; align-items: flex-start; gap: 11px; min-width: 0; }
+.status { display: grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0; border: 1px solid rgb(var(--color-line) / .2); border-radius: 50%; font-size: 11px; color: rgb(var(--color-ink) / .65); }
+.status[data-complete="true"] { color: rgb(var(--color-moss)); border-color: rgb(var(--color-moss) / .3); background: rgb(var(--color-moss) / .08); }
+.steps h3 { font-size: 13px; font-weight: 600; }
+.steps li > div { min-width: 0; }
+.steps p { margin-top: 5px; font-size: 12px; line-height: 1.6; color: rgb(var(--color-ink) / .67); }
+.links { display: flex; flex-wrap: wrap; gap: 2px 15px; margin-top: 5px; }
+.links a, .links button { display: inline-flex; align-items: center; min-height: 44px; text-align: left; color: rgb(var(--color-accent)); font-size: 12px; font-weight: 500; }
+.links button[aria-pressed="true"] { color: rgb(var(--color-ink) / .65); }
+.links a:hover, .links button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.links a:focus-visible, .links button:focus-visible, .note a:focus-visible { outline: 2px solid rgb(var(--color-accent)); outline-offset: 3px; border-radius: 3px; }
+.note { margin-top: 14px; font-size: 11px; line-height: 1.65; color: rgb(var(--color-ink) / .62); }
+.note a { color: rgb(var(--color-accent)); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 640px) { .steps { grid-template-columns: minmax(0, 1fr); gap: 18px; } .heading { flex-wrap: wrap; gap: 8px; } }

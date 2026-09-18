@@ -4,14 +4,15 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "focus-ring inline-flex min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-[color,background-color,border-color,box-shadow,transform] duration-200 disabled:pointer-events-none disabled:opacity-45 [&>svg]:shrink-0",
+  "focus-ring inline-flex min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-45 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "border border-accent bg-accent text-onAccent shadow-[0_8px_20px_rgb(var(--color-accent)/0.18)] hover:-translate-y-px hover:bg-accent/90 hover:shadow-[0_10px_24px_rgb(var(--color-accent)/0.24)]",
-        secondary: "border border-line/15 bg-surface text-ink shadow-sm hover:-translate-y-px hover:border-accent/30 hover:bg-muted/70",
+        default: "border border-accent bg-accent text-onAccent hover:bg-accent/90",
+        secondary: "border border-line/15 bg-surface text-ink shadow-[0_1px_2px_rgb(var(--shadow-soft)/0.025)] hover:border-line/25 hover:bg-muted/50",
         ghost: "border border-transparent bg-transparent text-ink/60 hover:bg-muted/75 hover:text-ink",
-        subtle: "border border-accent/10 bg-accent/10 text-accent hover:border-accent/20 hover:bg-accent/15"
+        subtle: "border border-accent/10 bg-accent/10 text-accent hover:border-accent/20 hover:bg-accent/15",
+        danger: "border border-coral bg-coral text-white hover:bg-coral/90"
       },
       size: {
         default: "min-h-10 px-4 py-2",

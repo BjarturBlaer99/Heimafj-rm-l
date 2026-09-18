@@ -1,0 +1,15 @@
+import Link from "next/link";
+import { InformationPage } from "@/components/information-page";
+
+export const metadata = { title: "Meðferð gagna | Mín fjármál" };
+
+export default function PrivacyPage() {
+  return <InformationPage title="Gögnin þín" description="Hér er útskýrt hvaða upplýsingar síðan notar og hvaða stjórn þú hefur á þeim.">
+    <section data-scroll-reveal=""><h2>Upplýsingar sem þú skráir</h2><p>Aðgangurinn notar netfang, innskráningu og nafn sem þú gefur upp. Vistaðar fjármálaupplýsingar geta innihaldið færslur, lýsingar, dagsetningar, flokka, áætlanir, reikninga og sparnað. Þær byggja á handvirkri skráningu og innflutningi sem þú staðfestir.</p><p>Gögn eru geymd í Supabase og vefurinn er hýstur á Vercel. Aðgangsstýring gagnagrunnsins takmarkar venjulegan aðgang við gögn innskráðs notanda. Þetta er ekki fullyrðing um að stjórnendur þjónustunnar eða rekstraraðilar hýsingar hafi aldrei tæknilegan aðgang.</p></section>
+    <section data-scroll-reveal=""><h2>Innflutningur skráa</h2><p>Skrár eru lesnar í vafranum til yfirferðar. Valdar færslur eru sendar til vistunar þegar þú staðfestir innflutning. Frumskráin sjálf er ekki vistuð í gagnagrunni síðunnar. Innflutningsreglur geta innihaldið texta úr lýsingum sem þú velur að muna.</p></section>
+    <section data-scroll-reveal=""><h2>Vistun á tækinu</h2><p>Innskráning notar vafrakökur til að halda utan um lotuna. Þemaval, staðfest skref í uppsetningu, dálkaval og innflutningsreglur geta vistast í vafranum. Innflutningsstillingar og uppsetningarstaða eru aðskildar eftir notanda á tækinu. Þær flytjast ekki sjálfkrafa á annað tæki.</p><p>Þú getur hreinsað innflutningsstillingar í innflutningshlutanum. Hreinsun vafragagna getur fjarlægt stillingar og innskráningu á tækinu, en eyðir ekki vistuðum fjármálagögnum á aðganginum.</p></section>
+    <section data-scroll-reveal=""><h2>Markaðsupplýsingar</h2><p>Markaðs- og fasteignahlutar sækja opinberar upplýsingar. Innfelld markaðsgröf geta hlaðið efni frá TradingView. Fjármálafærslurnar þínar eru ekki sendar til TradingView af þessum gröfum.</p></section>
+    <section data-scroll-reveal=""><h2>Afrit og eyðing</h2><p>Sæktu færslur sem CSV eða öll gögn aðgangsins á þjóninum sem JSON í <Link href="/settings#data-settings">stillingum</Link>. Stillingar sem eru aðeins vistaðar í vafranum fylgja ekki útflutningi. Útfluttar skrár geta innihaldið persónulegar upplýsingar og vistast á þínu tæki.</p><p>Beiðni um eyðingu er vistuð með aðganginum fyrir afgreiðslu stjórnanda. Hún eyðir ekki gögnum strax og hægt er að afturkalla hana þar til eyðing fer fram. Við eyðingu aðgangs hverfa tengd gögn úr virka gagnagrunninum. Tæknileg afrit og rekstrarskrár hjá þjónustuveitendum geta fylgt öðrum varðveislutíma; hér er ekki lofað tafarlausri eyðingu úr öllum afritum.</p></section>
+    <section data-scroll-reveal=""><h2>Spurningar</h2><p><Link href="/help">Opna leiðbeiningar og aðstoð</Link> eða <Link href="/settings#data-settings">stjórna gögnum aðgangsins</Link>.</p><p>Síðast uppfært 18. september 2026.</p></section>
+  </InformationPage>;
+}
