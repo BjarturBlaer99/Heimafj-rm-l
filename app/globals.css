@@ -45,7 +45,6 @@
 html,
 body {
   min-height: 100%;
-  overflow-x: hidden;
 }
 
 html {
@@ -54,6 +53,10 @@ html {
 
 body {
   margin: 0;
+  /* Clip horizontal overflow without creating a second vertical scroller.
+     Otherwise reveal translations can consume the first scroll inside body.
+     Keep html's overflow visible so the mobile menu can still lock the viewport. */
+  overflow-x: clip;
   background: rgb(var(--color-paper));
   color: rgb(var(--color-ink));
   font-family:
