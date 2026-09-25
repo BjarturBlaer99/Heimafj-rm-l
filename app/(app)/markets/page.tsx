@@ -7,7 +7,7 @@ import { getMarketSnapshot } from "@/lib/market-data";
 
 export const metadata: Metadata = {
   title: "Markaðir | Mín fjármál",
-  description: "Verðbólga, meginvextir, gengi og hlutabréf á einum stað."
+  description: "Fylgstu með hlutabréfum, sjóðum, gengi og stöðu efnahagsmála."
 };
 
 export default function MarketsPage() {
@@ -15,8 +15,8 @@ export default function MarketsPage() {
 
   return (
     <>
-      <PageHeader title="Markaðir" description="Fylgstu með markaðs- og hagstærðum sem hafa áhrif á fjármálin þín." />
-      <Suspense fallback={<DataSectionLoading label="Hleð markaðsgögnum…" chart />}>
+      <PageHeader title="Markaðir" description="Fylgstu með hlutabréfum, sjóðum, gengi og stöðu efnahagsmála." />
+      <Suspense fallback={<DataSectionLoading label="Sæki markaðsgögn…" chart />}>
         <MarketDataSection data={marketData} />
       </Suspense>
     </>

@@ -106,7 +106,8 @@ async function main() {
   const savingsMigration = await fs.readFile(path.join(root,'supabase/savings-contribution-integrity-update.sql'),'utf8');
   const preflight = await fs.readFile(path.join(root,'supabase/production-readiness-check.sql'),'utf8');
   assert.equal(schema.slice(schema.indexOf(marker),schema.indexOf(savingsMarker)).replace(/\r\n/g,'\n').trim(), migration.replace(/\r\n/g,'\n').trim(), 'Fresh schema and bill upgrade migration must match');
-  assert.equal(schema.slice(schema.indexOf(savingsMarker)).replace(/\r\n/g,'\n').trim(), savingsMigration.replace(/\r\n/g,'\n').trim(), 'Fresh schema and savings upgrade migration must match');
+  const savingsEnd = schema.indexOf('-- Owner-reference integrity.');
+  assert.equal(schema.slice(schema.indexOf(savingsMarker), savingsEnd < 0 ? undefined : savingsEnd).replace(/\r\n/g,'\n').trim(), savingsMigration.replace(/\r\n/g,'\n').trim(), 'Fresh schema and savings upgrade migration must match');
   const authSchema = `create schema auth; create table auth.users(id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid $$;`;
   await admin.query(`${authSchema} create role authenticated nologin; create role anon nologin; alter default privileges in schema public grant execute on functions to anon,authenticated;`);
   await admin.query(schema.slice(0,schema.indexOf(marker)));

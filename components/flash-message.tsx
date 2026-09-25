@@ -10,8 +10,8 @@ const messages: Record<string, { tone: "success" | "error"; text: string }> = {
   bill_saved: { tone: "success", text: "Reikningurinn var vistaður fyrir valinn mánuð." },
   bill_paid: { tone: "success", text: "Reikningurinn var merktur greiddur og útgjaldafærsla var búin til." },
   bill_deleted_month: { tone: "success", text: "Reikningnum var eytt úr völdum mánuði." },
-  bill_deleted_all: { tone: "success", text: "Sama reikningi var eytt úr öllum mánuðum." },
-  savings_added: { tone: "success", text: "Sparnaðarupphæðin var bætt við." }
+  bill_deleted_all: { tone: "success", text: "Reikningnum var eytt úr öllum mánuðum." },
+  savings_added: { tone: "success", text: "Upphæðinni var bætt við sparnaðinn." }
 };
 
 export function FlashMessage({ code, imported, skipped }: { code?: string; imported?: string; skipped?: string }) {

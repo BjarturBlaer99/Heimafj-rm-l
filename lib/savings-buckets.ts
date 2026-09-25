@@ -2,7 +2,7 @@ import type { SavingsBucket, SavingsBucketType } from "@/lib/types";
 
 export const savingsBucketTemplates: Array<{ bucket_type: SavingsBucketType; label: string }> = [
   { bucket_type: "serignarsparnadur", label: "Séreignarsparnaður" },
-  { bucket_type: "husnaedisparnadur", label: "Húsnæðisparnaður" },
+  { bucket_type: "husnaedisparnadur", label: "Húsnæðissparnaður" },
   { bucket_type: "hlutabref", label: "Hlutabréf" },
   { bucket_type: "sjodir", label: "Sjóðir" }
 ];

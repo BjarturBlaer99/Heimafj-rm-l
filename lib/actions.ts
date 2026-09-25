@@ -32,8 +32,8 @@ export async function saveTransaction(formData: FormData) {
   }
   if (data.id) {
     const linked = await supabase.from("bill_payments").select("id,amount,paid_at").eq("transaction_id", data.id).eq("user_id", id);
-    if (linked.error) throw new Error("Ekki tókst að staðfesta tengingu reiknings.");
-    if (linked.data.some((payment) => Number(payment.amount) !== data.amount || payment.paid_at !== data.date || data.type !== "expense")) return { message: "", error: "Færslan er tengd greiðslu reiknings. Aftengdu greiðsluna í Reikningum áður en þú breytir upphæð, dagsetningu eða tegund." };
+    if (linked.error) throw new Error("Ekki tókst að athuga hvort færslan sé tengd reikningi. Reyndu aftur.");
+    if (linked.data.some((payment) => Number(payment.amount) !== data.amount || payment.paid_at !== data.date || data.type !== "expense")) return { message: "", error: "Færslan er tengd greiðslu reiknings. Aftengdu greiðsluna á síðunni Reikningar áður en þú breytir upphæð, dagsetningu eða tegund." };
   }
   const payload = { ...data, user_id: id, note: data.note || null, category_id: data.category_id || null };
   const result = data.id
@@ -47,7 +47,7 @@ export async function saveTransaction(formData: FormData) {
 export async function deleteTransaction(formData: FormData) {
   const { supabase, userId: id } = await userId();
   const linked = await supabase.from("bill_payments").select("id").eq("transaction_id", String(formData.get("id"))).eq("user_id", id);
-  if (linked.error) throw new Error("Ekki tókst að staðfesta tengingu reiknings.");
+  if (linked.error) throw new Error("Ekki tókst að athuga hvort færslan sé tengd reikningi. Reyndu aftur.");
   if (linked.data.length) return { message: "", error: "Aftengdu greiðslu reikningsins áður en þú eyðir færslunni." };
   const result = await supabase.from("transactions").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
@@ -58,8 +58,8 @@ export async function deleteTransaction(formData: FormData) {
 export async function deleteAllTransactions() {
   const { supabase, userId: id } = await userId();
   const linked = await supabase.from("bill_payments").select("id,transaction_id").eq("user_id", id);
-  if (linked.error) throw new Error("Ekki tókst að staðfesta tengingar reikninga.");
-  if (linked.data.some((payment) => payment.transaction_id)) return { message: "", error: "Sumar færslur eru tengdar reikningum. Aftengdu greiðslurnar í Reikningum áður en þú eyðir öllum færslum." };
+  if (linked.error) throw new Error("Ekki tókst að athuga hvort færslurnar séu tengdar reikningum. Reyndu aftur.");
+  if (linked.data.some((payment) => payment.transaction_id)) return { message: "", error: "Sumar færslur eru tengdar reikningum. Aftengdu greiðslurnar á síðunni Reikningar áður en þú eyðir öllum færslum." };
   const result = await supabase.from("transactions").delete().eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");
@@ -238,7 +238,7 @@ export async function addSavingsContribution(formData: FormData) {
   const result = await supabase.from("savings_contributions").insert({ ...data, user_id: id, note: data.note || null });
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");
-  return { message: "Framlagið var skráð í sparnað." } satisfies ActionFeedback;
+  return { message: "Framlagið var skráð í sparnaðinn." } satisfies ActionFeedback;
 }
 
 export async function deleteSavingsContribution(formData: FormData) {
@@ -271,13 +271,13 @@ export async function saveSavingsBucket(formData: FormData) {
   );
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");
-  return { message: "Heildarupphæð sparnaðar var uppfærð." } satisfies ActionFeedback;
+  return { message: "Sparnaðarstaðan var uppfærð." } satisfies ActionFeedback;
 }
 
 export async function addSavingsBucketAmount(formData: FormData) {
   const { supabase } = await userId();
   const parsed = savingsBucketEntrySchema.safeParse(formDataObject(formData));
-  if (!parsed.success) return { message: "", error: "Skráðu gilda dagsetningu og upphæð yfir núlli með mest tveimur aukastöfum." } satisfies ActionFeedback;
+  if (!parsed.success) return { message: "", error: "Veldu gilda dagsetningu og sláðu inn upphæð yfir núlli, með að hámarki tveimur aukastöfum." } satisfies ActionFeedback;
   const data = parsed.data;
   const { error } = await supabase.rpc("add_savings_bucket_contribution", {
     p_request_id: data.request_id,
@@ -289,7 +289,7 @@ export async function addSavingsBucketAmount(formData: FormData) {
   });
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");
-  return { message: "Upphæðinni var bætt við sparnað." } satisfies ActionFeedback;
+  return { message: "Upphæðinni var bætt við sparnaðinn." } satisfies ActionFeedback;
 }
 
 export async function deleteSavingsBucket(formData: FormData) {
@@ -310,5 +310,5 @@ export async function saveProfile(formData: FormData) {
   const result = await supabase.from("profiles").update(data).eq("id", id);
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");
-  return { message: "Notandaupplýsingarnar voru uppfærðar." } satisfies ActionFeedback;
+  return { message: "Upplýsingarnar þínar voru uppfærðar." } satisfies ActionFeedback;
 }

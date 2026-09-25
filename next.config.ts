@@ -58,8 +58,8 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.tradingview.com",
               "font-src 'self'",
               "style-src 'self' 'unsafe-inline'",
-              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://s3.tradingview.com`,
-              "frame-src https://s.tradingview.com https://www.tradingview.com https://*.tradingview.com",
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+              "frame-src 'self' https://s.tradingview.com https://www.tradingview.com https://*.tradingview.com https://www.tradingview-widget.com",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.tradingview.com wss://*.tradingview.com"
             ].join("; ")
           }

@@ -135,7 +135,7 @@ export function TopNav({ email }: { email?: string }) {
   const extraLabels: Record<string, string> = {
     "/settings": "Stillingar",
     "/budgets": "Fjárhagsáætlun",
-    "/import": "Innflutningur",
+    "/import": "Flytja inn færslur",
     "/debt-payments": "Lánagreiðslur"
   };
   const routeLabel = currentRoute?.label ?? extraLabels[pathname] ?? "Yfirlit";
@@ -231,7 +231,7 @@ export function MobileBottomNav() {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
       desktop.removeEventListener("change", handleViewportChange);
-      if (restoreFocus.current) trigger?.focus();
+      if (restoreFocus.current) trigger?.focus({ preventScroll: true });
     };
   }, [open]);
 
@@ -309,7 +309,7 @@ export function MobileBottomNav() {
             <div className="flex items-center justify-between gap-4 py-3">
               <div>
                 <p id="mobile-more-title" className="text-base font-semibold">Fleiri síður</p>
-                <p className="mt-1 text-xs text-ink/50">Yfirsýn og stillingar</p>
+                <p className="mt-1 text-xs text-ink/50">Fjármál, markaðir og stillingar</p>
               </div>
               <button
                 ref={closeRef}

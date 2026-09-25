@@ -1,4 +1,5 @@
 import { ActionForm } from "@/components/action-form";
+import { AmountInput } from "@/components/amount-input";
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
 import { FileArrowUpIcon } from "@phosphor-icons/react/dist/ssr/FileArrowUp";
@@ -32,20 +33,20 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Færslur" description="Allar hreyfingar á einum stað. Finndu færslu, breyttu flokkun eða bættu við nýrri."
+      <PageHeader title="Færslur" description="Skoðaðu tekjur og útgjöld, flokkaðu færslur eða bættu við nýjum."
         action={<div className={styles.headerActions}><a href="#import-transactions" className={buttonVariants({ variant: "secondary" })}><FileArrowUpIcon size={17} aria-hidden="true" />Flytja inn skrá</a><a href="#new-transaction" className={buttonVariants()}><Plus size={17} aria-hidden="true" />Ný færsla</a></div>} />
       <FlashMessage code={params.success} imported={params.imported} skipped={params.skipped} />
 
-      <dl className={styles.summary} aria-label="Samantekt fyrir valdar síur" data-scroll-reveal>
+      <dl className={styles.summary} aria-label="Samantekt færslna sem eru sýndar" data-scroll-reveal>
         <div><dt>Tekjur</dt><dd>{money(income, currency)}</dd><p>{period.label}</p></div>
         <div><dt>Útgjöld</dt><dd>{money(expenses, currency)}</dd><p>{period.label}</p></div>
         <div className={styles.netSummary}><dt>Mismunur</dt><dd data-negative={income - expenses < 0}>{money(income - expenses, currency)}</dd><p>Tekjur að frádregnum útgjöldum</p></div>
       </dl>
 
       <section className={styles.ledger} aria-labelledby="transactions-heading">
-        <div className={styles.sectionHeading} data-scroll-reveal><div><h2 id="transactions-heading">Skráðar færslur</h2><p>{transactions.length} færslur fyrir valdar síur</p></div></div>
+        <div className={styles.sectionHeading} data-scroll-reveal><div><h2 id="transactions-heading">Skráðar færslur</h2><p>Fjöldi færslna: {transactions.length}</p></div></div>
         <section className={styles.filterPanel} aria-labelledby="transaction-filters-heading" data-scroll-reveal>
-          <div className={styles.filterHeading}><h3 id="transaction-filters-heading">Leita og sía</h3><p>{period.label} · {transactions.length} færslur</p></div>
+          <div className={styles.filterHeading}><h3 id="transaction-filters-heading">Leita og sía</h3><p>{period.label} · Færslur: {transactions.length}</p></div>
           <form className={styles.filters}>
             <TransactionPeriodFields key={`${period.period}-${period.month}-${period.from}-${period.to}`} period={period.period} month={period.month ?? currentMonth()} from={period.from} to={period.to} />
             <div className={styles.searchFields}>
@@ -57,14 +58,14 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           </form>
         </section>
         {params.id ? <p className="px-6 py-3 text-sm text-ink/60">Valin færsla · <Link className="text-accent" href={`/transactions?${transactionPeriodQuery(period)}`}>Sjá allt tímabilið</Link></p> : null}
-        {transactions.length ? <TransactionLedger transactions={transactions} categories={categories} /> : <div className={styles.empty} data-scroll-reveal><EmptyState>Engar færslur fundust fyrir þessar síur. Prófaðu annað tímabil eða bættu við fyrstu færslunni.</EmptyState></div>}
+        {transactions.length ? <TransactionLedger transactions={transactions} categories={categories} /> : <div className={styles.empty} data-scroll-reveal><EmptyState>Engar færslur fundust. Prófaðu að breyta síunum eða skrá nýja færslu.</EmptyState></div>}
       </section>
 
       <section id="new-transaction" className={styles.newEntry} aria-labelledby="new-transaction-heading" data-scroll-reveal>
         <div className={styles.sectionHeading}><div><h2 id="new-transaction-heading">Ný færsla</h2><p>Skráðu tekjur eða útgjöld handvirkt.</p></div><Plus size={19} aria-hidden="true" /></div>
         <ActionForm resetOnSuccess action={saveTransaction} className={styles.newEntryForm}>
           <Field label="Lýsing"><input className={inputClass} name="note" placeholder="T.d. matarinnkaup" required /></Field>
-          <Field label="Upphæð"><input className={inputClass} name="amount" type="number" step="0.01" min="0.01" placeholder="0 kr." required /></Field>
+          <Field label="Upphæð"><AmountInput className={inputClass} name="amount" step="0.01" min="0.01" placeholder="0 kr." required /></Field>
           <Field label="Tegund"><select className={inputClass} name="type" required><option value="expense">Útgjöld</option><option value="income">Tekjur</option></select></Field>
           <Field label="Dagsetning"><DateInput name="date" type="date" defaultValue={isoDate()} required /></Field>
           <Field label="Flokkur"><select className={inputClass} name="category_id"><option value="">Óflokkað</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></Field>
@@ -74,7 +75,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
       <CsvImporter categories={categories} userId={user.id} />
 
-      {transactions.length ? <section className={styles.management} aria-labelledby="transaction-management-heading" data-scroll-reveal><h2 id="transaction-management-heading">Umsjón færslna</h2><div><p>Þessi aðgerð eyðir öllum skráðum færslum, líka þeim sem birtast ekki í völdum síum.</p><ActionForm action={deleteAllTransactions}><ConfirmButton variant="danger" confirmMessage="Ertu viss um að þú viljir eyða öllum færslum? Þetta er ekki hægt að afturkalla."><Trash2 size={16} aria-hidden="true" />Eyða öllum færslum</ConfirmButton></ActionForm></div></section> : null}
+      {transactions.length ? <section className={styles.management} aria-labelledby="transaction-management-heading" data-scroll-reveal><h2 id="transaction-management-heading">Eyða færslum</h2><div><p>Þú getur eytt öllum færslunum þínum hér. Það nær líka yfir færslur sem síurnar fela.</p><ActionForm action={deleteAllTransactions}><ConfirmButton variant="danger" confirmMessage="Viltu eyða öllum færslunum þínum? Ekki er hægt að afturkalla eyðinguna."><Trash2 size={16} aria-hidden="true" />Eyða öllum færslum</ConfirmButton></ActionForm></div></section> : null}
     </div>
   );
 }

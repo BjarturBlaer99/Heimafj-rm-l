@@ -6,7 +6,7 @@ export async function readAllPages<T>(read: (from: number, to: number) => Promis
   const size = 1000;
   for (let from = 0; ; from += size) {
     const result = await read(from, from + size - 1);
-    if (result.error) throw new Error("Ekki tókst að sækja gögn.");
+    if (result.error) throw new Error("Ekki tókst að sækja gögnin. Reyndu aftur.");
     const page = result.data ?? [];
     rows.push(...page);
     if (page.length < size) return rows;

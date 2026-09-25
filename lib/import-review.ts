@@ -11,7 +11,7 @@ export type ReviewedImportRow = ImportRow & { decision: Exclude<ImportDecision, 
 export type ExcludedReason = "date" | "amount" | "income" | "zero" | "limit" | "description";
 export type ExcludedImportRow = { sourceIndex: number; note: string; date: string; amount: string; reason: ExcludedReason };
 export const excludedReasonLabels: Record<ExcludedReason, string> = {
-  date: "Ógild eða vantar dagsetningu", amount: "Ógild eða vantar upphæð", income: "Innborgun / tekjur", zero: "Núllfærsla", limit: "Umfram 1.000 færslur", description: "Lýsing lengri en 500 stafir"
+  date: "Dagsetningu vantar eða hún er ógild", amount: "Upphæð vantar eða hún er ógild", income: "Innborgun eða tekjur", zero: "Upphæðin er núll", limit: "Umfram hámarkið: 1.000 færslur", description: "Lýsingin er lengri en 500 stafir"
 };
 
 export function isCalendarDate(value: string) {

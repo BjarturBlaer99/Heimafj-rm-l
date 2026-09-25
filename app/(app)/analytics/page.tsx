@@ -1,9 +1,9 @@
 import { CategoryBars, PieBreakdown, TrendChart } from "@/components/charts";
 import { Card, EmptyState, PageHeader, SectionHeader } from "@/components/ui";
-import { buildMonthlyTrend, categoryTotals, getSavingsContributions, getTransactions } from "@/lib/data";
+import { buildMonthlyTrend, categoryTotals, getSavingsActivity, getTransactions } from "@/lib/data";
 
 export default async function AnalyticsPage() {
-  const [transactions, contributions] = await Promise.all([getTransactions(), getSavingsContributions()]);
+  const [transactions, contributions] = await Promise.all([getTransactions(), getSavingsActivity()]);
   const trend = buildMonthlyTrend(transactions, 8);
   const spending = categoryTotals(transactions.filter((tx) => tx.type === "expense"));
   const income = categoryTotals(transactions.filter((tx) => tx.type === "income"));
@@ -15,7 +15,7 @@ export default async function AnalyticsPage() {
 
   return (
     <>
-      <PageHeader title="Greining" description="Berðu saman tekjur, útgjöld og sparnað og finndu mynstrin í fjármálunum þínum." />
+      <PageHeader title="Greining" description="Sjáðu hvernig tekjur, útgjöld og sparnaður hafa breyst með tímanum." />
       <div className="grid gap-5">
         <Card>
           <SectionHeader title="Tekjur á móti útgjöldum" description="Þróun síðustu átta mánaða." />
@@ -23,20 +23,20 @@ export default async function AnalyticsPage() {
         </Card>
         <div className="grid gap-5 xl:grid-cols-2">
           <Card>
-            <SectionHeader title="Skipting útgjalda" description="Stærstu útgjaldaflokkarnir á tímabilinu." />
-            {spending.length ? <CategoryBars data={spending.slice(0, 8)} /> : <EmptyState>Engin útgjaldagögn.</EmptyState>}
+            <SectionHeader title="Skipting útgjalda" description="Stærstu flokkarnir miðað við öll skráð útgjöld." />
+            {spending.length ? <CategoryBars data={spending.slice(0, 8)} /> : <EmptyState>Þú hefur ekki skráð nein útgjöld enn.</EmptyState>}
           </Card>
           <Card>
-            <SectionHeader title="Yfirlit tekna" description="Hlutfallsleg skipting tekna eftir flokkum." />
-            {income.length ? <PieBreakdown data={income} centerLabel="Heildartekjur" /> : <EmptyState>Engin tekjugögn.</EmptyState>}
+            <SectionHeader title="Tekjur eftir flokkum" description="Hvernig allar skráðar tekjur skiptast milli flokka." />
+            {income.length ? <PieBreakdown data={income} centerLabel="Heildartekjur" /> : <EmptyState>Þú hefur ekki skráð neinar tekjur enn.</EmptyState>}
           </Card>
         </div>
         <Card>
-          <SectionHeader title="Þróun sparnaðar" description="Sparnaðarframlög flokkuð eftir mánuðum." />
+          <SectionHeader title="Sparnaður eftir mánuðum" description="Skráð framlög í sparnað í hverjum mánuði." />
           {Object.keys(savingsTrend).length ? (
             <CategoryBars data={Object.entries(savingsTrend).map(([name, value]) => ({ name, value }))} />
           ) : (
-            <EmptyState>Engin sparnaðarframlög enn.</EmptyState>
+            <EmptyState>Þú hefur ekki skráð nein framlög í sparnað enn.</EmptyState>
           )}
         </Card>
       </div>

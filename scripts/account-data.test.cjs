@@ -142,6 +142,20 @@ test("CSV reads only all owned transaction pages and fixes the supported currenc
   assert.deepEqual([...new Set(fixture.queries.map((entry) => entry.table))], ["transactions"]);
 });
 
+test("JSON export includes the authenticated user's normalized savings preferences", async () => {
+  const preferences = { version: 1, order: ["sjodir", "hlutabref", "husnaedisparnadur", "serignarsparnadur"], housing: ["husnaedisparnadur"], goal: ["sjodir", "hlutabref"] };
+  const fixture = exportFixture({}, { user: { id: USER, user_metadata: { savings_preferences: preferences, privacy_notice_version: "2026-09-24", private_unrelated_metadata: "DO NOT EXPORT" } } });
+  const response = await fixture.GET(request());
+  const body = await response.json();
+  assert.deepEqual(body.account.savings_preferences, preferences);
+  assert.equal(body.account.privacy_notice_version, "2026-09-24");
+  assert.equal(JSON.stringify(body).includes("DO NOT EXPORT"), false);
+  const malformed = exportFixture({}, { user: { id: USER, user_metadata: { savings_preferences: { order: ["unknown"] } } } });
+  const defaults = await (await malformed.GET(request())).json();
+  assert.equal(defaults.account.savings_preferences.version, 1);
+  assert.deepEqual(defaults.account.savings_preferences.housing, ["serignarsparnadur", "husnaedisparnadur"]);
+});
+
 test("a later-page or table error aborts the entire export without an attachment or partial data", async () => {
   for (const format of ["json", "csv"]) {
     const fixture = exportFixture({ transactions: ownRows("transactions", 2001) }, {
@@ -255,7 +269,7 @@ test("repeat deletion requests preserve the original request date, and cancellat
   assert.deepEqual(fixture.user.user_metadata.account_deletion_request, original);
   const cancelled = await fixture.actions.cancelAccountDeletion();
   assert.equal(cancelled.error, undefined);
-  assert.match(cancelled.message, /afturkölluð/);
+  assert.match(cancelled.message, /afturkallað beiðnina/);
   assert.deepEqual(fixture.updates, [{ data: { account_deletion_request: null } }]);
   assert.deepEqual(fixture.user.user_metadata, { account_deletion_request: null, display_name: "Keep me" });
   assert.deepEqual(fixture.invalidations, ["/settings"]);

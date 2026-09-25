@@ -8,7 +8,7 @@ export default async function ForgotPasswordPage({
   const params = await searchParams;
   const initialError =
     params.error === "invalid_reset_link"
-      ? "Endurstillingartengillinn er ógildur eða útrunninn. Biddu um nýjan tengil."
+      ? "Þessi tengill virkar ekki lengur. Sláðu inn netfangið þitt hér fyrir neðan til að fá nýjan."
       : undefined;
 
   return <AuthForm mode="forgot" initialError={initialError} />;

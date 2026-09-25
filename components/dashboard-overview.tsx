@@ -47,7 +47,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
   const unpaidBills = [...data.unpaidBills].sort((a, b) => Number(a.due_day) - Number(b.due_day));
   const lastDay = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate();
   const primaryGoal = data.goals.find((goal) => Number(goal.target_amount) > 0);
-  const goalProgress = primaryGoal ? data.totalSavingsBalance / Number(primaryGoal.target_amount) * 100 : 0;
+  const goalProgress = primaryGoal ? data.goalSavingsBalance / Number(primaryGoal.target_amount) * 100 : 0;
   const overallBudget = data.budgets.find((budget) => !budget.category_id);
   const categoryTotals = Object.values(data.transactions.filter((tx) => tx.type === "expense").reduce<Record<string, { id: string | null; name: string; amount: number }>>((totals, tx) => {
     const key = tx.category_id ?? "unclassified";
@@ -62,7 +62,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
         <div>
           <p className={styles.eyebrow}>Yfirlit <span aria-hidden="true">/</span> {monthName}</p>
           <h1>Góðan daginn{name ? `, ${name}` : ""}.</h1>
-          <p className={styles.intro}>Fjármálin þín, í yfirsýn.</p>
+          <p className={styles.intro}>Hér sérðu stöðuna í þessum mánuði.</p>
         </div>
         <DashboardLink onNavigate={onNavigate} className={styles.primaryAction} href="/transactions#new-transaction"><PlusIcon size={18} aria-hidden="true" />Ný færsla</DashboardLink>
       </header>
@@ -83,25 +83,25 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
             <div className={styles.ratioTrack} aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, expenseShare))}%` }} data-negative={expenseShare > 100} /></div>
             <p><strong>{percent(expenseShare)}</strong> tekna fara í skráð útgjöld.</p>
           </div> : <DashboardLink onNavigate={onNavigate} className={styles.textLink} href={hasTransactions ? "/income" : "/transactions#import-transactions"}>{hasTransactions ? "Skrá tekjur mánaðarins" : "Flytja inn fyrstu færslurnar"}<ArrowRightIcon size={15} aria-hidden="true" /></DashboardLink>}
-          <p className={styles.positionNote}>Ógreiddir reikningar eru sýndir sérstaklega.</p>
+          <p className={styles.positionNote}>Ógreiddir reikningar eru ekki dregnir frá þessari upphæð.</p>
         </section>
 
         <section data-scroll-reveal="" className={styles.bills} aria-labelledby="unpaid-bills-title">
           <div className={styles.sectionHeading}><h2 id="unpaid-bills-title">Ógreiddir reikningar</h2>{data.billsReady && <span className={styles.count}>{unpaidBills.length}</span>}</div>
-          {!data.billsReady ? <p className={styles.empty}>Reikningayfirlit er ekki tiltækt núna.</p> : unpaidBills.length ? <>
+          {!data.billsReady ? <p className={styles.empty}>Ekki tókst að sækja reikningana.</p> : unpaidBills.length ? <>
             <p className={styles.billsTotal}>{money(data.unpaidBillsTotal, currency)} <span>alls í {monthName.split(" ")[0]}</span></p>
             <div className={styles.billList}>{unpaidBills.slice(0, 3).map((bill) => {
               const dueDay = Math.min(Number(bill.due_day), lastDay);
               const dueDate = `${month}-${String(dueDay).padStart(2, "0")}`;
               return <DashboardLink onNavigate={onNavigate} className={styles.billRow} href={`/bills?month=${month}`} key={bill.id}>
                 <time className={styles.dueDate} dateTime={dueDate}><strong>{dueDay}</strong><span>{shortMonth}</span></time>
-                <div className={styles.billInfo}><p>{bill.name}</p><span className={dueDate < today ? styles.overdue : styles.muted}>{dueDate < today ? "Gjalddagi liðinn" : dueDate === today ? "Á gjalddaga í dag" : "Ógreitt"}</span></div>
+                <div className={styles.billInfo}><p>{bill.name}</p><span className={dueDate < today ? styles.overdue : styles.muted}>{dueDate < today ? "Gjalddagi liðinn" : dueDate === today ? "Gjalddagi í dag" : "Ógreitt"}</span></div>
                 <span className={styles.billAmount}>{money(Number(bill.amount), currency)}</span>
               </DashboardLink>;
             })}</div>
           </> : <div className={styles.billsEmpty}>
             <CheckIcon size={24} className={styles.success} aria-hidden="true" />
-            <p>{data.activeBills.length ? "Allir skráðir reikningar greiddir." : "Engir reikningar skráðir enn."}</p>
+            <p>{data.activeBills.length ? "Allir skráðir reikningar mánaðarins eru greiddir." : "Engir reikningar skráðir enn."}</p>
             <span>{data.activeBills.length ? "Engir skráðir reikningar bíða greiðslu í þessum mánuði." : "Bættu við reikningum til að fylgjast með gjalddögum."}</span>
           </div>}
           <div className={styles.billsFooter}>
@@ -130,7 +130,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
               <div className={styles.categoryContent}><div><span>{category.name}</span><strong>{money(category.amount, currency)}</strong></div><div className={styles.categoryTrack} aria-hidden="true"><span style={{ width: `${data.expenses > 0 ? category.amount / data.expenses * 100 : 0}%` }} /></div></div>
             </DashboardLink>
           </li>)}</ol> : <p className={styles.empty}>Útgjaldaflokkar birtast þegar þú skráir útgjöld.</p>}
-          <div className={styles.budgetNote}>{overallBudget ? <><span>Útgjaldaáætlun mánaðarins</span><strong>{money(Number(overallBudget.amount), currency)}</strong></> : <DashboardLink onNavigate={onNavigate} className={styles.textLink} href="/expenses">Skoða útgjaldamarkmið<ArrowRightIcon size={15} aria-hidden="true" /></DashboardLink>}</div>
+          <div className={styles.budgetNote}>{overallBudget ? <><span>Útgjaldaáætlun mánaðarins</span><strong>{money(Number(overallBudget.amount), currency)}</strong></> : <DashboardLink onNavigate={onNavigate} className={styles.textLink} href="/expenses">Setja útgjaldaáætlun<ArrowRightIcon size={15} aria-hidden="true" /></DashboardLink>}</div>
         </section>
       </div>
 
@@ -143,14 +143,14 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
           <DashboardCashflow data={data.trend} currency={currency} />
         </section>
         <section data-scroll-reveal="" className={`${styles.section} ${styles.savings}`} aria-labelledby="savings-title">
-          <SectionHeading onNavigate={onNavigate} id="savings-title" title="Sparnaður til framtíðar" href="/savings-goals" linkText="Opna" />
-          {!data.savingsBucketsReady ? <p className={styles.empty}>Sparnaðaryfirlit er ekki tiltækt núna.</p> : <>
+          <SectionHeading onNavigate={onNavigate} id="savings-title" title="Sparnaðurinn þinn" href="/savings-goals" linkText="Opna" />
+          {!data.savingsBucketsReady ? <p className={styles.empty}>Ekki tókst að sækja stöðu sparnaðarins.</p> : <>
             <p className={styles.savingsTotal}>{money(data.totalSavingsBalance, currency)}</p>
             <p className={styles.sectionDescription}>Heildarsparnaður í skráðum flokkum.</p>
             {primaryGoal ? <div className={styles.goal}>
               <div><h3>{primaryGoal.title}</h3><span>{percent(goalProgress)}</span></div>
               <div className={styles.goalTrack} role="progressbar" aria-label={primaryGoal.title} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(Math.max(0, Math.min(100, goalProgress)))} aria-valuetext={`${percent(goalProgress)} af ${money(Number(primaryGoal.target_amount), currency)}`}><span style={{ width: `${Math.max(0, Math.min(100, goalProgress))}%` }} /></div>
-              <p>{goalProgress >= 100 ? "Skráður sparnaður hefur náð markupphæðinni." : `${money(Math.max(0, Number(primaryGoal.target_amount) - data.totalSavingsBalance), currency)} eftir að markmiðinu.`}</p>
+              <p>{goalProgress >= 100 ? "Þú hefur náð markupphæðinni miðað við valda sparnaðarflokka." : `${money(Math.max(0, Number(primaryGoal.target_amount) - data.goalSavingsBalance), currency)} eftir að spara í völdum flokkum.`}</p>
             </div> : <DashboardLink onNavigate={onNavigate} className={styles.textLink} href="/savings-goals">Setja sparnaðarmarkmið<ArrowRightIcon size={15} aria-hidden="true" /></DashboardLink>}
             <dl className={styles.buckets}>{data.savingsBuckets.map((bucket) => <div key={bucket.bucket_type}><dt>{bucket.label}</dt><dd>{money(Number(bucket.amount), currency)}</dd></div>)}</dl>
           </>}

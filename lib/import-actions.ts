@@ -26,7 +26,7 @@ async function savedBatchRows(supabase: Awaited<ReturnType<typeof createClient>>
   const chunks = Array.from({ length: Math.ceil(ids.length / 100) }, (_, index) => ids.slice(index * 100, (index + 1) * 100));
   const results = await Promise.all(chunks.map(async (chunk) => {
     const { data, error } = await supabase.from("transactions").select("id,date,type,amount,note,category_id").eq("user_id", userId).in("id", chunk);
-    if (error) throw new Error("Ekki tókst að staðfesta vistaðar færslur. Reyndu sömu staðfestingu aftur.");
+    if (error) throw new Error("Ekki tókst að staðfesta hvort færslurnar voru vistaðar. Reyndu innflutninginn aftur með sama takka.");
     return (data ?? []) as SavedImportRow[];
   }));
   return results.flat();
@@ -38,7 +38,7 @@ function matchesSavedRow(saved: SavedImportRow, expected: SavedImportRow) {
 }
 
 function changedBatch() {
-  return { status: "conflict" as const, message: "Færsla úr þessari lotu hefur breyst eftir vistun. Skoðaðu færsluyfirlitið áður en þú flytur skrána inn aftur. Eldri færslur voru ekki yfirskrifaðar." };
+  return { status: "conflict" as const, message: "Ein af innfluttu færslunum hefur breyst síðan hún var vistuð. Skoðaðu færsluyfirlitið áður en þú flytur skrána inn aftur. Engar eldri færslur voru yfirskrifaðar." };
 }
 
 async function authenticated() {
@@ -60,7 +60,7 @@ async function existingRecords(supabase: Awaited<ReturnType<typeof createClient>
     result.push(...(data ?? []));
     if (!data || data.length < 1000) return result;
   }
-  throw new Error("Tímabilið inniheldur of margar færslur til samanburðar. Skiptu skránni eftir tímabilum.");
+  throw new Error("Of margar færslur eru skráðar á þessu tímabili til að hægt sé að athuga tvítekningar. Skiptu skránni í styttri tímabil og reyndu aftur.");
 }
 
 function matchingKeys(records: Array<{ date: string; type: string; amount: number; note: string | null }>, rows: ImportRow[]) {
@@ -78,7 +78,7 @@ export async function saveReviewedImport(input: { batchId: string; userId: strin
   const batchId = z.string().uuid().parse(input.batchId);
   const rows = reviewedRowsSchema.parse(input.rows);
   const { supabase, userId } = await authenticated();
-  if (z.string().uuid().parse(input.userId) !== userId) throw new Error("Notandi hefur breyst. Endurhladdu síðunni áður en þú flytur inn.");
+  if (z.string().uuid().parse(input.userId) !== userId) throw new Error("Þú hefur skipt um aðgang. Endurhlaðaðu síðuna áður en þú flytur færslurnar inn.");
   // The same confirmed batch can be retried after an uncertain network response.
   // IDs are scoped to the authenticated user; the client cannot supply row IDs.
   const rowId = (sourceIndex: number) => {
@@ -100,7 +100,7 @@ export async function saveReviewedImport(input: { batchId: string; userId: strin
   const categoryIds = new Set(selected.flatMap((row) => row.category_id ? [row.category_id] : []));
   if (categoryIds.size) {
     const { data: categories, error } = await supabase.from("categories").select("id,type").eq("user_id", userId);
-    if (error) throw new Error("Ekki tókst að staðfesta flokka.");
+    if (error) throw new Error("Ekki tókst að sækja flokkana. Reyndu aftur.");
     const allowed = new Set((categories ?? []).filter((category) => category.type !== "income").map((category) => category.id));
     if ([...categoryIds].some((id) => !allowed.has(id))) throw new Error("Einn af völdum flokkum er ekki lengur tiltækur. Yfirfarðu flokkunina.");
   }
@@ -108,13 +108,13 @@ export async function saveReviewedImport(input: { batchId: string; userId: strin
   if (payload.length) {
     // One database statement avoids partial multi-batch writes.
     const { data, error } = await supabase.from("transactions").upsert(payload, { onConflict: "id", ignoreDuplicates: true }).select("id");
-    if (error) throw new Error("Ekki tókst að staðfesta innflutninginn. Þú getur reynt sömu staðfestingu aftur.");
+    if (error) throw new Error("Ekki tókst að staðfesta hvort innflutningi lauk. Reyndu aftur með sama takka.");
     revalidatePath("/", "layout");
     newlyImported = data?.length ?? 0;
     // Another tab may finish the same batch or edit it while this write waits.
     // Verify the actual persisted values rather than treating ignored IDs as success.
     const persisted = await savedBatchRows(supabase, userId, payload.map((row) => row.id));
-    if (persisted.length !== payload.length) throw new Error("Ekki tókst að staðfesta fjölda vistaðra færslna. Reyndu sömu staðfestingu aftur.");
+    if (persisted.length !== payload.length) throw new Error("Ekki tókst að staðfesta að allar færslurnar hafi verið vistaðar. Reyndu aftur með sama takka.");
     if (persisted.some((row) => !matchesSavedRow(row, expected.get(row.id)!))) return changedBatch();
   }
   const skipped = rows.filter((row) => row.decision === "skip");

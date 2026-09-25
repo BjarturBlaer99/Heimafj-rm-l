@@ -7,7 +7,7 @@ import { getRealEstateSnapshot } from "@/lib/real-estate-data";
 
 export const metadata: Metadata = {
   title: "Fasteignir | Mín fjármál",
-  description: "Íbúðaverð, lánareiknivél og fasteignayfirlit á einum stað."
+  description: "Skoðaðu þróun íbúðaverðs og áætlaðar greiðslur af húsnæðisláni."
 };
 
 async function RealEstateDataSection() {
@@ -18,8 +18,8 @@ async function RealEstateDataSection() {
 export default function RealEstatePage() {
   return (
     <>
-      <PageHeader title="Fasteignir" description="Kannaðu markaðinn, reiknaðu lánið og berðu saman eignir á einum stað." />
-      <Suspense fallback={<DataSectionLoading label="Hleð fasteignagögnum…" chart />}>
+      <PageHeader title="Fasteignir" description="Fylgstu með íbúðaverði og reiknaðu áætlaðar greiðslur af húsnæðisláni." />
+      <Suspense fallback={<DataSectionLoading label="Sæki fasteignagögn…" chart />}>
         <RealEstateDataSection />
       </Suspense>
     </>

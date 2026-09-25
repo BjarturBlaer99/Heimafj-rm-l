@@ -15,7 +15,7 @@ const writable = process.argv.includes('--writable');
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 const month = new Date().toISOString().slice(0, 7);
 const stamp = new Date().toISOString();
-const user = { id: '11111111-1111-4111-8111-111111111111', aud: 'authenticated', role: 'authenticated', email: 'preview@example.invalid', email_confirmed_at: stamp, app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: { full_name: 'Alex' }, identities: [], created_at: stamp, updated_at: stamp };
+const user = { id: '11111111-1111-4111-8111-111111111111', aud: 'authenticated', role: 'authenticated', email: 'preview@example.invalid', email_confirmed_at: stamp, app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: { full_name: 'Test User' }, identities: [], created_at: stamp, updated_at: stamp };
 const now = Math.floor(Date.now() / 1000);
 const token = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: user.id, aud: 'authenticated', role: 'authenticated', email: user.email, iat: now, exp: now + 86400 })}.dGVzdA`;
 const session = { access_token: token, refresh_token: 'synthetic-preview-refresh', token_type: 'bearer', expires_in: 86400, expires_at: now + 86400, user };
@@ -29,7 +29,7 @@ const transactions = Array.from({ length: 6 }, (_, i) => {
 const bills = [['Húsnæðislán og fasteignagjöld', 326900], ['Sími, internet og streymisþjónustur', 19990], ['Tryggingar fjölskyldunnar', 38900]].map(([name, amount], i) => row({ name, amount, category_id: categories[4].id, series_id: randomUUID(), month: `${month}-01`, due_day: i + 1, is_active: true }));
 const buckets = [['serignarsparnadur', 'Séreignarsparnaður', 4650000], ['husnaedisparnadur', 'Húsnæðissparnaður', 3875000], ['hlutabref', 'Hlutabréf', 1245000], ['sjodir', 'Sjóðir', 875000]].map(([bucket_type, label, amount]) => row({ bucket_type, label, amount }));
 const tables = {
-  profiles: [{ id: user.id, full_name: 'Alex', currency: 'ISK' }], categories, transactions, bills,
+  profiles: [{ id: user.id, full_name: 'Test User', currency: 'ISK' }], categories, transactions, bills,
   budgets: categories.filter((c) => c.type === 'expense').map((c, i) => row({ category_id: c.id, month: `${month}-01`, amount: i === 4 ? 350000 : 175000 })),
   bill_payments: [row({ bill_id: bills[0].id, transaction_id: transactions[3].id, month: `${month}-01`, amount: bills[0].amount, paid_at: transactions[3].date })],
   savings_buckets: buckets,

@@ -1,7 +1,7 @@
 export default function ProtectedLoading() {
   return (
-    <div role="status" aria-live="polite" aria-label="Hleð síðu" className="space-y-5">
-      <span className="sr-only">Hleð síðu...</span>
+    <div role="status" aria-live="polite" aria-label="Opna síðu" className="space-y-5">
+      <span className="sr-only">Opna síðu…</span>
       <div aria-hidden="true" className="space-y-5 motion-safe:animate-pulse">
         <div className="space-y-3 py-1">
           <div className="h-8 w-40 rounded-md bg-line/10" />

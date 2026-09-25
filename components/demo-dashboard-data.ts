@@ -37,14 +37,14 @@ const unpaidBills = bills.filter((bill) => !bill.payment);
 const totalSavingsBalance = savingsBuckets.reduce((sum, bucket) => sum + bucket.amount, 0);
 
 export const demoDashboardData: DashboardOverviewData = {
-  profile: { id: userId, full_name: "Alex", currency: "ISK" },
+  profile: { id: userId, full_name: "Test User", currency: "ISK" },
   hasAnyTransactions: true, hasAnyBills: true,
   transactions, budgets: [],
   goals: [{ id: "demo-goal", user_id: userId, title: "Varasjóður og húsnæði", target_amount: demoSavings.reduce((sum, saving) => sum + saving.target, 0), current_amount: totalSavingsBalance, target_date: null, created_at: timestamp, updated_at: timestamp }],
   income, expenses, savings: income - expenses, budgeted: 0, remainingBudget: -expenses,
   spendingByCategory: demoCategories,
   trend: demoTrend.map((row) => ({ ...row, month: `${row.month} 2026` })),
-  savingsBuckets, savingsBucketsReady: true, totalSavingsBalance,
+  savingsBuckets, savingsBucketsReady: true, totalSavingsBalance, goalSavingsBalance: totalSavingsBalance,
   billsReady: true, bills, activeBills: bills, paidBills, unpaidBills,
   paidBillsTotal: paidBills.reduce((sum, bill) => sum + (bill.payment?.amount ?? 0), 0),
   unpaidBillsTotal: unpaidBills.reduce((sum, bill) => sum + bill.amount, 0)

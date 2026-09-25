@@ -172,7 +172,7 @@ test("a deliberate second identical payment in one file imports as a distinct re
 });
 test("switching accounts after review rejects the batch without writing it to the new account", async () => {
   const f = fixture();
-  await assert.rejects(f.actions.saveReviewedImport({ batchId: BATCH, userId: OTHER_USER, rows: [confirmed()] }), /Notandi hefur breyst/);
+  await assert.rejects(f.actions.saveReviewedImport({ batchId: BATCH, userId: OTHER_USER, rows: [confirmed()] }), /Þú hefur skipt um aðgang/);
   assert.equal(f.records.length, 0);
 });
 test("unreviewed imports and inaccessible categories cannot be written", async () => {

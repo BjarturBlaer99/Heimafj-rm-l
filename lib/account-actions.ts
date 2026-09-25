@@ -9,11 +9,11 @@ export async function requestAccountDeletion(form: FormData): Promise<ActionFeed
   const { supabase, user } = await getAuthed();
   if (String(form.get("confirmation")).trim().toUpperCase() !== "EYÐA") return { message: "", error: "Skrifaðu EYÐA til að staðfesta beiðnina." };
   const existing = user.user_metadata?.account_deletion_request;
-  if (accountDeletionRequestedAt(existing)) return { message: "Beiðni um eyðingu er þegar skráð á aðganginn." };
+  if (accountDeletionRequestedAt(existing)) return { message: "Beiðni um að eyða aðganginum þínum hefur þegar verið skráð." };
   const { error } = await supabase.auth.updateUser({ data: { account_deletion_request: { status: "requested", requested_at: new Date().toISOString() } } });
   if (error) return { message: "", error: "Ekki tókst að vista beiðnina. Reyndu aftur." };
   revalidatePath("/settings");
-  return { message: "Beiðni um eyðingu er vistuð á aðganginn. Aðganginum hefur ekki verið eytt." };
+  return { message: "Beiðnin hefur verið skráð. Aðganginum þínum hefur ekki verið eytt enn." };
 }
 
 export async function cancelAccountDeletion(): Promise<ActionFeedback> {
@@ -21,5 +21,5 @@ export async function cancelAccountDeletion(): Promise<ActionFeedback> {
   const { error } = await supabase.auth.updateUser({ data: { account_deletion_request: null } });
   if (error) return { message: "", error: "Ekki tókst að afturkalla beiðnina. Reyndu aftur." };
   revalidatePath("/settings");
-  return { message: "Beiðni um eyðingu var afturkölluð." };
+  return { message: "Þú hefur afturkallað beiðnina um að eyða aðganginum." };
 }

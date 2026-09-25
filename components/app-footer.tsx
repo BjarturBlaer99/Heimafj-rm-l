@@ -60,7 +60,7 @@ export function AppFooter({
           ) : null}
           <div className="flex flex-wrap items-center gap-4 text-xs">
             <Link href="/help" className="focus-ring rounded py-1 font-medium text-ink/65 hover:text-accent">Aðstoð</Link>
-            <Link href="/privacy" className="focus-ring rounded py-1 font-medium text-ink/65 hover:text-accent">Meðferð gagna</Link>
+            <Link href="/privacy" className="focus-ring rounded py-1 font-medium text-ink/65 hover:text-accent">Persónuvernd</Link>
             <a
               href="https://github.com/BjarturBlaer99"
               target="_blank"
@@ -83,8 +83,8 @@ export function AppFooter({
           </div>
         </div>
         <p className="mt-3 border-t border-line/10 pt-3 text-[11px] leading-[1.7] text-ink/40">
-          {mode === "demo" ? "Fjármálafærslur og notendagögn á þessari síðu eru tilbúin sýnigögn og breytingar vistast ekki. " : mode === "app" ? "Persónuleg gögn tilheyra innskráðum notanda og eru varin með aðgangsstýringu. " : ""}
-          Markaðs- og fasteignaupplýsingar eru eingöngu til almennrar fræðslu og fela ekki í sér fjármálaráðgjöf.
+          {mode === "demo" ? "Þetta eru tilbúin sýnigögn. Breytingar vistast ekki. " : mode === "app" ? "Fjármálagögnin þín eru geymd á aðganginum þínum. " : ""}
+          Markaðs- og fasteignaupplýsingar eru til almennrar fræðslu og eru ekki fjármálaráðgjöf.
         </p>
       </div>
     </footer>

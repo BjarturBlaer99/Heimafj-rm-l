@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 import { Button, Field, inputClass } from "@/components/ui";
 import { changePasswordAction, type AuthState } from "@/lib/auth-actions";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
@@ -10,15 +10,24 @@ const initialState: AuthState = {};
 export function PasswordChangeForm() {
   const [state, formAction, pending] = useActionState(changePasswordAction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const allowReset = useRef(false);
 
   useEffect(() => {
     if (state.message) {
-      formRef.current?.reset();
+      allowReset.current = true;
+      try { formRef.current?.reset(); } finally { allowReset.current = false; }
     }
-  }, [state.message]);
+  }, [state]);
 
   return (
-    <form ref={formRef} action={formAction} className="grid gap-4">
+    <form ref={formRef} action={formAction} className="grid gap-4"
+      onReset={(event) => { if (!allowReset.current) event.preventDefault(); }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (pending) return;
+        const data = new FormData(event.currentTarget);
+        startTransition(() => formAction(data));
+      }}>
       <Field label="Núverandi lykilorð">
         <input
           className={inputClass}

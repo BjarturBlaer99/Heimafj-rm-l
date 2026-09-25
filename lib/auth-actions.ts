@@ -5,6 +5,7 @@ import { z } from "zod";
 import { PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
 import { authSchema, loginSchema, passwordSchema } from "@/lib/validation";
 import { createClient } from "@/lib/supabase/server";
+import { getPrivacyDeployment, privacyNoticeVersion } from "@/lib/privacy-config";
 
 export type AuthState = {
   error?: string;
@@ -55,7 +56,7 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
   });
 
   if (!parsed.success) {
-    return { error: "Athugaðu netfang og lykilorð." };
+    return { error: "Sláðu inn gilt netfang og lykilorðið þitt." };
   }
 
   const supabase = await createClient();
@@ -69,6 +70,9 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
 }
 
 export async function signupAction(_: AuthState, formData: FormData): Promise<AuthState> {
+  if (!getPrivacyDeployment().registrationOpen) {
+    return { error: "Ekki er opið fyrir nýskráningar eins og er. Þú getur skoðað prufuútgáfuna eða skráð þig inn ef þú ert þegar með aðgang." };
+  }
   const parsed = authSchema.safeParse({
     email: String(formData.get("email") ?? ""),
     password: String(formData.get("password") ?? ""),
@@ -77,7 +81,7 @@ export async function signupAction(_: AuthState, formData: FormData): Promise<Au
 
   if (!parsed.success) {
     const passwordIsInvalid = parsed.error.issues.some((issue) => issue.path[0] === "password");
-    return { error: passwordIsInvalid ? PASSWORD_REQUIREMENTS : "Vinsamlegast fylltu út öll skyldusvið rétt." };
+    return { error: passwordIsInvalid ? PASSWORD_REQUIREMENTS : "Sláðu inn nafnið þitt og gilt netfang." };
   }
 
   const supabase = await createClient();
@@ -85,18 +89,18 @@ export async function signupAction(_: AuthState, formData: FormData): Promise<Au
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.fullName },
+      data: { full_name: parsed.data.fullName, privacy_notice_version: privacyNoticeVersion },
       emailRedirectTo: `${siteUrl()}/auth/callback?next=/dashboard`
     }
   });
 
   if (error) {
     return {
-      error: error.code === "weak_password" ? PASSWORD_REQUIREMENTS : "Ekki tókst að stofna aðgang. Reyndu aftur síðar."
+      error: error.code === "weak_password" ? PASSWORD_REQUIREMENTS : "Ekki tókst að stofna aðganginn. Reyndu aftur eftir smástund."
     };
   }
 
-  return { message: "Athugaðu tölvupóstinn þinn til að staðfesta aðganginn." };
+  return { message: "Skoðaðu tölvupóstinn þinn og fylgdu tenglinum til að staðfesta aðganginn." };
 }
 
 export async function forgotPasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {
@@ -105,7 +109,7 @@ export async function forgotPasswordAction(_: AuthState, formData: FormData): Pr
   });
 
   if (!parsed.success) {
-    return { error: "Skráðu gilt netfang." };
+    return { error: "Sláðu inn gilt netfang." };
   }
 
   const supabase = await createClient();
@@ -116,14 +120,14 @@ export async function forgotPasswordAction(_: AuthState, formData: FormData): Pr
   if (error) {
     if (error.code === "over_email_send_rate_limit" || error.status === 429) {
       return {
-        error: "Of margar endurstillingarbeiðnir hafa verið sendar. Bíddu í allt að eina klukkustund og reyndu aftur."
+        error: "Of oft hefur verið beðið um nýjan tengil. Bíddu í allt að klukkustund og reyndu aftur."
       };
     }
 
-    return { error: "Ekki tókst að senda beiðnina. Reyndu aftur síðar." };
+    return { error: "Ekki tókst að senda tölvupóstinn. Reyndu aftur eftir smástund." };
   }
 
-  return { message: "Athugaðu tölvupóstinn þinn fyrir endurstillingartengil." };
+  return { message: "Ef aðgangur er skráður á þetta netfang færðu tölvupóst með tengli til að velja nýtt lykilorð." };
 }
 
 export async function resetPasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {
@@ -145,7 +149,7 @@ export async function resetPasswordAction(_: AuthState, formData: FormData): Pro
       error:
         error.code === "weak_password"
           ? PASSWORD_REQUIREMENTS
-          : "Ekki tókst að breyta lykilorðinu. Opnaðu nýjan endurstillingartengil og reyndu aftur."
+          : "Ekki tókst að breyta lykilorðinu. Veldu „Gleymt lykilorð?“ til að fá nýjan tengil og reyndu aftur."
     };
   }
 
@@ -184,7 +188,7 @@ export async function changePasswordAction(_: AuthState, formData: FormData): Pr
   } = await supabase.auth.getUser();
 
   if (userError || !user?.email) {
-    return { error: "Innskráningin þín er útrunnin. Skráðu þig inn aftur og reyndu svo aftur." };
+    return { error: "Þú þarft að skrá þig inn aftur til að breyta lykilorðinu." };
   }
 
   const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -210,8 +214,8 @@ export async function changePasswordAction(_: AuthState, formData: FormData): Pr
       return { error: "Nýja lykilorðið þarf að vera annað en það núverandi." };
     }
 
-    return { error: "Ekki tókst að breyta lykilorðinu. Reyndu aftur síðar." };
+    return { error: "Ekki tókst að breyta lykilorðinu. Reyndu aftur eftir smástund." };
   }
 
-  return { message: "Lykilorðinu hefur verið breytt." };
+  return { message: "Nýja lykilorðið er vistað." };
 }

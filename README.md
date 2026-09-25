@@ -31,7 +31,13 @@ NEXT_PUBLIC_SITE_URL="http://localhost:5173"
 SUPPORT_EMAIL=
 ```
 
-The local environment file is ignored by Git. Set `SUPPORT_EMAIL` only to a verified, monitored address; it is a server setting displayed in Help and Settings. Do not place a Supabase secret/service-role key in any `NEXT_PUBLIC_` variable. Browser clients use only the publishable key and signed-in user session.
+The local environment file is ignored by Git. `SUPPORT_EMAIL` optionally overrides the operator-confirmed support address in `lib/privacy-config.ts`; use only a monitored address. Do not place a Supabase secret/service-role key in any `NEXT_PUBLIC_` variable. Browser clients use only the publishable key and signed-in user session.
+
+### Privacy and public registration
+
+Website signup is closed by default. Complete [the privacy launch review](docs/privacy-launch-readiness.md) before filling in the verified `PRIVACY_*` disclosure settings from `.env.example` and setting `PUBLIC_REGISTRATION_ENABLED=true`. `npm run check:privacy` checks the current process environment and reports missing fields; it does not certify compliance. Disable new signups in Supabase Auth as well while closed: the application gate cannot block direct requests to the provider API or older deployments. Existing-account login and the synthetic demo remain available.
+
+Savings display order, housing membership and goal membership are stored per account in Auth metadata. They do not change balances and are included in JSON exports. The new `supabase/owner-reference-integrity-update.sql` migration separately enforces owner-matched category/goal references; apply it after existing bill/savings migrations in staging before production. `npm run test:database:ownership` runs the isolated PostgreSQL acceptance suite (see script prerequisites).
 
 ```bash
 npm run dev

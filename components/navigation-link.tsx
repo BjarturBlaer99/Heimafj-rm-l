@@ -14,7 +14,7 @@ function NavigationPending() {
   return (
     <>
       <span aria-hidden="true" className="pointer-events-none absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-accent motion-safe:animate-pulse" />
-      <span role="status" className="sr-only">Hleð síðu...</span>
+      <span role="status" className="sr-only">Opna síðu…</span>
     </>
   );
 }

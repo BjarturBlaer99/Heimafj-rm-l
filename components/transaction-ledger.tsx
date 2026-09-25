@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ActionForm } from "@/components/action-form";
+import { AmountInput } from "@/components/amount-input";
 import { ConfirmButton } from "@/components/confirm-button";
 import { Button, DateInput, Field, inputClass } from "@/components/ui";
 import { deleteTransaction, saveTransaction } from "@/lib/actions";
@@ -28,17 +29,17 @@ export function TransactionLedger({ transactions, categories }: { transactions: 
       <ActionForm action={saveTransaction} className={styles.compactForm}>
         <input type="hidden" name="id" value={transaction.id} />
         <Field label="Lýsing"><input className={inputClass} name="note" maxLength={500} defaultValue={transaction.note ?? ""} /></Field>
-        <Field label="Upphæð · ISK"><input className={inputClass} name="amount" type="number" step="0.01" min="0.01" defaultValue={Number(transaction.amount)} required /></Field>
+        <Field label="Upphæð (kr.)"><AmountInput className={inputClass} name="amount" step="0.01" min="0.01" defaultValue={Number(transaction.amount)} required /></Field>
         <Field label="Dagsetning"><DateInput name="date" type="date" defaultValue={transaction.date} required /></Field>
         <Field label="Tegund"><select className={inputClass} name="type" defaultValue={transaction.type}><option value="expense">Útgjöld</option><option value="income">Tekjur</option></select></Field>
         <Field label="Flokkur"><select className={inputClass} name="category_id" defaultValue={transaction.category_id ?? ""}><option value="">Óflokkað</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></Field>
-        <Button type="submit" variant="secondary">Vista</Button>
+        <Button type="submit" variant="secondary">Vista breytingar</Button>
       </ActionForm>
       <div className={styles.recordActions}>
         {transaction.category_id ? <Link href={`/transactions/category/${transaction.category_id}?month=${transaction.date.slice(0, 7)}&type=${transaction.type}`}>Færslur í flokknum</Link> : <span>Óflokkað</span>}
         <ActionForm action={deleteTransaction}><input type="hidden" name="id" value={transaction.id} /><ConfirmButton type="submit" variant="secondary" className={styles.deleteButton} confirmMessage="Eyða þessari færslu? Ekki er hægt að afturkalla eyðinguna.">Eyða færslu</ConfirmButton></ActionForm>
       </div>
     </article>)}
-    <div className={styles.ledgerFooter}><span>{transactions.length} færslur</span><span>Upphæðir í íslenskum krónum</span></div>
+    <div className={styles.ledgerFooter}><span>Færslur: {transactions.length}</span><span>Upphæðir í íslenskum krónum</span></div>
   </div>;
 }

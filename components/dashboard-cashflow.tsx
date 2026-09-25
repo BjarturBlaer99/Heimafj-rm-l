@@ -41,7 +41,7 @@ export function DashboardCashflow({ data, currency = "ISK" }: Props) {
   const selected = months[selectedIndex];
 
   if (!selected) {
-    return <div className={styles.empty}>Engar mánaðarlegar færslur til að birta.</div>;
+    return <div className={styles.empty}>Engar færslur til að sýna enn.</div>;
   }
 
   const maximum = Math.max(0, ...months.flatMap((month) => [month.income, month.expenses]));
@@ -69,7 +69,7 @@ export function DashboardCashflow({ data, currency = "ISK" }: Props) {
         <span><i className={styles.incomeKey} />Tekjur</span>
         <span><i className={styles.expenseKey} />Útgjöld</span>
       </div>
-      <p id={descriptionId} className="sr-only">Veldu mánuð til að sjá nákvæmar fjárhæðir. Notaðu vinstri og hægri örvatakka til að skipta um mánuð.</p>
+      <p id={descriptionId} className="sr-only">Veldu mánuð til að sjá upphæðirnar. Notaðu vinstri og hægri örvatakka til að skipta um mánuð.</p>
       <div className={styles.chart}>
         <div className={styles.axis} aria-hidden="true">
           {ticks.map((tick, index) => <span key={tick} style={{ top: `${index * 25}%` }}>{tickLabel(tick, currency)}</span>)}

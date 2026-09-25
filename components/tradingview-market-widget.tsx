@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { ExternalContentControls } from "@/components/external-content-controls";
+import { useExternalContentConsent } from "@/components/use-external-content-consent";
+import { useAppTheme } from "@/components/use-app-theme";
 
 type MarketWidgetKind = "stocks" | "funds";
-type WidgetState = "loading" | "ready" | "error";
 
 const symbolGroups = {
   stocks: {
@@ -31,42 +32,8 @@ const symbolGroups = {
   }
 } as const;
 
-function currentTheme() {
-  return document.documentElement.classList.contains("dark") ? "dark" : "light";
-}
-
-export function TradingViewMarketWidget({ kind }: { kind: MarketWidgetKind }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [state, setState] = useState<WidgetState>("loading");
-
-  useEffect(() => {
-    const updateTheme = () => setTheme(currentTheme());
-    updateTheme();
-
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let cancelled = false;
-    setState("loading");
-
-    const host = document.createElement("div");
-    host.className = "tradingview-widget-container h-full w-full";
-
-    const widget = document.createElement("div");
-    widget.className = "tradingview-widget-container__widget";
-
-    const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js";
-    script.type = "text/javascript";
-    script.async = true;
-    script.textContent = JSON.stringify({
+function widgetUrl(kind: MarketWidgetKind, theme: "light" | "dark") {
+    const configuration = JSON.stringify({
       colorTheme: theme,
       dateRange: "12M",
       showChart: true,
@@ -87,46 +54,30 @@ export function TradingViewMarketWidget({ kind }: { kind: MarketWidgetKind }) {
       symbolActiveColor: theme === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.05)",
       tabs: [symbolGroups[kind]]
     });
-    script.addEventListener("load", () => {
-      if (!cancelled) setState("ready");
-    });
-    script.addEventListener("error", () => {
-      if (!cancelled) setState("error");
-    });
+    // Keep the vendor on its own fixed, cross-origin host. It can use its own
+    // origin to render, but cannot access the application's DOM or storage.
+    // Never combine allow-same-origin with srcDoc or an application-hosted URL.
+    return `https://www.tradingview-widget.com/embed-widget/market-overview/?locale=en#${encodeURIComponent(configuration)}`;
+}
 
-    host.append(widget, script);
-    container.append(host);
-
-    return () => {
-      cancelled = true;
-      // A pending vendor script can still execute after removal. Keep its parent
-      // intact while detaching the entire widget (and any iframe) from the page.
-      host.remove();
-    };
-  }, [kind, theme]);
+export function TradingViewMarketWidget({ kind }: { kind: MarketWidgetKind }) {
+  const { choice } = useExternalContentConsent();
+  const { theme } = useAppTheme();
 
   return (
     <Card className="overflow-hidden p-0 sm:p-0">
-      <div className="relative h-[min(520px,65svh)] min-h-[320px] min-w-0 sm:h-[600px]">
-        <div
-          ref={containerRef}
-          className="absolute inset-0 [&_iframe]:h-full [&_iframe]:w-full"
-          aria-label={kind === "stocks" ? "Lifandi hlutabréfagögn" : "Lifandi sjóðagögn"}
+      {choice === "allowed" ? <div className="relative h-[min(520px,65svh)] min-h-[320px] min-w-0 sm:h-[600px]">
+        <iframe
+          key={`${kind}-${theme}`}
+          title={kind === "stocks" ? "Verð og þróun hlutabréfa frá TradingView" : "Verð og þróun sjóða frá TradingView"}
+          src={widgetUrl(kind, theme)}
+          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 h-full w-full border-0"
         />
-        {state === "loading" ? (
-          <div className="absolute inset-0 grid place-items-center bg-surface text-sm font-semibold text-ink/45">
-            Sæki markaðsgögn...
-          </div>
-        ) : null}
-        {state === "error" ? (
-          <div className="absolute inset-0 grid place-items-center bg-surface px-6 text-center">
-            <div>
-              <p className="font-bold">Markaðsgögn eru tímabundið ekki tiltæk</p>
-              <p className="mt-1 text-sm text-ink/50">Prófaðu að endurhlaða síðuna eftir smástund.</p>
-            </div>
-          </div>
-        ) : null}
-      </div>
+      </div> : null}
+      {choice === "allowed" ? <p className="border-t border-line/10 px-5 py-3 text-xs leading-relaxed text-ink/65">Birtist grafið ekki? <a href={widgetUrl(kind, theme)} target="_blank" rel="noopener noreferrer" className="focus-ring rounded text-accent underline underline-offset-4">Opna graf í sérglugga</a>.</p> : null}
+      <div className="border-t border-line/10 p-5 sm:p-6"><ExternalContentControls compact /></div>
       <div className="border-t border-line/10 px-4 py-2.5 text-right text-[11px] text-ink/45">
         Markaðsgögn og gröf frá{" "}
         <a

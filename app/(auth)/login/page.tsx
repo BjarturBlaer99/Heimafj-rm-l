@@ -4,7 +4,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   const initialError =
     params.error === "invalid_auth_link"
-      ? "Tengillinn er ógildur eða útrunninn. Biddu um nýjan endurstillingartengil."
+      ? "Þessi tengill virkar ekki lengur. Veldu „Gleymt lykilorð?“ til að fá nýjan."
       : undefined;
 
   return <AuthForm mode="login" initialError={initialError} />;

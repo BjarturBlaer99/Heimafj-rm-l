@@ -15,6 +15,6 @@ export default async function DashboardPage() {
     month={currentMonth()}
     today={new Date().toISOString().slice(0, 10)}
     setupContent={<SetupChecklist userId={user.id} hasTransactions={data.hasAnyTransactions} hasBills={data.hasAnyBills} hasGoal={data.goals.length > 0} />}
-    marketContent={<Suspense fallback={<DataSectionLoading label="Hleð markaðsgögnum…" />}><MarketDataSection data={marketData} compact detailsHref="/markets" /></Suspense>}
+    marketContent={<Suspense fallback={<DataSectionLoading label="Sæki markaðsgögn…" />}><MarketDataSection data={marketData} compact detailsHref="/markets" /></Suspense>}
   />;
 }

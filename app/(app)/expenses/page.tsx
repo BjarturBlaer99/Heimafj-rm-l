@@ -1,4 +1,5 @@
 import { ActionForm } from "@/components/action-form";
+import { AmountInput } from "@/components/amount-input";
 import { CardsIcon as WalletCards } from "@phosphor-icons/react/dist/ssr/Cards";
 import { PlusIcon as Plus } from "@phosphor-icons/react/dist/ssr/Plus";
 import { TrashIcon as Trash2 } from "@phosphor-icons/react/dist/ssr/Trash";
@@ -65,7 +66,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title="Útgjöld" description="Sjáðu hvert peningarnir fara og berðu útgjöldin saman við áætlunina þína." action={<Link href="#expense-budget" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-onAccent"><Plus size={17} aria-hidden="true" />Setja áætlun</Link>} />
+      <PageHeader title="Útgjöld" description="Skoðaðu útgjöldin eftir flokkum og fylgstu með áætlun mánaðarins." action={<Link href="#expense-budget" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-onAccent"><Plus size={17} aria-hidden="true" />Setja áætlun</Link>} />
 
       <div className="mb-5 grid gap-4 md:grid-cols-3">
         <MetricCard label="Útgjöld í mánuðinum" value={money(expenseTotal, currency)} detail={monthLabel(month)} icon={<TrendingDown size={19} weight="duotone" />} tone="coral" />
@@ -75,7 +76,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
 
       <div className="mb-5 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
         <Card>
-          <SectionHeader title="Útgjöld eftir flokkum" description="Flokkar raðaðir eftir heildarupphæð í mánuðinum." />
+          <SectionHeader title="Útgjöld eftir flokkum" description="Stærstu útgjaldaflokkar mánaðarins birtast fyrst." />
           {categoryTotals.length ? (
             <div className="divide-y divide-line/10">
                 {categoryTotals.map((item, index) => {
@@ -108,7 +109,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
           )}
         </Card>
         <Card>
-          <SectionHeader title="Mánaðarstaða" description="Samanburður útgjalda við heildaráætlun mánaðarins." />
+          <SectionHeader title="Mánaðarstaða" description="Sjáðu hvað er eftir af áætlun mánaðarins." />
           {currentMonthlyBudget > 0 ? (
             <div>
               <div className="mb-2 grid grid-cols-1 gap-2 text-sm min-[400px]:grid-cols-2">
@@ -122,13 +123,13 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
               </div>
             </div>
           ) : (
-            <EmptyState>Engin heildaráætlun hefur verið skráð fyrir þennan mánuð enn.</EmptyState>
+            <EmptyState>Þú hefur ekki sett heildaráætlun fyrir þennan mánuð.</EmptyState>
           )}
         </Card>
       </div>
 
       <Card id="expense-budget" className="mb-5 scroll-mt-24">
-        <SectionHeader title="Útgjaldaáætlun" description="Settu heildaráætlun eða áætlun fyrir einstaka útgjaldaflokka." />
+        <SectionHeader title="Útgjaldaáætlun" description="Settu þér útgjaldamörk fyrir mánuðinn, samtals eða fyrir einstaka flokka." />
         <ActionForm resetOnSuccess action={saveBudget} className="grid gap-3 md:grid-cols-[1fr_150px_150px_auto]">
           <select className={inputClass} name="category_id" aria-label="Flokkur áætlunar">
             <option value="">Heildaráætlun</option>
@@ -141,7 +142,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
               ))}
           </select>
           <DateInput name="month" type="month" defaultValue={month} aria-label="Mánuður áætlunar" required />
-          <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" placeholder="Upphæð" aria-label="Upphæð áætlunar" required />
+          <AmountInput className={inputClass} name="amount" min="0.01" step="0.01" placeholder="Upphæð" aria-label="Upphæð áætlunar" required />
           <Button type="submit">
             <Plus size={17} />
             Bæta við
@@ -150,7 +151,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
       </Card>
 
       <Card className="mb-5">
-        <SectionHeader title="Mánaðaryfirlit" description="Samanburður áætlunar og raunútgjalda fyrri mánaða." />
+        <SectionHeader title="Mánaðaryfirlit" description="Berðu áætlanir og skráð útgjöld saman milli mánaða." />
         {monthlyOverview.length ? (
           <>
             <div className="grid gap-2 md:hidden">
@@ -176,7 +177,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
                     </div>
                     <div className="mt-3">
                       <div className="mb-1 flex justify-between text-xs text-ink/50">
-                        <span>Nýting</span>
+                        <span>Hlutfall áætlunar</span>
                         <span>{Math.round(usage)}%</span>
                       </div>
                       <ProgressBar value={usage} />
@@ -192,8 +193,8 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
                 <th className="pb-3">Mánuður</th>
                 <th className="pb-3 text-right">Heildaráætlun</th>
                 <th className="pb-3 text-right">Útgjöld</th>
-                <th className="pb-3 text-right">Niðurstaða</th>
-                <th className="pb-3 text-right">Trend</th>
+                <th className="pb-3 text-right">Mismunur</th>
+                <th className="pb-3 text-right">Hlutfall áætlunar</th>
                 <th className="pb-3 text-right">Staða</th>
               </tr>
             </thead>
@@ -232,12 +233,12 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
             </div>
           </>
         ) : (
-          <EmptyState>Engir lokaðir mánuðir með útgjaldayfirliti enn.</EmptyState>
+          <EmptyState>Þú hefur ekki skráð útgjöld eða áætlanir í öðrum mánuðum.</EmptyState>
         )}
       </Card>
 
       <section>
-        <SectionHeader title="Áætlanir þessa mánaðar" description="Breyttu eða fjarlægðu virkar áætlanir eftir þörfum." />
+        <SectionHeader title="Áætlanir mánaðarins" description="Hér geturðu breytt áætlunum mánaðarins eða eytt þeim." />
         <div className="grid gap-4 lg:grid-cols-2">
         {currentBudgets.length ? (
           currentBudgets.map((budget) => {
@@ -286,7 +287,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
                         ))}
                     </select>
                     <DateInput name="month" type="month" aria-label="Mánuður áætlunar" defaultValue={budget.month.slice(0, 7)} required />
-                    <input className={inputClass} name="amount" type="number" min="0.01" step="0.01" aria-label="Upphæð áætlunar" defaultValue={Number(budget.amount)} required />
+                    <AmountInput className={inputClass} name="amount" min="0.01" step="0.01" aria-label="Upphæð áætlunar" defaultValue={Number(budget.amount)} required />
                     <Button type="submit" variant="secondary">
                       Vista breytingar
                     </Button>

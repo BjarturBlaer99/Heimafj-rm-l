@@ -70,10 +70,10 @@ test("income-only category is refused for expenses and expense-only category for
   assert.ok((await f.categorizeTransactions(form([FIRST, SECOND], FOOD))).error);
   assert.deepEqual(f.writes, []);
 });
-test("updates only selected own records, deduplicates IDs, and reports the actual updated count", async () => {
+test("updates only selected own records, deduplicates IDs, and confirms the update", async () => {
   const f = fixture([record(FIRST), record(SECOND), record(THIRD)]);
   const result = await f.categorizeTransactions(form([FIRST, FIRST, SECOND], FOOD));
-  assert.equal(result.message, "Flokkun 2 færslna var uppfærð.");
+  assert.equal(result.message, "Flokkun færslna var uppfærð.");
   assert.equal(result.error, undefined);
   assert.deepEqual(f.writes, [[FIRST, SECOND]]);
   assert.deepEqual(f.transactions.map((item) => item.category_id), [FOOD, FOOD, null]);
@@ -83,7 +83,7 @@ test("both-type categories support mixed transactions and clearing a category se
   const f = fixture([record(FIRST), record(SECOND, { type: "income" })]);
   assert.equal((await f.categorizeTransactions(form([FIRST, SECOND], BOTH))).error, undefined);
   assert.deepEqual(f.transactions.map((item) => item.category_id), [BOTH, BOTH]);
-  assert.equal((await f.categorizeTransactions(form([FIRST], ""))).message, "Flokkun 1 færslna var uppfærð.");
+  assert.equal((await f.categorizeTransactions(form([FIRST], ""))).message, "Flokkun færslna var uppfærð.");
   assert.deepEqual(f.transactions.map((item) => item.category_id), [null, BOTH]);
 });
 test("empty selection, invalid UUID, and missing record are reported without writes", async () => {

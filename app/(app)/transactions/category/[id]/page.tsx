@@ -51,12 +51,12 @@ export default async function CategoryTransactionsPage({
       <PageHeader title={title} description={`Færslur í flokknum fyrir ${monthLabel(month)}.`} />
 
       <div className="mb-5 grid gap-4 md:grid-cols-2">
-        <MetricCard label="Tímabil" value={monthLabel(month)} detail={`${transactions.length} færslur`} icon={<CalendarDays size={19} weight="duotone" />} tone="accent" />
+        <MetricCard label="Tímabil" value={monthLabel(month)} detail={`Fjöldi færslna: ${transactions.length}`} icon={<CalendarDays size={19} weight="duotone" />} tone="accent" />
         <MetricCard label="Samtals í flokki" value={money(total, "ISK")} detail={type === "income" ? "Tekjur" : "Útgjöld"} icon={<ReceiptText size={19} weight="duotone" />} tone={type === "income" ? "moss" : "coral"} />
       </div>
 
       <Card>
-        <SectionHeader title="Færslur í flokki" description="Nákvæm sundurliðun valins tímabils." />
+        <SectionHeader title="Færslur í flokki" description="Allar færslur í flokknum á þessu tímabili." />
         {transactions.length ? (
           <>
             <div className="grid gap-2 sm:hidden">
@@ -98,7 +98,7 @@ export default async function CategoryTransactionsPage({
             </div>
           </>
         ) : (
-          <EmptyState>Engar færslur fundust í þessum flokki fyrir valið tímabil.</EmptyState>
+          <EmptyState>Engar færslur fundust í flokknum á þessu tímabili.</EmptyState>
         )}
       </Card>
     </>

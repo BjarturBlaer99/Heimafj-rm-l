@@ -97,12 +97,12 @@ const waitFor = async (check, message) => {
     await bucketForm.evaluate((form) => { form.closest('details').open = true; });
     await bucketForm.locator('[name=amount]').fill('4700000');
     await bucketForm.getByRole('button').click();
-    await expectSuccess('Heildarupphæð sparnaðar var uppfærð.');
+    await expectSuccess('Sparnaðarstaðan var uppfærð.');
     assert.equal(await bucketForm.locator('[name=amount]').inputValue(), '4700000');
     await dismiss();
     await bucketForm.locator('[name=amount]').fill('4800000');
     await bucketForm.getByRole('button').click();
-    await expectSuccess('Heildarupphæð sparnaðar var uppfærð.');
+    await expectSuccess('Sparnaðarstaðan var uppfærð.');
     assert.equal(await bucketForm.locator('[name=amount]').inputValue(), '4800000', 'Successive edits keep newest balance');
     await dismiss();
     const addSavings = page.locator('form').filter({ has: page.getByRole('button', { name: 'Bæta við sparnað', exact: true }) }).first();
@@ -134,7 +134,7 @@ const waitFor = async (check, message) => {
 
     await goto('/settings');
     const profile = page.locator('form').filter({ has: page.locator('input[name=full_name]') });
-    await profile.locator('[name=full_name]').fill('Alex QA');
+    await profile.locator('[name=full_name]').fill('Test User QA');
     await profile.getByRole('button').click();
     await expectSuccess('Notandaupplýsingarnar voru uppfærðar.');
     await page.setViewportSize({ width: 1280, height: 900 });

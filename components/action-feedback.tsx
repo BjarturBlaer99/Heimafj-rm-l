@@ -36,7 +36,7 @@ function Notification({ notice, dismiss }: { notice: Notice; dismiss: () => void
         <Icon size={22} weight="duotone" aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1 py-1" data-feedback-tone={notice.tone}>
-        <p className="text-sm font-semibold text-ink">{success ? "Aðgerð tókst" : "Breyting tókst ekki"}</p>
+        <p className="text-sm font-semibold text-ink">{success ? "Það tókst" : "Eitthvað fór úrskeiðis"}</p>
         <p className="mt-0.5 break-words text-sm leading-relaxed text-ink/70">{notice.message}</p>
       </div>
       <button type="button" aria-label="Loka skilaboðum" onClick={dismiss} className="focus-ring grid h-11 w-11 shrink-0 place-items-center rounded-lg text-ink/50 transition-colors hover:bg-muted hover:text-ink">

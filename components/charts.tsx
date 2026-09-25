@@ -68,13 +68,13 @@ export function TrendChart({ data, height = 220 }: { data: Array<Record<string, 
           <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => Number(value).toLocaleString("is-IS", { maximumFractionDigits: 2 })} />
           <Area type="monotone" dataKey="income" name="Tekjur" stroke="rgb(var(--color-accent))" strokeWidth={2.25} fill="rgb(var(--color-accent) / 0.055)" isAnimationActive={false} />
           <Area type="monotone" dataKey="expenses" name="Útgjöld" stroke="rgb(var(--color-coral))" strokeWidth={2} fill="transparent" isAnimationActive={false} />
-          <Area type="monotone" dataKey="savings" name="Sparnaður" stroke="rgb(var(--color-lagoon))" strokeWidth={2} fill="transparent" isAnimationActive={false} />
+          <Area type="monotone" dataKey="savings" name="Afgangur" stroke="rgb(var(--color-lagoon))" strokeWidth={2} fill="transparent" isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-ink/65" aria-label="Skýringar á línuriti">
         <span className="inline-flex items-center gap-2"><span className="h-0.5 w-3.5 rounded bg-accent" />Tekjur</span>
         <span className="inline-flex items-center gap-2"><span className="h-0.5 w-3.5 rounded bg-coral" />Útgjöld</span>
-        <span className="inline-flex items-center gap-2"><span className="h-0.5 w-3.5 rounded bg-lagoon" />Sparnaður</span>
+        <span className="inline-flex items-center gap-2"><span className="h-0.5 w-3.5 rounded bg-lagoon" />Afgangur</span>
       </div>
     </div>
   );

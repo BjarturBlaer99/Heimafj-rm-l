@@ -39,7 +39,7 @@ export function ActionForm({ action, resetOnSuccess = false, children, ...props 
       if (result.redirectTo) router.push(result.redirectTo, { scroll: false });
     } catch (error) {
       unstable_rethrow(error);
-      notify("Ekki tókst að staðfesta breytinguna. Athugaðu skráninguna áður en þú reynir aftur.", "error");
+      notify("Ekki tókst að staðfesta hvort breytingin var vistuð. Athugaðu hvort hún sé komin inn áður en þú reynir aftur.", "error");
     } finally {
       submitting.current = false;
       setSaving(false);

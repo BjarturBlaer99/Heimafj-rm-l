@@ -330,7 +330,7 @@ async function unzipEntries(file: File) {
     const name = decoder.decode(bytes.slice(nameStart, nameStart + fileNameLength));
 
     if ((flags & 0x08) !== 0) {
-      throw new Error("Þessi Excel skrá notar ZIP gagnalýsingu sem innflytjandinn styður ekki enn.");
+      throw new Error("Ekki er hægt að lesa þessa Excel-skrá. Vistaðu hana sem CSV-skrá og reyndu aftur.");
     }
 
     const compressed = bytes.slice(dataStart, dataStart + compressedSize);
@@ -365,7 +365,7 @@ export async function readXlsxRows(file: File) {
   const target = rels?.querySelector(`Relationship[Id="${firstSheetRelId}"]`)?.getAttribute("Target") ?? "worksheets/sheet1.xml";
   const sheetPath = `xl/${target.replace(/^\/?xl\//, "")}`;
   const sheetXml = entries.get(sheetPath) ?? entries.get("xl/worksheets/sheet1.xml");
-  if (!sheetXml) throw new Error("Fann ekki fyrsta vinnublaðið í Excel skránni.");
+  if (!sheetXml) throw new Error("Ekki fannst vinnublað í Excel-skránni. Athugaðu skrána og reyndu aftur.");
 
   const sheet = parser.parseFromString(decoder.decode(sheetXml), "application/xml");
   const rows: string[][] = [];

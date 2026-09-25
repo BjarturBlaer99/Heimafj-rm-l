@@ -4,7 +4,7 @@ The website exports account data and records deletion requests. It does not auto
 
 ## Support contact
 
-Set the server environment variable `SUPPORT_EMAIL` to the verified, monitored support address. Help and Settings expose that address as a contact link. Do not use an invented address. Without configuration, Help links to the existing project page and the request remains stored on the account.
+The operator confirmed **Bjartur Blær Gunnlaugsson** and **bjarturbbg@gmail.com** as the privacy contact. Help and Settings use this address by default; `SUPPORT_EMAIL` can override the support link, while the privacy contact remains in `lib/privacy-config.ts`. Monitor both if they differ. Review [public-launch requirements](privacy-launch-readiness.md), including the mailbox's actual service terms, confidentiality, and retention.
 
 ## Reviewing deletion requests
 

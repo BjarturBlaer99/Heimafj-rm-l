@@ -38,8 +38,8 @@ export function SavingsContributionForm({ children, className }: { children: Rea
   return <ActionForm action={contribute} resetOnSuccess className={className}>
     <fieldset disabled={needsRetry} className="contents">{children}</fieldset>
     {needsRetry ? <div className="space-y-3 sm:col-span-2">
-      <p role="status" className="text-sm leading-relaxed text-ink/70">Ekki náðist að staðfesta vistunina. Reitirnir eru læstir á meðan við endurtökum sömu beiðni með sömu upphæð og dagsetningu. Framlagið bætist ekki við tvisvar.</p>
-      <Button type="submit" variant="secondary">Reyna sömu vistun aftur</Button>
+      <p role="status" className="text-sm leading-relaxed text-ink/70">Við fengum ekki staðfestingu á að framlagið hefði vistast. Veldu „Reyna aftur“ til að klára skráninguna. Upphæðin og dagsetningin haldast óbreytt og framlagið verður ekki tvískráð.</p>
+      <Button type="submit" variant="secondary">Reyna aftur</Button>
     </div> : null}
   </ActionForm>;
 }

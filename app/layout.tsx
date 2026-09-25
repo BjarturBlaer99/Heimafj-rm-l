@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Mín fjármál",
-  description: "Persónulegt fjármálayfirlit á íslensku"
+  description: "Haltu utan um tekjur, útgjöld, reikninga og sparnað á einum stað."
 };
 
 const themeScript = `

@@ -113,6 +113,31 @@ body {
   text-align: start;
 }
 
+@media (max-width: 1023px) {
+  .date-field > input {
+    text-align: center;
+  }
+
+  /* iPhone Safari paints the value in a separate native element. */
+  .date-field > input::-webkit-date-and-time-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    margin: 0;
+    text-align: center;
+  }
+
+  .date-field > input::-webkit-datetime-edit {
+    padding-block: 0;
+    text-align: center;
+  }
+
+  .date-field > input::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+}
+
 .app-sidebar {
   position: fixed;
   inset: 0 auto 0 0;

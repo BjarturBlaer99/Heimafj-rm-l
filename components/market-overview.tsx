@@ -409,10 +409,10 @@ export function MarketOverview({
         <div data-scroll-reveal="" className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 id="market-overview-title" className="text-xl font-bold sm:text-2xl">Markaðspúls</h2>
+              <h2 id="market-overview-title" className="text-xl font-bold sm:text-2xl">Staða markaða</h2>
               <Badge variant="neutral">Ísland og heimurinn</Badge>
             </div>
-            <p className="mt-1 text-sm text-ink/50">Verðlag, vextir, gjaldmiðlar og markaðir á einum stað.</p>
+            <p className="mt-1 text-sm text-ink/50">Fylgstu með verðbólgu, vöxtum, gengi og verðbréfum.</p>
           </div>
           {detailsHref ? (
             <Button asChild variant="ghost" size="sm" className="motion-link w-fit text-accent hover:text-accent">

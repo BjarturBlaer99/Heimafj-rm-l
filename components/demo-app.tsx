@@ -111,7 +111,7 @@ function Transactions({ initialHref }: { initialHref?: string }) {
   return (
     <>
       <ViewHeading title="Færslur" description={`${visibleTransactions.length} sýnifærslur í ${demoSummary.month.toLowerCase()}${category ? ` · ${category}` : ""}`} />
-      <p className="mb-4 text-xs leading-relaxed text-ink/65">Færslur merktar „Aðrar færslur“ taka saman fleiri sýniútgjöld í sama flokki. <Link href="/signup" className="text-accent underline underline-offset-2">Stofnaðu aðgang til að skrá eigin færslur.</Link></p>
+      <p className="mb-4 text-xs leading-relaxed text-ink/65">Þetta eru tilbúin dæmi. Undir „Aðrar færslur“ eru nokkur útgjöld í sama flokki lögð saman. <Link href="/signup" className="text-accent underline underline-offset-2">Stofnaðu aðgang til að skrá þínar eigin færslur.</Link></p>
       <div className="fade-in mb-4 flex max-w-full gap-1 overflow-x-auto rounded-md border border-line/10 bg-muted/45 p-1 sm:w-fit">
         {transactionFilters.map((item) => (
           <Button
@@ -158,7 +158,7 @@ function Bills() {
 
   return (
     <>
-      <ViewHeading title="Reikningar" description="Greiðslur mánaðarins og það sem er fram undan." period={demoSummary.month} />
+      <ViewHeading title="Reikningar" description="Sjáðu hvað er greitt í mánuðinum og hvað er eftir." period={demoSummary.month} />
       <div className="reveal-group mb-5 grid gap-3 sm:grid-cols-2">
         <Card>
           <p className="text-sm font-semibold text-ink/55">Greitt</p>
@@ -199,7 +199,7 @@ function Savings() {
 
   return (
     <>
-      <ViewHeading title="Sparnaður" description="Markmið og nýjustu innborganir" />
+      <ViewHeading title="Sparnaður" description="Fylgstu með sparnaðinum og því sem vantar upp á markmiðin." />
       <Card className="mb-5 border-accent/20 bg-accent/5">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-md bg-accent/10 text-accent">
@@ -226,7 +226,7 @@ function Savings() {
               </div>
               <p className="mt-6 text-2xl font-bold">{money(saving.current)}</p>
               <div className="mt-3"><AnimatedProgress value={progress} /></div>
-              <p className="mt-4 text-sm text-ink/55">Síðast bætt við <span className="font-bold text-ink">{money(saving.lastAdded)}</span></p>
+              <p className="mt-4 text-sm text-ink/55">Síðasta framlag: <span className="font-bold text-ink">{money(saving.lastAdded)}</span></p>
             </Card>
           );
         })}
@@ -238,11 +238,11 @@ function Savings() {
 function Analytics() {
   return (
     <>
-      <ViewHeading title="Greining" description="Þróun og dreifing útgjalda" />
+      <ViewHeading title="Greining" description="Sjáðu hvernig tekjur og útgjöld breytast milli mánaða og í hvað peningarnir fara." />
       <Card>
         <div className="mb-4 flex items-center gap-2">
           <ChartLineUpIcon size={20} className="text-accent" weight="duotone" />
-          <h2 className="font-bold">Mánaðarleg þróun</h2>
+          <h2 className="font-bold">Þróun milli mánaða</h2>
         </div>
         <TrendChart data={demoTrend} height={300} />
       </Card>
@@ -250,14 +250,14 @@ function Analytics() {
         <Card>
           <div className="mb-4 flex items-center gap-2">
             <ChartDonutIcon size={20} className="text-accent" weight="duotone" />
-            <h2 className="font-bold">Flokkar</h2>
+            <h2 className="font-bold">Útgjöld eftir flokkum</h2>
           </div>
           <PieBreakdown data={demoCategories} />
         </Card>
         <Card>
           <div className="mb-4 flex items-center gap-2">
             <CalendarDotsIcon size={20} className="text-accent" weight="duotone" />
-            <h2 className="font-bold">Samanburður</h2>
+            <h2 className="font-bold">Stærstu útgjaldaflokkarnir</h2>
           </div>
           <CategoryBars data={demoCategories.slice(0, 5)} />
         </Card>
@@ -287,8 +287,8 @@ const DemoViewContent = memo(function DemoViewContent({
     case "transactions": return <Transactions initialHref={transactionHref} />;
     case "bills": return <Bills />;
     case "savings": return <Savings />;
-    case "realEstate": return <><ViewHeading title="Fasteignir" description="Markaðsgögn, lánareiknivél og eignir til skoðunar" />{realEstateContent}</>;
-    case "markets": return <><ViewHeading title="Markaðir" description="Hlutabréf, sjóðir, gengi og íslenska hagkerfið" />{marketContent}</>;
+    case "realEstate": return <><ViewHeading title="Fasteignir" description="Fylgstu með íbúðaverði og reiknaðu áætlaðar greiðslur af húsnæðisláni." />{realEstateContent}</>;
+    case "markets": return <><ViewHeading title="Markaðir" description="Fylgstu með hlutabréfum, sjóðum, gengi og stöðu efnahagsmála." />{marketContent}</>;
     case "analytics": return <Analytics />;
   }
 });
@@ -347,11 +347,12 @@ export function DemoApp({ marketContent, marketSummary, realEstateContent, initi
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
       desktop.removeEventListener("change", handleViewportChange);
-      if (restoreMoreFocus.current) trigger?.focus();
+      if (restoreMoreFocus.current) trigger?.focus({ preventScroll: true });
     };
   }, [moreOpen]);
 
   const navigate = useCallback((nextView: DemoView, targetHref?: string) => {
+    restoreMoreFocus.current = false;
     setTransactionHref(targetHref);
     setMoreOpen(false);
     setView(nextView);
@@ -458,7 +459,7 @@ export function DemoApp({ marketContent, marketSummary, realEstateContent, initi
       <main id="main-content" className="app-workspace workspace-content mx-auto w-full min-w-0 max-w-[1360px] flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pb-12">
         <div className="fade-in mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-accent/10 bg-accent/[0.035] px-3.5 py-2.5 text-xs">
           <span className="inline-flex items-center gap-2 font-semibold text-accent"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Sýningarútgáfa</span>
-          <span className="text-ink/50">Tilbúin fjármálagögn fyrir júní 2026 · engin tenging við bankareikning.</span>
+          <span className="text-ink/50">Prófaðu vefinn með tilbúnum gögnum fyrir júní 2026. Engin tenging er við bankareikning.</span>
         </div>
 
         <DemoViewContent key={view + (transactionHref ?? "")} view={view} onNavigate={navigate} transactionHref={transactionHref} marketContent={marketContent} marketSummary={marketSummary} realEstateContent={realEstateContent} />
@@ -530,7 +531,7 @@ export function DemoApp({ marketContent, marketSummary, realEstateContent, initi
               <div className="flex items-center justify-between gap-4 py-2">
                 <div>
                   <h2 id="demo-mobile-more-title" className="text-lg font-bold">Meira</h2>
-                  <p className="text-xs text-ink/50">Fleiri hlutar sýningarútgáfunnar</p>
+                  <p className="text-xs text-ink/50">Skoðaðu fleiri hluta vefsins</p>
                 </div>
                 <button ref={moreCloseRef} type="button" className="focus-ring grid h-11 w-11 shrink-0 place-items-center rounded-md text-ink/60 transition hover:bg-muted hover:text-ink" aria-label="Loka valmynd" onClick={() => setMoreOpen(false)}>
                   <XIcon size={22} weight="bold" />
