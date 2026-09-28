@@ -4,7 +4,7 @@ export const privacyContact = {
   email: "bjarturbbg@gmail.com"
 };
 
-export const privacyNoticeVersion = "2026-09-24";
+export const privacyNoticeVersion = "2026-09-25";
 
 export const privacyDeploymentFields = {
   dataLocation: "PRIVACY_DATA_LOCATION",
@@ -20,8 +20,9 @@ export function getPrivacyDeployment(env: Record<string, string | undefined> = p
   return {
     ...details,
     missing,
-    // This is an application release guard, not proof of legal compliance.
-    // The operator must separately verify provider settings and the launch checklist.
-    registrationOpen: env.PUBLIC_REGISTRATION_ENABLED === "true" && missing.length === 0
+    disclosuresComplete: missing.length === 0,
+    // The operator controls signup explicitly. Enabling it does not certify
+    // privacy readiness or fill in unverified deployment disclosures.
+    registrationOpen: env.PUBLIC_REGISTRATION_ENABLED === "true"
   };
 }

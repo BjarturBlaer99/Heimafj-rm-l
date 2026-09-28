@@ -16,16 +16,22 @@ function load(file, mocks = {}) {
 const config = load("lib/privacy-config.ts");
 const complete = Object.fromEntries(Object.values(config.privacyDeploymentFields).map((field) => [field, "Verified deployment detail for this test"]));
 
-test("website registration stays closed by default and for every missing deployment disclosure", () => {
+test("website registration requires an explicit flag independently of disclosure completeness", () => {
   assert.equal(config.getPrivacyDeployment({}).registrationOpen, false);
   assert.equal(config.getPrivacyDeployment(complete).registrationOpen, false);
   for (const flag of ["false", "TRUE", "1", " true "]) assert.equal(config.getPrivacyDeployment({ ...complete, PUBLIC_REGISTRATION_ENABLED: flag }).registrationOpen, false);
+  const openWithoutDisclosures = config.getPrivacyDeployment({ PUBLIC_REGISTRATION_ENABLED: "true" });
+  assert.equal(openWithoutDisclosures.registrationOpen, true);
+  assert.equal(openWithoutDisclosures.disclosuresComplete, false);
+  assert.deepEqual(openWithoutDisclosures.missing, Object.values(config.privacyDeploymentFields));
   for (const field of Object.values(config.privacyDeploymentFields)) {
     const result = config.getPrivacyDeployment({ ...complete, PUBLIC_REGISTRATION_ENABLED: "true", [field]: "  " });
-    assert.equal(result.registrationOpen, false);
+    assert.equal(result.registrationOpen, true);
+    assert.equal(result.disclosuresComplete, false);
     assert.deepEqual(result.missing, [field]);
   }
   assert.equal(config.getPrivacyDeployment({ ...complete, PUBLIC_REGISTRATION_ENABLED: "true" }).registrationOpen, true);
+  assert.equal(config.getPrivacyDeployment(complete).disclosuresComplete, true);
 });
 
 function fixture(open) {

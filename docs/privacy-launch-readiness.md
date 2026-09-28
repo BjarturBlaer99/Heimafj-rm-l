@@ -1,12 +1,14 @@
 # Persónuvernd fyrir almenna opnun
 
-Staða yfirfarin 24. september 2026. Ábyrgðaraðili: **Bjartur Blær Gunnlaugsson**, **bjarturbbg@gmail.com**.
+Staða yfirfarin 25. september 2026. Ábyrgðaraðili: **Bjartur Blær Gunnlaugsson**, **bjarturbbg@gmail.com**.
+
+Rekstrarákvörðun 25. september: ábyrgðaraðili óskaði eftir að opna nýskráningu þótt persónuverndarverkefnum hér að neðan sé ólokið. Nýskráningarrofi vefsins er því nú óháður upplýsingum um vistunarstað og varðveislu. Þetta er ekki staðfesting á lagalegu samræmi, samþykkt nýrra vinnslusamninga eða niðurfelling verkefna. Óstaðfestar upplýsingar eru áfram merktar á persónuverndarsíðunni og `npm run check:privacy` skilar áfram villustöðu þegar þær vantar.
 
 Lokaprófanir 25. september 2026: 177 sjálfvirk forritspróf, 11 ný eigandatengslapróf og 33 fyrri gagnagrunnspróf stóðust. Lint og gerðaprófun stóðust. Vafrapróf á tilbúnum aðgangi staðfesti vistaða röðun, útilokun séreignarsparnaðar úr húsnæðis- og markmiðssummu eftir endurhleðslu og óbreyttan heildarsparnað. Sparnaður og gagnastillingar flæddu ekki út fyrir 375 px breiðan skjá. Þetta var prófað í Chromium, ekki á raunverulegum iPhone.
 
 TradingView-val var prófað í vafra: afturköllun fjarlægði innfellda gluggann og valið hélst á persónuverndarsíðunni. Ekkert innfellt efni er búið til þegar slökkt er. Grafið er á sérstöku upprunaléni, ekki keyrt sem utanaðkomandi kóði í fjármálasíðunni. Innfelld birting var enn auð í innbyggða prófunarvafranum; sama opinbera graf hlaðaðist í sérglugga. Tengill fyrir þá leið er sýnilegur eftir virkjun. **Staðfesta þarf innfelldu birtinguna í venjulegum Safari/Chrome áður en henni er lýst sem fullprófaðri.** Sex afmörkuð persónuverndarpróf voru endurkeyrð eftir þessa breytingu og stóðust.
 
-Þetta er rekstrarskjal fyrir Mín fjármál. Kóðabreytingarnar einar staðfesta ekki að öll lagaskilyrði séu uppfyllt. **Almenn opnun bíður staðfestingar á hýsingu, samningum, varðveislu og afgreiðslu réttindabeiðna.** Við útgáfu 25. september var eigandatengslavörn sett upp í framleiðslugagnagrunni og lokað fyrir nýja notendur í Supabase Auth.
+Þetta er rekstrarskjal fyrir Mín fjármál. Kóðabreytingarnar einar staðfesta ekki að öll lagaskilyrði séu uppfyllt. **Hýsing, samningar, varðveisla og afgreiðsla réttindabeiðna eru enn óafgreidd rekstrarverkefni.** Við fyrri útgáfu 25. september var eigandatengslavörn sett upp í framleiðslugagnagrunni og lokað fyrir nýja notendur í Supabase Auth. Síðari beiðni ábyrgðaraðila um opnun kemur fram hér að ofan.
 
 ## Tilbúið í kóða
 
@@ -15,9 +17,9 @@ TradingView-val var prófað í vafra: afturköllun fjarlægði innfellda glugga
 - Gagnaútflutningur krefst staðfests aðgangs, afmarkast við viðkomandi notanda og er ekki vistaður í sameiginlegu skyndiminni. JSON inniheldur líka persónulegar sparnaðarstillingar. CSV inniheldur færslur.
 - Eyðingarbeiðni og afturköllun eru vistuð með aðganginum. **Þetta er handvirkt afgreiðsluferli: engin sjálfvirk eyðing eða tölvupóstsending fer fram.**
 - Ný gagnagrunnsbreyting ver gegn tengingum færslna, áætlana og reikninga við flokk annars notanda og sparnaðarframlaga við markmið annars notanda. Hún var sett upp í framleiðslu 25. september 2026.
-- Nýskráningarform og aðgerð eru lokuð nema rekstrarupplýsingar hafi verið fylltar út og sérstaklega opnað fyrir nýskráningu. Þetta er útgáfuvörn í vefnum, ekki lögfræðilegt samþykki eða Supabase-stilling.
+- Nýskráningarform og aðgerð eru lokuð sjálfgefið og krefjast þess að sérstaklega sé opnað með stillingu vefsins. Rofinn er óháður persónuverndarupplýsingum og Supabase-stillingu; hann staðfestir ekki lagalegt samræmi.
 
-## Skilyrði sem þarf að ljúka áður en nýskráning opnar
+## Ólokin persónuverndarverkefni
 
 | Verkefni | Sönnun sem þarf að varðveita | Staða |
 | --- | --- | --- |
@@ -87,7 +89,7 @@ Sama dag stóðust einnig **33 eldri samþættingarpróf** í `scripts/bill-paym
 
 Á meðan opnun bíður skal hafa `PUBLIC_REGISTRATION_ENABLED` ósett eða `false`. **Einnig þarf að loka fyrir nýja notendur í Supabase Auth** og staðfesta að bein nýskráning með opinbera lykli verkefnisins sé lokuð. Vefvörnin getur ekki ein og sér lokað beinu Auth-API eða eldri útgáfu vefsins.
 
-Eftir að verkefnum hér að ofan er lokið skal setja staðfestan, mannamálstexta í eftirfarandi stillingar. Textinn birtist á opinberri persónuverndarsíðu og má ekki innihalda lykla eða trúnaðarupplýsingar:
+Setja skal staðfestan, mannamálstexta í eftirfarandi stillingar þegar staðreyndir liggja fyrir. Textinn birtist á opinberri persónuverndarsíðu og má ekki innihalda lykla eða trúnaðarupplýsingar:
 
 | Stilling | Það sem þarf að lýsa |
 | --- | --- |
@@ -97,4 +99,4 @@ Eftir að verkefnum hér að ofan er lokið skal setja staðfestan, mannamálste
 | `PRIVACY_LOG_RETENTION` | Tímabilum eftir tegund rekstrar- og öryggisannála. |
 | `PRIVACY_SUPPORT_RETENTION` | Tímabili erinda og lágmarksgagna um afgreiðslu réttindabeiðna. |
 
-Ekki fylla reitina með „í vinnslu“, dæmum eða ágiskunum til að komast fram hjá vörninni. Að reitirnir séu ekki auðir staðfestir aðeins að texti hafi verið settur inn. Bjartur þarf að staðfesta að textinn sé réttur og reksturinn fylgi honum. Síðan má sérstaklega virkja `PUBLIC_REGISTRATION_ENABLED=true`, samræma Supabase-stillinguna og prófa útgefna skráningarleið áður en tilkynnt er um almenna opnun.
+Ekki fylla reitina með „í vinnslu“, dæmum eða ágiskunum til að fá prófið til að standast. Að reitirnir séu ekki auðir staðfestir aðeins að texti hafi verið settur inn. Bjartur þarf að staðfesta að textinn sé réttur og reksturinn fylgi honum. Tæknilega er nýskráning opnuð með `PUBLIC_REGISTRATION_ENABLED=true` og samsvarandi Supabase-stillingu; prófa skal útgefna skráningarleið. Ákvörðun um að opna nýskráningu leysir ekki ólokin persónuverndarverkefni.

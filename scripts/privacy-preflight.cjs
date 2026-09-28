@@ -12,4 +12,5 @@ const state = config.getPrivacyDeployment();
 console.log(`Website registration: ${state.registrationOpen ? "enabled" : "closed"}`);
 if (state.missing.length) console.log(`Missing verified disclosure settings: ${state.missing.join(", ")}`);
 console.log("Review docs/privacy-launch-readiness.md before opening public registration. This check is not legal certification and does not configure Supabase signup.");
-process.exitCode = state.registrationOpen ? 0 : 1;
+// An open signup flag must never turn incomplete privacy information into a pass.
+process.exitCode = state.disclosuresComplete ? 0 : 1;
