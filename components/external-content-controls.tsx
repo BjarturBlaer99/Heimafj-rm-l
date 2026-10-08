@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useActionFeedback } from "@/components/action-feedback";
 import { Button } from "@/components/ui";
 import { useExternalContentConsent } from "@/components/use-external-content-consent";
 
 export function ExternalContentControls({ compact = false }: { compact?: boolean }) {
   const { choice, setAllowed, resetChoice } = useExternalContentConsent();
-  const [notice, setNotice] = useState("");
+  const notify = useActionFeedback();
   function choose(allowed: boolean | null) {
     const persisted = allowed === null ? resetChoice() : setAllowed(allowed);
-    setNotice(persisted
+    notify(persisted
       ? allowed === null ? "Valinu hefur verið eytt. Gröfin hlaðast ekki fyrr en þú leyfir það aftur." : allowed ? "Þú hefur leyft gröf frá TradingView í þessum vafra." : "Slökkt er á gröfum frá TradingView."
       : "Valið gildir á þessari síðu. Vafrinn leyfir ekki að það sé vistað fyrir næstu heimsókn.");
   }
@@ -22,6 +22,5 @@ export function ExternalContentControls({ compact = false }: { compact?: boolean
       {choice === "allowed" ? <Button type="button" variant="secondary" onClick={() => choose(false)}>Afturkalla leyfi</Button> : <Button type="button" variant="secondary" onClick={() => choose(true)}>Leyfa TradingView</Button>}
       {choice === "unselected" ? <Button type="button" variant="secondary" onClick={() => choose(false)}>Halda slökkt</Button> : <Button type="button" variant="secondary" onClick={() => choose(null)}>Gleyma vali</Button>}
     </div>
-    {notice ? <p role="status" aria-live="polite" className="text-xs leading-relaxed text-ink/65">{notice}</p> : null}
   </div>;
 }

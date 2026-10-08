@@ -19,7 +19,7 @@ export async function saveSavingsPreferences(formData: FormData): Promise<Action
     input = null;
   }
   const parsed = savingsPreferencesSchema.safeParse(input);
-  if (!parsed.success) return { message: "", error: "Ekki tókst að lesa skiptinguna. Endurhladdu síðuna og reyndu aftur." };
+  if (!parsed.success) return { message: "", error: "Ekki tókst að lesa skiptinguna. Endurhlaðaðu síðuna og reyndu aftur." };
 
   // updateUser applies only to the authenticated account and merges this key
   // with its existing metadata. No client-supplied user ID or balances are used.

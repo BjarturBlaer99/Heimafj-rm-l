@@ -76,7 +76,7 @@ export async function recordBillPayment(formData: FormData): Promise<ActionFeedb
     return failure(rollback.error ? "Ekki tókst að staðfesta greiðslustöðu reikningsins. Endurhlaðaðu síðuna og berðu reikninginn saman við útgjaldafærsluna." : "Færslunni var breytt á meðan þú skráðir greiðsluna. Reikningurinn var ekki merktur greiddur. Yfirfarðu færsluna og reyndu aftur.");
   }
   refreshBills();
-  return { message: createdTransaction ? "Reikningurinn er merktur greiddur. Ný útgjaldafærsla var skráð á dagsetninguna sem þú valdir." : "Reikningurinn er merktur greiddur og tengdur við útgjaldafærsluna sem þú valdir. Engin ný færsla var skráð." };
+  return { message: createdTransaction ? "Greiðslan var skráð og reikningurinn merktur greiddur." : "Reikningurinn var tengdur við valda færslu og merktur greiddur." };
 }
 
 export async function unlinkBillPayment(formData: FormData): Promise<ActionFeedback> {

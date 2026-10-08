@@ -15,6 +15,7 @@
     "test:unit": "node --test scripts/account-data.test.cjs scripts/action-feedback.test.cjs scripts/amount-input.test.cjs scripts/auth-callback.test.cjs scripts/auth-forms.test.cjs scripts/auth-middleware.test.cjs scripts/bills-savings.test.cjs scripts/data.test.cjs scripts/external-content.test.cjs scripts/import-review.test.cjs scripts/market-data.test.cjs scripts/privacy-registration.test.cjs scripts/savings-contribution-form.test.cjs scripts/savings-preferences.test.cjs scripts/transaction-actions.test.cjs scripts/transaction-period.test.cjs",
     "test:database": "node scripts/bill-payment-postgres.cjs",
     "test:database:ownership": "node scripts/owner-reference-postgres.cjs",
+    "test:database:imports": "node scripts/import-postgres.cjs",
     "check:privacy": "node scripts/privacy-preflight.cjs",
     "audit:production": "npm audit --omit=dev"
   },

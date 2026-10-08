@@ -16,9 +16,8 @@ const rowSchema = z.object({
   category_id: z.string().uuid().nullable()
 });
 const rowsSchema = z.array(rowSchema).max(1000).refine((rows) => new Set(rows.map((row) => row.sourceIndex)).size === rows.length, "Færslunúmer verða að vera einstök");
-const reviewedRowsSchema = z.array(rowSchema.extend({ decision: z.enum(["import", "skip", "import_duplicate"]), reviewed: z.boolean() })).min(1).max(1000)
-  .refine((rows) => new Set(rows.map((row) => row.sourceIndex)).size === rows.length, "Færslunúmer verða að vera einstök")
-  .refine((rows) => rows.every((row) => row.decision === "skip" || row.reviewed), "Yfirfarðu allar valdar færslur");
+const reviewedRowsSchema = z.array(rowSchema.extend({ decision: z.enum(["import", "skip"]) })).min(1).max(1000)
+  .refine((rows) => new Set(rows.map((row) => row.sourceIndex)).size === rows.length, "Færslunúmer verða að vera einstök");
 
 type SavedImportRow = { id: string; date: string; type: string; amount: number; note: string | null; category_id: string | null };
 
@@ -86,46 +85,62 @@ export async function saveReviewedImport(input: { batchId: string; userId: strin
     return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
   };
   const batchIds = new Set(rows.map((row) => rowId(row.sourceIndex)));
-  const selected = rows.filter((row) => row.decision !== "skip");
-  const payload = selected.map(({ sourceIndex, date, note, amount, type, category_id }) => ({ id: rowId(sourceIndex), user_id: userId, date, note, amount, type, category_id }));
-  const expected = new Map(payload.map((row) => [row.id, row]));
-  const [existing, saved] = await Promise.all([existingRecords(supabase, userId, rows), savedBatchRows(supabase, userId, [...batchIds])]);
-  if (saved.some((row) => !expected.has(row.id) || !matchesSavedRow(row, expected.get(row.id)!))) return changedBatch();
-  const otherExisting = existing.filter((row) => !batchIds.has(row.id));
-  const existingKeys = matchingKeys(otherExisting, rows);
-  const duplicates = findImportDuplicates(rows, existingKeys);
-  if (rows.some((row) => row.decision === "import" && duplicates[row.sourceIndex])) {
-    return { status: "needs_review" as const, existingKeys };
+  const requested = rows.filter((row) => row.decision !== "skip");
+  const requestedPayload = requested.map(({ sourceIndex, date, note, amount, type, category_id }) => ({
+    id: rowId(sourceIndex), user_id: userId, date, note, amount, type, category_id,
+    import_key: createHash("sha256").update(transactionImportKey({ date, note, amount, type })).digest("hex")
+  }));
+  const expected = new Map(requestedPayload.map((row) => [row.id, row]));
+  async function saveAttempt(attempt: number): Promise<
+    ReturnType<typeof changedBatch> | { status: "complete"; imported: number; newlyImported: number; skipped: number; duplicatesSkipped: number; from: string; to: string }
+  > {
+    const [existing, saved] = await Promise.all([existingRecords(supabase, userId, rows), savedBatchRows(supabase, userId, [...batchIds])]);
+    if (saved.some((row) => !expected.has(row.id) || !matchesSavedRow(row, expected.get(row.id)!))) return changedBatch();
+    const otherExisting = existing.filter((row) => !batchIds.has(row.id));
+    const existingKeys = matchingKeys(otherExisting, rows);
+    const duplicates = findImportDuplicates(rows, existingKeys);
+    // Recheck at save time: a match added after preview is skipped automatically.
+    // Already committed rows in this batch remain included on a network retry.
+    const savedIds = new Set(saved.map((row) => row.id));
+    const selected = requested.filter((row) => savedIds.has(rowId(row.sourceIndex)) || !duplicates[row.sourceIndex]);
+    const selectedIds = new Set(selected.map((row) => rowId(row.sourceIndex)));
+    const payload = requestedPayload.filter((row) => selectedIds.has(row.id));
+    const categoryIds = new Set(selected.flatMap((row) => row.category_id ? [row.category_id] : []));
+    if (categoryIds.size) {
+      const { data: categories, error } = await supabase.from("categories").select("id,type").eq("user_id", userId);
+      if (error) throw new Error("Ekki tókst að sækja flokkana. Reyndu aftur.");
+      const allowed = new Set((categories ?? []).filter((category) => category.type !== "income").map((category) => category.id));
+      if ([...categoryIds].some((id) => !allowed.has(id))) throw new Error("Einn af völdum flokkum er ekki lengur tiltækur. Yfirfarðu flokkunina.");
+    }
+    let newlyImported = 0;
+    if (payload.length) {
+      // One database statement avoids partial multi-batch writes.
+      const { data, error } = await supabase.from("transactions").upsert(payload, { onConflict: "id", ignoreDuplicates: true }).select("id");
+      // Distinct batches can pass the preflight concurrently. The per-user unique
+      // import key makes one whole statement fail; reread and skip the winner's
+      // rows before retrying. Do not retry unrelated constraint or network errors.
+      if (error?.code === "23505" && error.message.includes("transactions_user_import_key_unique") && attempt < 3) {
+        return saveAttempt(attempt + 1);
+      }
+      if (error) throw new Error("Ekki tókst að staðfesta hvort innflutningi lauk. Reyndu aftur með sama takka.");
+      revalidatePath("/", "layout");
+      newlyImported = data?.length ?? 0;
+      // Another tab may finish the same batch or edit it while this write waits.
+      // Verify the actual persisted values rather than treating ignored IDs as success.
+      const persisted = await savedBatchRows(supabase, userId, payload.map((row) => row.id));
+      if (persisted.length !== payload.length) throw new Error("Ekki tókst að staðfesta að allar færslurnar hafi verið vistaðar. Reyndu aftur með sama takka.");
+      if (persisted.some((row) => !matchesSavedRow(row, expected.get(row.id)!))) return changedBatch();
+    }
+    const skipped = rows.filter((row) => !selectedIds.has(rowId(row.sourceIndex)));
+    return {
+      status: "complete" as const,
+      imported: selected.length,
+      newlyImported,
+      skipped: skipped.length,
+      duplicatesSkipped: skipped.filter((row) => duplicates[row.sourceIndex]).length,
+      from: (selected.length ? selected : rows).map((row) => row.date).sort()[0],
+      to: (selected.length ? selected : rows).map((row) => row.date).sort().at(-1)!
+    };
   }
-  const categoryIds = new Set(selected.flatMap((row) => row.category_id ? [row.category_id] : []));
-  if (categoryIds.size) {
-    const { data: categories, error } = await supabase.from("categories").select("id,type").eq("user_id", userId);
-    if (error) throw new Error("Ekki tókst að sækja flokkana. Reyndu aftur.");
-    const allowed = new Set((categories ?? []).filter((category) => category.type !== "income").map((category) => category.id));
-    if ([...categoryIds].some((id) => !allowed.has(id))) throw new Error("Einn af völdum flokkum er ekki lengur tiltækur. Yfirfarðu flokkunina.");
-  }
-  let newlyImported = 0;
-  if (payload.length) {
-    // One database statement avoids partial multi-batch writes.
-    const { data, error } = await supabase.from("transactions").upsert(payload, { onConflict: "id", ignoreDuplicates: true }).select("id");
-    if (error) throw new Error("Ekki tókst að staðfesta hvort innflutningi lauk. Reyndu aftur með sama takka.");
-    revalidatePath("/", "layout");
-    newlyImported = data?.length ?? 0;
-    // Another tab may finish the same batch or edit it while this write waits.
-    // Verify the actual persisted values rather than treating ignored IDs as success.
-    const persisted = await savedBatchRows(supabase, userId, payload.map((row) => row.id));
-    if (persisted.length !== payload.length) throw new Error("Ekki tókst að staðfesta að allar færslurnar hafi verið vistaðar. Reyndu aftur með sama takka.");
-    if (persisted.some((row) => !matchesSavedRow(row, expected.get(row.id)!))) return changedBatch();
-  }
-  const skipped = rows.filter((row) => row.decision === "skip");
-  return {
-    status: "complete" as const,
-    imported: selected.length,
-    newlyImported,
-    skipped: skipped.length,
-    duplicatesSkipped: skipped.filter((row) => duplicates[row.sourceIndex]).length,
-    duplicatesImported: selected.filter((row) => duplicates[row.sourceIndex]).length,
-    from: (selected.length ? selected : rows).map((row) => row.date).sort()[0],
-    to: (selected.length ? selected : rows).map((row) => row.date).sort().at(-1)!
-  };
+  return saveAttempt(0);
 }

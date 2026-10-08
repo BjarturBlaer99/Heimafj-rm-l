@@ -1,11 +1,10 @@
 import { AppFooter } from "@/components/app-footer";
 import { DesktopSidebar, MobileBottomNav, TopNav } from "@/components/app-nav";
 import { RefreshOnReturn } from "@/components/refresh-on-return";
-import { ActionFeedbackProvider } from "@/components/action-feedback";
 
 export function AppShell({ children, email }: { children: React.ReactNode; email?: string }) {
   return (
-    <ActionFeedbackProvider>
+    <>
       <div className="min-h-screen bg-paper text-ink">
         <RefreshOnReturn />
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-accent focus:ring-2 focus:ring-accent">Fara í efni</a>
@@ -21,6 +20,6 @@ export function AppShell({ children, email }: { children: React.ReactNode; email
         </div>
         <MobileBottomNav />
       </div>
-    </ActionFeedbackProvider>
+    </>
   );
 }

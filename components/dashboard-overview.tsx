@@ -62,7 +62,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
         <div>
           <p className={styles.eyebrow}>Yfirlit <span aria-hidden="true">/</span> {monthName}</p>
           <h1>Góðan daginn{name ? `, ${name}` : ""}.</h1>
-          <p className={styles.intro}>Hér sérðu stöðuna í þessum mánuði.</p>
+          <p className={styles.intro}>Yfirlit yfir skráðar tekjur, útgjöld og reikninga mánaðarins.</p>
         </div>
         <DashboardLink onNavigate={onNavigate} className={styles.primaryAction} href="/transactions#new-transaction"><PlusIcon size={18} aria-hidden="true" />Ný færsla</DashboardLink>
       </header>
@@ -83,7 +83,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
             <div className={styles.ratioTrack} aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, expenseShare))}%` }} data-negative={expenseShare > 100} /></div>
             <p><strong>{percent(expenseShare)}</strong> tekna fara í skráð útgjöld.</p>
           </div> : <DashboardLink onNavigate={onNavigate} className={styles.textLink} href={hasTransactions ? "/income" : "/transactions#import-transactions"}>{hasTransactions ? "Skrá tekjur mánaðarins" : "Flytja inn fyrstu færslurnar"}<ArrowRightIcon size={15} aria-hidden="true" /></DashboardLink>}
-          <p className={styles.positionNote}>Ógreiddir reikningar eru ekki dregnir frá þessari upphæð.</p>
+          <p className={styles.positionNote}>Afkoman miðast við skráðar færslur. Ógreiddir reikningar eru ekki dregnir frá.</p>
         </section>
 
         <section data-scroll-reveal="" className={styles.bills} aria-labelledby="unpaid-bills-title">
@@ -146,7 +146,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
           <SectionHeading onNavigate={onNavigate} id="savings-title" title="Sparnaðurinn þinn" href="/savings-goals" linkText="Opna" />
           {!data.savingsBucketsReady ? <p className={styles.empty}>Ekki tókst að sækja stöðu sparnaðarins.</p> : <>
             <p className={styles.savingsTotal}>{money(data.totalSavingsBalance, currency)}</p>
-            <p className={styles.sectionDescription}>Heildarsparnaður í skráðum flokkum.</p>
+            <p className={styles.sectionDescription}>Samtala skráðrar stöðu í öllum sparnaðarflokkum.</p>
             {primaryGoal ? <div className={styles.goal}>
               <div><h3>{primaryGoal.title}</h3><span>{percent(goalProgress)}</span></div>
               <div className={styles.goalTrack} role="progressbar" aria-label={primaryGoal.title} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(Math.max(0, Math.min(100, goalProgress)))} aria-valuetext={`${percent(goalProgress)} af ${money(Number(primaryGoal.target_amount), currency)}`}><span style={{ width: `${Math.max(0, Math.min(100, goalProgress))}%` }} /></div>

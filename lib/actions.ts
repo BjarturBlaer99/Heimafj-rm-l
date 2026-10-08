@@ -95,7 +95,7 @@ export async function saveBudget(formData: FormData) {
     : await supabase.from("budgets").insert(payload);
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");
-  return { message: data.id ? "Útgjaldamarkmiðið var uppfært." : "Útgjaldamarkmiðið var vistað." } satisfies ActionFeedback;
+  return { message: data.id ? "Útgjaldaáætlunin var uppfærð." : "Útgjaldaáætlunin var vistuð." } satisfies ActionFeedback;
 }
 
 export async function deleteBudget(formData: FormData) {
@@ -103,7 +103,7 @@ export async function deleteBudget(formData: FormData) {
   const result = await supabase.from("budgets").delete().eq("id", String(formData.get("id"))).eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");
-  return { message: "Útgjaldamarkmiðinu var eytt." } satisfies ActionFeedback;
+  return { message: "Útgjaldaáætluninni var eytt." } satisfies ActionFeedback;
 }
 
 export async function saveBill(formData: FormData) {
@@ -271,7 +271,7 @@ export async function saveSavingsBucket(formData: FormData) {
   );
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");
-  return { message: "Sparnaðarstaðan var uppfærð." } satisfies ActionFeedback;
+  return { message: "Staða sparnaðarins var uppfærð." } satisfies ActionFeedback;
 }
 
 export async function addSavingsBucketAmount(formData: FormData) {

@@ -50,12 +50,12 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
 
   const monthlyOverview = Object.values(
     [...allBudgets.filter((budget) => budget.category_id === null), ...transactions].reduce<
-      Record<string, { month: string; budgetAmount: number; spentAmount: number }>
+      Record<string, { month: string; budgetAmount: number; spentAmount: number; hasBudget: boolean }>
     >((acc, item) => {
       const monthKey = "month" in item ? item.month.slice(0, 7) : item.date.slice(0, 7);
-      if (!acc[monthKey]) acc[monthKey] = { month: monthKey, budgetAmount: 0, spentAmount: 0 };
+      if (!acc[monthKey]) acc[monthKey] = { month: monthKey, budgetAmount: 0, spentAmount: 0, hasBudget: false };
 
-      if ("month" in item) acc[monthKey].budgetAmount += Number(item.amount);
+      if ("month" in item) { acc[monthKey].budgetAmount += Number(item.amount); acc[monthKey].hasBudget = true; }
       else acc[monthKey].spentAmount += Number(item.amount);
 
       return acc;
@@ -163,22 +163,22 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-semibold capitalize">{monthLabel(row.month)}</p>
-                        <p className={difference < 0 ? "mt-0.5 text-xs font-semibold text-coral" : "mt-0.5 text-xs font-semibold text-moss"}>
-                          {difference < 0 ? "Yfir áætlun" : "Innan áætlunar"}
+                        <p className={!row.hasBudget ? "text-ink/55" : difference < 0 ? "mt-0.5 text-xs font-semibold text-coral" : "mt-0.5 text-xs font-semibold text-moss"}>
+                          {!row.hasBudget ? "Engin áætlun" : difference < 0 ? "Yfir áætlun" : "Innan áætlunar"}
                         </p>
                       </div>
-                      <p className={difference < 0 ? "shrink-0 font-bold text-coral" : "shrink-0 font-bold text-moss"}>{money(difference, currency)}</p>
+                      <p className={!row.hasBudget ? "text-ink/55" : difference < 0 ? "shrink-0 font-bold text-coral" : "shrink-0 font-bold text-moss"}>{row.hasBudget ? money(difference, currency) : "—"}</p>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-line/8 pt-3 text-xs">
                       <span className="text-ink/50">Áætlun</span>
-                      <span className="min-[400px]:text-right font-semibold">{money(row.budgetAmount, currency)}</span>
+                      <span className="min-[400px]:text-right font-semibold">{row.hasBudget ? money(row.budgetAmount, currency) : "—"}</span>
                       <span className="text-ink/50">Útgjöld</span>
                       <span className="min-[400px]:text-right font-semibold">{money(row.spentAmount, currency)}</span>
                     </div>
                     <div className="mt-3">
                       <div className="mb-1 flex justify-between text-xs text-ink/50">
                         <span>Hlutfall áætlunar</span>
-                        <span>{Math.round(usage)}%</span>
+                        <span>{row.hasBudget && row.budgetAmount > 0 ? `${Math.round(usage)}%` : "—"}</span>
                       </div>
                       <ProgressBar value={usage} />
                     </div>
@@ -206,14 +206,14 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
                 return (
                   <tr key={row.month}>
                     <td className="py-3 font-semibold">{monthLabel(row.month)}</td>
-                    <td className="py-3 text-right">{money(row.budgetAmount, currency)}</td>
+                    <td className="py-3 text-right">{row.hasBudget ? money(row.budgetAmount, currency) : "—"}</td>
                     <td className="py-3 text-right">{money(row.spentAmount, currency)}</td>
-                    <td className={`py-3 text-right font-bold ${difference < 0 ? "text-coral" : "text-moss"}`}>{money(difference, currency)}</td>
+                    <td className={`py-3 text-right font-bold ${!row.hasBudget ? "text-ink/55" : difference < 0 ? "text-coral" : "text-moss"}`}>{row.hasBudget ? money(difference, currency) : "—"}</td>
                     <td className="py-3">
                       <div className="ml-auto w-40">
                         <div className="mb-1 flex justify-between text-xs text-ink/55">
-                          <span>{Math.round(usage)}%</span>
-                          <span>{difference < 0 ? "yfir" : "innan"}</span>
+                          <span>{row.hasBudget && row.budgetAmount > 0 ? `${Math.round(usage)}%` : "—"}</span>
+                          <span>{!row.hasBudget ? "engin áætlun" : difference < 0 ? "yfir" : "innan"}</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-line/10">
                           <div className={`h-full rounded-full ${usage > 100 ? "bg-coral" : "bg-moss"}`} style={{ width: `${clampedUsage}%` }} />
@@ -221,8 +221,8 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
                       </div>
                     </td>
                     <td className="py-3 text-right">
-                      <span className={difference < 0 ? "font-semibold text-coral" : "font-semibold text-moss"}>
-                        {difference < 0 ? "Yfir áætlun" : "Innan áætlunar"}
+                      <span className={!row.hasBudget ? "text-ink/55" : difference < 0 ? "font-semibold text-coral" : "font-semibold text-moss"}>
+                        {!row.hasBudget ? "Engin áætlun" : difference < 0 ? "Yfir áætlun" : "Innan áætlunar"}
                       </span>
                     </td>
                   </tr>

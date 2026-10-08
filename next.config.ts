@@ -64,6 +64,13 @@ const nextConfig: NextConfig = {
             ].join("; ")
           }
         ]
+      },
+      {
+        source: "/auth/callback",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "private, no-store, max-age=0" }
+        ]
       }
     ];
   }

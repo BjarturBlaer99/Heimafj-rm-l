@@ -33,6 +33,7 @@ function fixture(file, component, props = {}) {
         hooks[at] = deps;
       }
     };
+    if (id === "@/components/action-feedback") return { useActionFeedback: () => () => {} };
     if (id === "@/components/ui") return { Field: "label", Button: "button", inputClass: "input" };
     if (id === "@/lib/auth-actions") return {};
     if (id === "@/lib/password-policy") return { PASSWORD_MIN_LENGTH: 8, PASSWORD_PATTERN: ".*", PASSWORD_REQUIREMENTS: "test policy" };

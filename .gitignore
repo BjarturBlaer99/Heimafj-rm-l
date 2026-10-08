@@ -12,3 +12,6 @@ next-*.log
 next-*.err.log
 design-*.log
 tsconfig.tsbuildinfo
+
+# A private mailbox is visible in this local test handoff screenshot.
+docs/qa/2026-10-07/signup-handoff.jpg

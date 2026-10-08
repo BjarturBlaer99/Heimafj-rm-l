@@ -6,8 +6,8 @@ export const IMPORT_PAGE_SIZE = 25;
 export type ImportColumns = { date: string; note: string; merchantType: string; amount: string; debit: string; credit: string };
 export type MerchantRule = { pattern: string; categoryId: string };
 export type ImportRow = { sourceIndex: number; date: string; note: string; amount: number; type: "expense"; category_id: string | null };
-export type ImportDecision = "import" | "skip" | "import_duplicate" | "undecided";
-export type ReviewedImportRow = ImportRow & { decision: Exclude<ImportDecision, "undecided">; reviewed: boolean };
+export type ImportDecision = "import" | "skip";
+export type ReviewedImportRow = ImportRow & { decision: ImportDecision };
 export type ExcludedReason = "date" | "amount" | "income" | "zero" | "limit" | "description";
 export type ExcludedImportRow = { sourceIndex: number; note: string; date: string; amount: string; reason: ExcludedReason };
 export const excludedReasonLabels: Record<ExcludedReason, string> = {
@@ -71,10 +71,6 @@ export function findImportDuplicates(rows: ImportRow[], existingKeys: string[]) 
     seen.add(key);
   }
   return duplicates;
-}
-
-export function importReviewKey(row: ImportRow, decision: ImportDecision) {
-  return `${transactionImportKey(row)}|${row.category_id ?? ""}|${decision}`;
 }
 
 export type ImportPreferences = { version: 1; mappings: Record<string, ImportColumns>; rules: MerchantRule[] };

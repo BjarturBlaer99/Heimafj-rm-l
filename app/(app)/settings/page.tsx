@@ -29,7 +29,7 @@ export default async function SettingsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Stillingar" description="Breyttu upplýsingunum þínum, útliti síðunnar og flokkum færslna." />
+      <PageHeader title="Stillingar" description="Stilltu aðganginn, veldu útlit og hafðu umsjón með gögnunum þínum." />
 
       <div className={styles.accountSummary} data-scroll-reveal="">
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
@@ -42,7 +42,7 @@ export default async function SettingsPage() {
       </nav>
 
       <section id="profile-settings" className={styles.settingsSection} aria-labelledby="profile-heading" data-scroll-reveal="">
-        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>01</span><h2 id="profile-heading">Þínar upplýsingar</h2><p>Hér breytirðu nafninu sem birtist á yfirlitinu.</p></div>
+        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>01</span><h2 id="profile-heading">Þínar upplýsingar</h2><p>Nafnið birtist á yfirlitinu þínu. Þú mátt líka nota gælunafn.</p></div>
         <div className={styles.panel}>
           <ActionForm action={saveProfile} className={styles.profileForm}>
             <Field label="Nafn eða gælunafn"><input className={inputClass} name="full_name" autoComplete="nickname" maxLength={80} defaultValue={profile?.full_name ?? ""} required /></Field>
@@ -89,7 +89,7 @@ export default async function SettingsPage() {
           </div>
 
           {defaultCategories.length ? <div className={styles.defaultCategories}>
-            <div className={styles.defaultHeading} data-scroll-reveal=""><div><h3>Sjálfgefnir flokkar</h3><p>Þessir flokkar fylgja aðganginum og ekki er hægt að breyta þeim.</p></div><span>{defaultCategories.length}</span></div>
+            <div className={styles.defaultHeading} data-scroll-reveal=""><div><h3>Flokkar sem fylgja aðganginum</h3><p>Þessir flokkar fylgja aðganginum og ekki er hægt að breyta þeim.</p></div><span>{defaultCategories.length}</span></div>
             <ul>{defaultCategories.map((category) => <li key={category.id} data-scroll-reveal=""><span>{category.name}</span><span className={styles.typeLabel}>{categoryTypeLabels[category.type]}</span></li>)}</ul>
           </div> : null}
         </div>

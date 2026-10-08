@@ -15,10 +15,10 @@ export default async function AnalyticsPage() {
 
   return (
     <>
-      <PageHeader title="Greining" description="Sjáðu hvernig tekjur, útgjöld og sparnaður hafa breyst með tímanum." />
+      <PageHeader title="Greining" description="Berðu saman tekjur, útgjöld og framlög í sparnað yfir tíma." />
       <div className="grid gap-5">
         <Card>
-          <SectionHeader title="Tekjur á móti útgjöldum" description="Þróun síðustu átta mánaða." />
+          <SectionHeader title="Tekjur og útgjöld" description="Þróun síðustu átta mánaða." />
           <TrendChart data={trend} />
         </Card>
         <div className="grid gap-5 xl:grid-cols-2">
@@ -27,12 +27,12 @@ export default async function AnalyticsPage() {
             {spending.length ? <CategoryBars data={spending.slice(0, 8)} /> : <EmptyState>Þú hefur ekki skráð nein útgjöld enn.</EmptyState>}
           </Card>
           <Card>
-            <SectionHeader title="Tekjur eftir flokkum" description="Hvernig allar skráðar tekjur skiptast milli flokka." />
+            <SectionHeader title="Tekjur eftir flokkum" description="Skipting allra skráðra tekna eftir flokkum." />
             {income.length ? <PieBreakdown data={income} centerLabel="Heildartekjur" /> : <EmptyState>Þú hefur ekki skráð neinar tekjur enn.</EmptyState>}
           </Card>
         </div>
         <Card>
-          <SectionHeader title="Sparnaður eftir mánuðum" description="Skráð framlög í sparnað í hverjum mánuði." />
+          <SectionHeader title="Framlög í sparnað eftir mánuðum" description="Skráð framlög í sparnað í hverjum mánuði." />
           {Object.keys(savingsTrend).length ? (
             <CategoryBars data={Object.entries(savingsTrend).map(([name, value]) => ({ name, value }))} />
           ) : (

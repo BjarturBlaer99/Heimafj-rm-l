@@ -80,12 +80,6 @@ test("duplicate detection distinguishes existing matches and repeated file rows 
   assert.deepEqual(review.findImportDuplicates(rows, [review.transactionImportKey(rows[0])]), { 0: "existing", 1: "both" });
   assert.equal(rows.length, 3);
 });
-test("review confirmation is invalidated by category, amount or decision changes", () => {
-  const key = review.importReviewKey(row(), "import");
-  assert.notEqual(review.importReviewKey(row({ category_id: OTHER }), "import"), key);
-  assert.notEqual(review.importReviewKey(row({ amount: 1500 }), "import"), key);
-  assert.notEqual(review.importReviewKey(row(), "import_duplicate"), key);
-});
 test("preferences tolerate malformed storage and retain only mappings and rules", () => {
   assert.deepEqual(review.parseImportPreferences("not json"), { version: 1, mappings: {}, rules: [] });
   const saved = review.parseImportPreferences(JSON.stringify({ version: 1, rawFile: "private", mappings: { header: { ...columns, transactions: [raw()] } }, rules: [{ pattern: "Bónus", categoryId: FOOD, amount: 123 }] }));
@@ -115,6 +109,9 @@ function fixture(seed = [], options = {}) {
               state.writes += 1;
               if (options.writeError) return { data: null, error: { message: "write failed" } };
               const inserted = payload.filter((item) => !records.some((existing) => existing.id === item.id));
+              if (options.keyConflict || inserted.some((item) => records.some((existing) => existing.user_id === item.user_id && existing.import_key && existing.import_key === item.import_key))) {
+                return { data: null, error: { code: "23505", message: 'duplicate key value violates unique constraint "transactions_user_import_key_unique"' } };
+              }
               records.push(...structuredClone(inserted));
               if (options.uncertainFirstWrite && state.writes === 1) return { data: null, error: { message: "connection lost after commit" } };
               return { data: inserted.map(({ id }) => ({ id })), error: null };
@@ -141,20 +138,18 @@ test("duplicate preflight reads beyond the first 1,000 existing records and scop
   assert.deepEqual(result.existingKeys, [review.transactionImportKey(row())]);
   assert.deepEqual(f.reads.filter((read) => read.table === "transactions").map((read) => read.first), [0, 1000]);
 });
-test("an existing match requires a new explicit duplicate decision before any write", async () => {
+test("a match added after preview is skipped automatically at save time", async () => {
   const f = fixture([{ ...row(), id: "existing", user_id: USER }]);
   const result = await f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed()] });
-  assert.equal(result.status, "needs_review");
+  assert.equal(result.status, "complete");
+  assert.equal(result.imported, 0);
+  assert.equal(result.duplicatesSkipped, 1);
   assert.equal(f.records.length, 1);
 });
-test("explicit import of a possible duplicate is honored and a retry does not add it twice", async () => {
+test("duplicate overrides are rejected by the server", async () => {
   const f = fixture([{ ...row(), id: "existing", user_id: USER }]);
-  const input = { batchId: BATCH, userId: USER, rows: [confirmed({ decision: "import_duplicate" })] };
-  const first = await f.actions.saveReviewedImport(input);
-  const retry = await f.actions.saveReviewedImport(input);
-  assert.equal(first.imported, 1); assert.equal(first.duplicatesImported, 1); assert.equal(first.newlyImported, 1);
-  assert.equal(retry.imported, 1); assert.equal(retry.newlyImported, 0);
-  assert.equal(f.records.length, 2);
+  await assert.rejects(f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed({ decision: "import_duplicate" })] }));
+  assert.equal(f.records.length, 1);
 });
 test("completion counts distinguish imported, manually skipped and duplicate-skipped rows", async () => {
   const f = fixture();
@@ -162,22 +157,43 @@ test("completion counts distinguish imported, manually skipped and duplicate-ski
   assert.equal(result.imported, 1); assert.equal(result.skipped, 2); assert.equal(result.duplicatesSkipped, 1);
   assert.equal(f.records.length, 1);
 });
-test("a deliberate second identical payment in one file imports as a distinct record", async () => {
+test("repeated file rows are automatically skipped without individual confirmation", async () => {
   const f = fixture();
-  const result = await f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed(), confirmed({ sourceIndex: 1, decision: "import_duplicate" })] });
-  assert.equal(result.imported, 2);
-  assert.equal(result.duplicatesImported, 1);
+  const result = await f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed({ reviewed: false }), confirmed({ sourceIndex: 1, reviewed: false })] });
+  assert.equal(result.status, "complete");
+  assert.equal(result.imported, 1);
+  assert.equal(result.skipped, 1);
+  assert.equal(result.duplicatesSkipped, 1);
+  assert.equal(f.records.length, 1);
+});
+
+test("reimporting the same file in a new batch skips all saved records", async () => {
+  const f = fixture();
+  await f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed()] });
+  const result = await f.actions.saveReviewedImport({ batchId: OTHER_USER, userId: USER, rows: [confirmed()] });
+  assert.equal(result.imported, 0);
+  assert.equal(result.duplicatesSkipped, 1);
+  assert.equal(f.records.length, 1);
+});
+
+test("existing and file duplicates are excluded while new rows import in one submission", async () => {
+  const f = fixture([{ ...row(), id: "existing", user_id: USER }]);
+  const input = { batchId: BATCH, userId: USER, rows: [confirmed(), confirmed({ sourceIndex: 1, note: "Ný færsla" }), confirmed({ sourceIndex: 2, note: "  NÝ  færsla " })] };
+  const result = await f.actions.saveReviewedImport(input);
+  assert.equal(result.imported, 1);
+  assert.equal(result.duplicatesSkipped, 2);
+  const retry = await f.actions.saveReviewedImport(input);
+  assert.equal(retry.imported, 1);
+  assert.equal(retry.newlyImported, 0);
   assert.equal(f.records.length, 2);
-  assert.notEqual(f.records[0].id, f.records[1].id);
 });
 test("switching accounts after review rejects the batch without writing it to the new account", async () => {
   const f = fixture();
   await assert.rejects(f.actions.saveReviewedImport({ batchId: BATCH, userId: OTHER_USER, rows: [confirmed()] }), /Þú hefur skipt um aðgang/);
   assert.equal(f.records.length, 0);
 });
-test("unreviewed imports and inaccessible categories cannot be written", async () => {
+test("inaccessible categories cannot be written", async () => {
   const f = fixture();
-  await assert.rejects(f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed({ reviewed: false })] }));
   await assert.rejects(f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed({ category_id: OTHER_USER })] }));
   assert.equal(f.records.length, 0);
 });
@@ -207,6 +223,24 @@ test("concurrent confirmations of the same batch both reconcile to one saved rec
   assert.deepEqual(results.map((result) => result.status), ["complete", "complete"]);
   assert.equal(results.reduce((sum, result) => sum + result.newlyImported, 0), 1);
   assert.equal(f.records.length, 1);
+});
+
+test("overlapping imports from different batches cannot create duplicate expenses", async () => {
+  const f = fixture();
+  const results = await Promise.all([
+    f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed(), confirmed({ sourceIndex: 1, note: "Only first file" })] }),
+    f.actions.saveReviewedImport({ batchId: OTHER_USER, userId: USER, rows: [confirmed(), confirmed({ sourceIndex: 1, note: "Only second file" })] })
+  ]);
+  assert.equal(f.records.length, 3);
+  assert.equal(results.reduce((sum, result) => sum + result.newlyImported, 0), 3);
+  assert.equal(results.reduce((sum, result) => sum + result.duplicatesSkipped, 0), 1);
+});
+
+test("a sustained duplicate-key conflict stops safely after bounded retries", async () => {
+  const f = fixture([], { keyConflict: true });
+  await assert.rejects(f.actions.saveReviewedImport({ batchId: BATCH, userId: USER, rows: [confirmed()] }));
+  assert.equal(f.records.length, 0);
+  assert.deepEqual(f.invalidations, []);
 });
 
 test("retry detects edited persisted rows even when moved outside the imported date range", async () => {

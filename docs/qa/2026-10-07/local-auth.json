@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-07T13:18:38.339Z",
+  "passed": 5,
+  "checks": [
+    "email recovery without browser cookies establishes a session and opens the reset form",
+    "reused recovery link redirects to a clear error without issuing another session",
+    "new signup email establishes a usable session without the initiating browser",
+    "invalid email token never opens a protected account",
+    "reset form without a session returns to password recovery"
+  ],
+  "backend": "Synthetic loopback Auth; real inbox flow still requires live templates and deployment"
+}

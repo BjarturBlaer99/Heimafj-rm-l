@@ -400,7 +400,7 @@ export function MarketOverview({
     { id: "stocks", label: "Hlutabréf", icon: ChartLineUpIcon },
     { id: "funds", label: "Sjóðir", icon: ChartPieSliceIcon },
     { id: "fx", label: "Gengi", icon: GlobeHemisphereWestIcon },
-    { id: "economy", label: "Hagkerfið", icon: BankIcon }
+    { id: "economy", label: "Efnahagsmál", icon: BankIcon }
   ];
 
   return (

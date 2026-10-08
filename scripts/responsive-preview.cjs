@@ -19,6 +19,9 @@ const user = { id: '11111111-1111-4111-8111-111111111111', aud: 'authenticated',
 const now = Math.floor(Date.now() / 1000);
 const token = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: user.id, aud: 'authenticated', role: 'authenticated', email: user.email, iat: now, exp: now + 86400 })}.dGVzdA`;
 const session = { access_token: token, refresh_token: 'synthetic-preview-refresh', token_type: 'bearer', expires_in: 86400, expires_at: now + 86400, user };
+const emailTokens = new Map([
+  ['synthetic-recovery-http', 'recovery'], ['synthetic-signup-http', 'signup'], ['synthetic-recovery-browser', 'recovery']
+]);
 const row = (values) => ({ id: randomUUID(), user_id: user.id, created_at: stamp, updated_at: stamp, ...values });
 const categories = [['Laun', 'income'], ['Matur og heimili', 'expense'], ['Samgöngur og ferðakostnaður', 'expense'], ['Áskriftir', 'expense'], ['Reikningar', 'expense'], ['Húsnæðiskostnaður', 'expense']].map(([name, type]) => row({ name, type, is_default: true }));
 const transactions = Array.from({ length: 6 }, (_, i) => {
@@ -91,6 +94,12 @@ const backend = http.createServer(async (request, response) => {
     const url = new URL(request.url, `http://127.0.0.1:${backendPort}`);
     // Only this loopback fixture exposes its fake session for browser QA.
     if (url.pathname === '/__fixture') return send(200, { session, categoryId: categories[1].id });
+    if (url.pathname === '/auth/v1/verify' && request.method === 'POST') {
+      const input = await readJson(request);
+      if (!emailTokens.has(input.token_hash) || emailTokens.get(input.token_hash) !== input.type) return send(403, { msg: 'Synthetic email token expired or invalid', error_code: 'otp_expired' });
+      emailTokens.delete(input.token_hash);
+      return send(200, session);
+    }
     if (url.pathname === '/auth/v1/token' && request.method === 'POST') {
       let body = ''; for await (const part of request) body += part;
       const data = JSON.parse(body);
@@ -112,7 +121,13 @@ const backend = http.createServer(async (request, response) => {
       if (!writable) return send(405, { message: 'Preview fixture is read only' });
       const data = await readJson(request);
       if (!data || Array.isArray(data) || typeof data !== 'object') throw fixtureError(400, 'Expected fixture controls');
-      if (Object.keys(data).some((key) => !['failNextTable', 'failNextReadTable', 'failReadTable', 'failAfterSavingsCommit', 'delayMs', 'resetMutationLog'].includes(key))) throw fixtureError(400, 'Unknown fixture control');
+      if (Object.keys(data).some((key) => !['failNextTable', 'failNextReadTable', 'failReadTable', 'failAfterSavingsCommit', 'delayMs', 'resetMutationLog', 'resetEmailTokens'].includes(key))) throw fixtureError(400, 'Unknown fixture control');
+      if (Object.hasOwn(data, 'resetEmailTokens') && typeof data.resetEmailTokens !== 'boolean') throw fixtureError(400, 'Expected a boolean');
+      if (data.resetEmailTokens) {
+        emailTokens.set('synthetic-recovery-http', 'recovery');
+        emailTokens.set('synthetic-signup-http', 'signup');
+        emailTokens.set('synthetic-recovery-browser', 'recovery');
+      }
       if (Object.hasOwn(data, 'failAfterSavingsCommit') && typeof data.failAfterSavingsCommit !== 'boolean') throw fixtureError(400, 'Expected a boolean');
       if (Object.hasOwn(data, 'failAfterSavingsCommit')) controls.failAfterSavingsCommit = data.failAfterSavingsCommit;
       if (Object.hasOwn(data, 'failReadTable') && data.failReadTable !== null && !hasTable(data.failReadTable)) throw fixtureError(400, 'Unknown persistent read failure table');
@@ -198,6 +213,9 @@ const backend = http.createServer(async (request, response) => {
               nextRows[nextRows.indexOf(existing)] = updated;
               affected.push(updated);
             } else {
+              if (table === 'transactions' && input.import_key && nextRows.some((item) => item.user_id === input.user_id && item.import_key === input.import_key)) {
+                throw fixtureError(409, 'duplicate key value violates unique constraint "transactions_user_import_key_unique"', '23505');
+              }
               const defaults = table === 'bills' ? { series_id: randomUUID(), is_active: true } : table === 'savings_goals' ? { current_amount: 0 } : {};
               const inserted = { ...row({ ...defaults, ...input }), created_at: timestamp, updated_at: timestamp };
               nextRows.push(inserted);
@@ -213,6 +231,7 @@ const backend = http.createServer(async (request, response) => {
             nextRows = nextRows.map((item) => {
               if (!selected.includes(item)) return item;
               const updated = { ...item, ...body, updated_at: timestamp };
+              if (table === 'transactions' && ['date', 'type', 'amount', 'note', 'user_id'].some((key) => updated[key] !== item[key])) updated.import_key = null;
               affected.push(updated);
               return updated;
             });

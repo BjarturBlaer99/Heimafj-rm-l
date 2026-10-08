@@ -37,9 +37,9 @@ export function SavingsPreferencesEditor({ preferences, buckets }: { preferences
   return (
     <section className={styles.panel} id="savings-preferences" aria-labelledby="savings-preferences-heading" data-scroll-reveal>
       <div className={styles.heading}>
-        <h2 id="savings-preferences-heading">Sparnaður á þinn hátt</h2>
+        <h2 id="savings-preferences-heading">Röðun og skipting sparnaðar</h2>
         <p>Raðaðu flokkunum og veldu hvað telst til húsnæðissparnaðar og sparnaðarmarkmiðsins þíns.</p>
-        <p>Áttu þegar húsnæði? Þú getur tekið hakið af séreignarsparnaði svo hann telji ekki lengur með í þessum upphæðum.</p>
+        <p>Ef séreignarsparnaðurinn er ekki ætlaður til íbúðarkaupa geturðu tekið hann úr húsnæðissparnaðinum. Hann verður áfram með í heildarsparnaði.</p>
       </div>
       <ActionForm action={saveSavingsPreferences}>
         <input type="hidden" name="preferences" value={JSON.stringify(draft)} />

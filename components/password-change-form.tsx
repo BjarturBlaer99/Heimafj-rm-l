@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef } from "react";
+import { useActionFeedback } from "@/components/action-feedback";
 import { Button, Field, inputClass } from "@/components/ui";
 import { changePasswordAction, type AuthState } from "@/lib/auth-actions";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
@@ -9,15 +10,17 @@ const initialState: AuthState = {};
 
 export function PasswordChangeForm() {
   const [state, formAction, pending] = useActionState(changePasswordAction, initialState);
+  const notify = useActionFeedback();
   const formRef = useRef<HTMLFormElement>(null);
   const allowReset = useRef(false);
 
   useEffect(() => {
     if (state.message) {
+      notify(state.message);
       allowReset.current = true;
       try { formRef.current?.reset(); } finally { allowReset.current = false; }
     }
-  }, [state]);
+  }, [state, notify]);
 
   return (
     <form ref={formRef} action={formAction} className="grid gap-4"
@@ -74,14 +77,9 @@ export function PasswordChangeForm() {
           {state.error}
         </p>
       ) : null}
-      {state.message ? (
-        <p role="status" className="rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm font-semibold text-moss">
-          {state.message}
-        </p>
-      ) : null}
 
       <Button type="submit" disabled={pending} className="sm:w-fit">
-        {pending ? "Breyti lykilorði..." : "Breyta lykilorði"}
+        {pending ? "Vista lykilorð…" : "Breyta lykilorði"}
       </Button>
     </form>
   );

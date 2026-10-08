@@ -331,7 +331,7 @@ function MortgageCalculator() {
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
           <Card className="border-accent/20 bg-accent/5 sm:col-span-2 xl:col-span-1">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-ink/55">Áætluð greiðsla</p>
+              <p className="text-sm font-semibold text-ink/55">Áætluð mánaðargreiðsla</p>
               <BankIcon size={20} className="text-accent" weight="duotone" />
             </div>
             <p className="mt-3 break-words text-2xl font-bold text-accent sm:text-3xl">{money(calculation.monthlyPayment)}</p>
@@ -347,7 +347,7 @@ function MortgageCalculator() {
           </Card>
         </div>
       </div>
-      <p className="mt-3 text-xs leading-relaxed text-ink/45">Þetta er áætlun miðað við jafnar mánaðargreiðslur og óbreytta vexti. Ekki er tekið tillit til verðtryggingar, lántökugjalda eða annars kostnaðar.</p>
+      <p className="mt-3 text-xs leading-relaxed text-ink/45">Útreikningurinn miðast við óverðtryggt jafngreiðslulán og óbreytta vexti út lánstímann. Lántökugjöld og annar kostnaður eru ekki innifalin. Þetta er áætlun, ekki lánstilboð.</p>
     </section>
   );
 }

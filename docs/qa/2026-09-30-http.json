@@ -1,0 +1,443 @@
+{
+  "timestamp": "2026-09-30T10:59:04.407Z",
+  "origin": "https://minfjarmal.vercel.app",
+  "method": "Sequential anonymous HTTP GET, three public-page rounds, no artificial throttling; headers timing includes connection setup. Full response timing does not measure browser rendering.",
+  "summary": [
+    {
+      "route": "/",
+      "successfulSamples": 3,
+      "medianHeadersMs": 57,
+      "medianTotalMs": 58,
+      "maxTotalMs": 565
+    },
+    {
+      "route": "/login",
+      "successfulSamples": 3,
+      "medianHeadersMs": 192,
+      "medianTotalMs": 195,
+      "maxTotalMs": 218
+    },
+    {
+      "route": "/signup",
+      "successfulSamples": 3,
+      "medianHeadersMs": 164,
+      "medianTotalMs": 165,
+      "maxTotalMs": 178
+    },
+    {
+      "route": "/forgot-password",
+      "successfulSamples": 3,
+      "medianHeadersMs": 162,
+      "medianTotalMs": 164,
+      "maxTotalMs": 171
+    },
+    {
+      "route": "/help",
+      "successfulSamples": 3,
+      "medianHeadersMs": 61,
+      "medianTotalMs": 62,
+      "maxTotalMs": 300
+    },
+    {
+      "route": "/privacy",
+      "successfulSamples": 3,
+      "medianHeadersMs": 165,
+      "medianTotalMs": 230,
+      "maxTotalMs": 243
+    },
+    {
+      "route": "/demo",
+      "successfulSamples": 3,
+      "medianHeadersMs": 289,
+      "medianTotalMs": 378,
+      "maxTotalMs": 1074
+    }
+  ],
+  "samples": [
+    {
+      "route": "/",
+      "round": 1,
+      "status": 200,
+      "headersMs": 560,
+      "totalMs": 565,
+      "decodedBytes": 30069,
+      "cache": "HIT",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/login",
+      "round": 1,
+      "status": 200,
+      "headersMs": 216,
+      "totalMs": 218,
+      "decodedBytes": 21973,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/signup",
+      "round": 1,
+      "status": 200,
+      "headersMs": 177,
+      "totalMs": 178,
+      "decodedBytes": 23043,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/forgot-password",
+      "round": 1,
+      "status": 200,
+      "headersMs": 170,
+      "totalMs": 171,
+      "decodedBytes": 21561,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/help",
+      "round": 1,
+      "status": 200,
+      "headersMs": 298,
+      "totalMs": 300,
+      "decodedBytes": 24723,
+      "cache": "PRERENDER",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/privacy",
+      "round": 1,
+      "status": 200,
+      "headersMs": 172,
+      "totalMs": 243,
+      "decodedBytes": 39393,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/demo",
+      "round": 1,
+      "status": 200,
+      "headersMs": 289,
+      "totalMs": 1074,
+      "decodedBytes": 80438,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/",
+      "round": 2,
+      "status": 200,
+      "headersMs": 57,
+      "totalMs": 58,
+      "decodedBytes": 30069,
+      "cache": "HIT",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/login",
+      "round": 2,
+      "status": 200,
+      "headersMs": 192,
+      "totalMs": 195,
+      "decodedBytes": 21973,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/signup",
+      "round": 2,
+      "status": 200,
+      "headersMs": 164,
+      "totalMs": 165,
+      "decodedBytes": 23043,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/forgot-password",
+      "round": 2,
+      "status": 200,
+      "headersMs": 162,
+      "totalMs": 164,
+      "decodedBytes": 21561,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/help",
+      "round": 2,
+      "status": 200,
+      "headersMs": 61,
+      "totalMs": 62,
+      "decodedBytes": 24723,
+      "cache": "HIT",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/privacy",
+      "round": 2,
+      "status": 200,
+      "headersMs": 163,
+      "totalMs": 230,
+      "decodedBytes": 39393,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/demo",
+      "round": 2,
+      "status": 200,
+      "headersMs": 306,
+      "totalMs": 378,
+      "decodedBytes": 80395,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/",
+      "round": 3,
+      "status": 200,
+      "headersMs": 55,
+      "totalMs": 56,
+      "decodedBytes": 30069,
+      "cache": "HIT",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/login",
+      "round": 3,
+      "status": 200,
+      "headersMs": 159,
+      "totalMs": 160,
+      "decodedBytes": 21973,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/signup",
+      "round": 3,
+      "status": 200,
+      "headersMs": 162,
+      "totalMs": 164,
+      "decodedBytes": 23043,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/forgot-password",
+      "round": 3,
+      "status": 200,
+      "headersMs": 161,
+      "totalMs": 162,
+      "decodedBytes": 21561,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/help",
+      "round": 3,
+      "status": 200,
+      "headersMs": 55,
+      "totalMs": 58,
+      "decodedBytes": 24723,
+      "cache": "HIT",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/privacy",
+      "round": 3,
+      "status": 200,
+      "headersMs": 165,
+      "totalMs": 167,
+      "decodedBytes": 39393,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/demo",
+      "round": 3,
+      "status": 200,
+      "headersMs": 170,
+      "totalMs": 239,
+      "decodedBytes": 80438,
+      "cache": "MISS",
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/dashboard",
+      "round": 1,
+      "status": 307,
+      "headersMs": 62,
+      "totalMs": 62,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/monthly-overview",
+      "round": 1,
+      "status": 307,
+      "headersMs": 115,
+      "totalMs": 116,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/income",
+      "round": 1,
+      "status": 307,
+      "headersMs": 87,
+      "totalMs": 87,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/expenses",
+      "round": 1,
+      "status": 307,
+      "headersMs": 167,
+      "totalMs": 167,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/transactions",
+      "round": 1,
+      "status": 307,
+      "headersMs": 55,
+      "totalMs": 56,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/bills",
+      "round": 1,
+      "status": 307,
+      "headersMs": 76,
+      "totalMs": 77,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/budgets",
+      "round": 1,
+      "status": 307,
+      "headersMs": 57,
+      "totalMs": 57,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/savings-goals",
+      "round": 1,
+      "status": 307,
+      "headersMs": 89,
+      "totalMs": 89,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/real-estate",
+      "round": 1,
+      "status": 307,
+      "headersMs": 54,
+      "totalMs": 55,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/markets",
+      "round": 1,
+      "status": 307,
+      "headersMs": 66,
+      "totalMs": 66,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/analytics",
+      "round": 1,
+      "status": 307,
+      "headersMs": 61,
+      "totalMs": 62,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/settings",
+      "round": 1,
+      "status": 307,
+      "headersMs": 60,
+      "totalMs": 60,
+      "decodedBytes": 15,
+      "cache": null,
+      "location": "/login",
+      "passed": true
+    },
+    {
+      "route": "/api/data/export?format=json",
+      "round": 1,
+      "status": 401,
+      "headersMs": 64,
+      "totalMs": 72,
+      "decodedBytes": 37,
+      "cache": null,
+      "location": null,
+      "passed": true
+    },
+    {
+      "route": "/api/data/export?format=csv",
+      "round": 1,
+      "status": 401,
+      "headersMs": 58,
+      "totalMs": 59,
+      "decodedBytes": 37,
+      "cache": null,
+      "location": null,
+      "passed": true
+    }
+  ]
+}

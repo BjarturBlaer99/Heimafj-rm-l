@@ -62,3 +62,13 @@ test('amount bounds and whole-króna fields retain validation', () => {
   assert.equal(amountInputError('0,29', '0.01', undefined, '0.01'), '');
   assert.equal(amountInputError('1.250,50', '0.01', undefined, '0.01'), '');
 });
+
+test('money rounds positive and negative half-krona amounts consistently', () => {
+  const exports = {};
+  const source = ts.transpileModule(readFileSync(join(__dirname, '../lib/format.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  new Function('exports', source)(exports);
+  assert.equal(exports.money(1250.5), '1.251\u00a0kr.');
+  assert.equal(exports.money(-1250.5), '-1.251\u00a0kr.');
+  assert.equal(exports.money(-0.1), '0\u00a0kr.');
+  assert.equal(exports.money(NaN), '—');
+});

@@ -81,7 +81,7 @@ export async function signupAction(_: AuthState, formData: FormData): Promise<Au
 
   if (!parsed.success) {
     const passwordIsInvalid = parsed.error.issues.some((issue) => issue.path[0] === "password");
-    return { error: passwordIsInvalid ? PASSWORD_REQUIREMENTS : "Sláðu inn nafnið þitt og gilt netfang." };
+    return { error: passwordIsInvalid ? PASSWORD_REQUIREMENTS : "Sláðu inn nafn eða gælunafn og gilt netfang." };
   }
 
   const supabase = await createClient();
@@ -100,7 +100,7 @@ export async function signupAction(_: AuthState, formData: FormData): Promise<Au
     };
   }
 
-  return { message: "Skoðaðu tölvupóstinn þinn og fylgdu tenglinum til að staðfesta aðganginn." };
+  return { message: "Ef nýr aðgangur var stofnaður færðu staðfestingarpóst. Ef þú ert þegar með aðgang skaltu skrá þig inn eða velja „Gleymt lykilorð?“." };
 }
 
 export async function forgotPasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {

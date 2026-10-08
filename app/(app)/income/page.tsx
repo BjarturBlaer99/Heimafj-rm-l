@@ -34,7 +34,7 @@ export default async function IncomePage({ searchParams }: { searchParams: Promi
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Tekjur" description="Skráðu tekjurnar þínar og berðu þær saman milli mánaða."
+      <PageHeader title="Tekjur" description="Skráðu laun og aðrar tekjur og fylgstu með þróun þeirra milli mánaða."
         action={<a href="#new-income" className={buttonVariants()}><Plus size={17} aria-hidden="true" />Skrá tekjur</a>} />
 
       <dl className={`${styles.summary} ${styles.incomeSummary}`} data-scroll-reveal>

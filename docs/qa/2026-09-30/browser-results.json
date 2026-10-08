@@ -1,0 +1,204 @@
+{
+  "testedDates": [
+    "2026-09-30",
+    "2026-10-01"
+  ],
+  "timings": [
+    {
+      "environment": "local-production-fixture",
+      "route": "/transactions",
+      "clickToSnapshotMs": 234
+    },
+    {
+      "environment": "local-production-fixture",
+      "route": "/monthly-overview",
+      "clickToContentMs": 482
+    },
+    {
+      "environment": "local-production-fixture",
+      "route": "/income",
+      "clickToContentMs": 1092
+    },
+    {
+      "environment": "local-production-fixture",
+      "route": "/expenses",
+      "clickToContentMs": 984
+    },
+    {
+      "environment": "local-production-fixture",
+      "route": "/bills",
+      "clickToContentMs": 1266
+    },
+    {
+      "environment": "local-production-fixture",
+      "route": "/savings-goals",
+      "clickToContentMs": 1278
+    },
+    {
+      "environment": "production",
+      "route": "/monthly-overview",
+      "activation": "keyboard",
+      "activationToContentMs": 1608
+    },
+    {
+      "environment": "production",
+      "route": "/transactions",
+      "activation": "keyboard",
+      "activationToContentMs": 1748
+    },
+    {
+      "environment": "production",
+      "route": "/expenses",
+      "activation": "keyboard",
+      "activationToContentMs": 1155
+    },
+    {
+      "environment": "production",
+      "route": "/dashboard",
+      "activation": "keyboard",
+      "activationToContentMs": 1035
+    },
+    {
+      "environment": "production",
+      "route": "/bills",
+      "activation": "keyboard",
+      "activationToContentMs": 3293,
+      "heading": "Reikningar"
+    },
+    {
+      "environment": "production",
+      "route": "/savings-goals",
+      "activation": "keyboard",
+      "activationToContentMs": 1764,
+      "heading": "Sparnaður"
+    },
+    {
+      "environment": "production",
+      "route": "/markets",
+      "activation": "keyboard",
+      "activationToContentMs": 438,
+      "heading": "Markaðir"
+    },
+    {
+      "environment": "production",
+      "route": "/real-estate",
+      "activation": "keyboard",
+      "activationToContentMs": 437,
+      "heading": "Fasteignir"
+    },
+    {
+      "environment": "production",
+      "route": "/analytics",
+      "activation": "keyboard",
+      "result": "Initial content wait exceeded browser-tool deadline; content subsequently loaded without an error."
+    },
+    {
+      "environment": "production",
+      "route": "/settings",
+      "activation": "keyboard",
+      "activationToContentMs": 1379
+    },
+    {
+      "environment": "production",
+      "route": "/analytics",
+      "activation": "keyboard",
+      "activationToContentMs": 753
+    },
+    {
+      "environment": "production",
+      "route": "/bills",
+      "activation": "keyboard",
+      "activationToContentMs": 1329
+    }
+  ],
+  "responsive": [
+    {
+      "requestedWidth": 390,
+      "route": "/transactions",
+      "overflowingControls": 0,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "requestedWidth": 390,
+      "route": "/bills",
+      "overflowingControls": 0,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "requestedWidth": 390,
+      "route": "/savings-goals",
+      "overflowingControls": 0,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "requestedWidth": 390,
+      "route": "/settings",
+      "overflowingControls": 0,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "requestedWidth": 390,
+      "route": "/expenses",
+      "overflowingControls": 0,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "requestedWidth": 390,
+      "route": "/income",
+      "overflowingControls": 0,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "requestedWidth": 320,
+      "route": "/transactions",
+      "overflowingControls": 0,
+      "scrollWidth": 305,
+      "width": 305
+    },
+    {
+      "requestedWidth": 320,
+      "route": "/bills",
+      "overflowingControls": 0,
+      "scrollWidth": 305,
+      "width": 305
+    },
+    {
+      "requestedWidth": 320,
+      "route": "/savings-goals",
+      "overflowingControls": 0,
+      "scrollWidth": 305,
+      "width": 305
+    },
+    {
+      "requestedWidth": 320,
+      "route": "/settings",
+      "overflowingControls": 0,
+      "scrollWidth": 305,
+      "width": 305
+    },
+    {
+      "requestedWidth": 320,
+      "route": "/expenses",
+      "overflowingControls": 0,
+      "scrollWidth": 305,
+      "width": 305
+    },
+    {
+      "requestedWidth": 320,
+      "route": "/income",
+      "overflowingControls": 0,
+      "scrollWidth": 305,
+      "width": 305
+    }
+  ],
+  "limitations": [
+    "Navigation timings include automation overhead and end when the main heading is available; streamed market/property data and chart rendering can finish later.",
+    "Chromium only; no physical iPhone Safari, network throttling or concurrent-user load test."
+  ]
+}

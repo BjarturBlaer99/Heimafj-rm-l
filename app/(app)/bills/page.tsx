@@ -38,7 +38,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Reikningar" description="Haltu utan um reikninga mánaðarins og merktu við það sem þú hefur greitt." action={billsResult.schemaReady ? <a href="#new-bill" className={styles.primaryLink}><Plus size={17} /> Nýr reikningur</a> : undefined} />
+      <PageHeader title="Reikningar" description="Sjáðu hvaða reikningar bíða greiðslu og tengdu greidda reikninga við færslurnar þínar." action={billsResult.schemaReady ? <a href="#new-bill" className={styles.primaryLink}><Plus size={17} /> Nýr reikningur</a> : undefined} />
       <FlashMessage code={params.success} />
 
       {!billsResult.schemaReady ? (
@@ -48,7 +48,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
           <div className={styles.metrics}>
             <MetricCard label="Ógreitt" value={money(unpaidTotal, currency)} detail={`Ógreiddir reikningar: ${unpaidBills.length}`} />
             <MetricCard label="Greitt" value={money(paidTotal, currency)} detail={`Greiddir reikningar: ${paidBills.length}`} />
-            <MetricCard label="Reikningar greiddir" value={`${paidBills.length} af ${activeBills.length}`} detail="Af virkum reikningum mánaðarins" />
+            <MetricCard label="Reikningar greiddir" value={`${paidBills.length} af ${activeBills.length}`} detail="Ógreitt af virkum reikningum mánaðarins" />
           </div>
 
           <div data-scroll-reveal="" className={styles.periodBar}>
@@ -108,7 +108,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                           <Field label="Greidd upphæð"><AmountInput className={inputClass} name="amount" min="0.01" step="0.01" defaultValue={Number(bill.amount)} required /></Field>
                           <Field label="Greiðsludagur"><DateInput name="paid_at" defaultValue={isoDate()} required /></Field>
                           <label className={`${styles.checkbox} ${styles.confirmExpense}`}><input type="checkbox" name="confirm_new_expense" required /> Ég hef ekki skráð eða flutt inn þessa greiðslu áður.</label>
-                          <Button type="submit"><CheckCircle2 size={16} /> Skrá útgjöld og merkja greitt</Button>
+                          <Button type="submit"><CheckCircle2 size={16} /> Skrá greiðslu</Button>
                         </ActionForm>
                       </section>
                     ) : null}

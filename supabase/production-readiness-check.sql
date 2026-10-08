@@ -191,4 +191,15 @@ begin
   end;
 end $$;
 
+-- Apply import-deduplication-update.sql before deploying the one-click importer.
+select 'installation' as section, 'atomic import duplicate protection' as check_name,
+       exists (select 1 from pg_index i join pg_class c on c.oid=i.indexrelid
+         where c.oid=to_regclass('public.transactions_user_import_key_unique')
+           and i.indisunique and i.indisvalid
+           and pg_get_indexdef(i.indexrelid) like '%(user_id, import_key)%')
+       and exists (select 1 from pg_constraint where conrelid=to_regclass('public.transactions')
+         and conname='transactions_import_key_format' and convalidated)
+       and exists (select 1 from pg_trigger where tgrelid=to_regclass('public.transactions')
+         and tgname='clear_changed_transaction_import_key' and tgenabled in ('O','A')) as passed;
+
 commit;

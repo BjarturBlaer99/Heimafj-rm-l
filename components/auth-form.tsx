@@ -3,6 +3,7 @@
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef } from "react";
+import { useActionFeedback } from "@/components/action-feedback";
 import { Button, Field, inputClass } from "@/components/ui";
 import { forgotPasswordAction, loginAction, resetPasswordAction, signupAction, type AuthState } from "@/lib/auth-actions";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_REQUIREMENTS } from "@/lib/password-policy";
@@ -26,13 +27,15 @@ export function AuthForm({
           : loginAction;
 
   const [state, formAction, pending] = useActionState(action, { error: initialError } satisfies AuthState);
+  const notify = useActionFeedback();
   const formRef = useRef<HTMLFormElement>(null);
   const allowReset = useRef(false);
   useEffect(() => {
     if (!state.message) return;
+    notify(state.message);
     allowReset.current = true;
     try { formRef.current?.reset(); } finally { allowReset.current = false; }
-  }, [state]);
+  }, [state, notify]);
 
   const title =
     mode === "signup"
@@ -45,7 +48,7 @@ export function AuthForm({
 
   const description =
     mode === "signup"
-      ? "Sláðu inn nafnið þitt og netfang og veldu lykilorð."
+      ? "Sláðu inn nafn eða gælunafn, netfang og lykilorð."
       : mode === "forgot"
         ? "Sláðu inn netfangið þitt. Við sendum þér tengil til að velja nýtt lykilorð."
         : mode === "reset"
@@ -111,7 +114,6 @@ export function AuthForm({
           {mode === "signup" ? <p className={styles.requirements}>Við notum upplýsingarnar til að stofna aðganginn þinn og halda utan um það sem þú skráir. Í <Link href="/privacy" className="text-accent underline underline-offset-4">persónuverndarstefnunni</Link> kemur fram hver ber ábyrgð, hvernig gögnin eru notuð og hvaða réttindi þú hefur.</p> : null}
 
           {state.error ? <p role="alert" className="rounded-md border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-medium text-coral">{state.error}</p> : null}
-          {state.message ? <p role="status" className="rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm font-medium text-moss">{state.message}</p> : null}
 
           <Button type="submit" disabled={pending} className="mt-1 min-h-12 w-full">
             {pending ? "Augnablik..." : submitLabel}

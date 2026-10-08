@@ -40,7 +40,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
     { label: "Útgjöld", value: money(data.expenses, currency), detail: monthLabel(month), href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, tone: "coral" as const },
     { label: "Stærsti flokkur", value: topExpenseCategory?.name ?? "Enginn", detail: topExpenseCategory ? money(topExpenseCategory.value, currency) : "Engin útgjöld", href: "/expenses", icon: ReceiptText, tone: "gold" as const },
     { label: "Meðalútgjöld á dag", value: money(averageDailyExpense, currency), detail: `Miðað við ${daysInMonth(month)} daga`, href: `/transactions?month=${month}&type=expense`, icon: TrendingDown, tone: "coral" as const },
-    { label: "Afkoma mánaðarins", value: money(data.savings, currency), detail: data.savings >= 0 ? "Mánuðurinn er í plús" : "Mánuðurinn er í mínus", href: `/transactions?month=${month}`, icon: PiggyBank, tone: data.savings > 0 ? "moss" as const : data.savings < 0 ? "coral" as const : "neutral" as const }
+    { label: "Afkoma mánaðarins", value: money(data.savings, currency), detail: data.savings > 0 ? "Tekjur umfram útgjöld" : data.savings < 0 ? "Útgjöld umfram tekjur" : "Tekjur og útgjöld í jafnvægi", href: `/transactions?month=${month}`, icon: PiggyBank, tone: data.savings > 0 ? "moss" as const : data.savings < 0 ? "coral" as const : "neutral" as const }
   ];
 
   return (

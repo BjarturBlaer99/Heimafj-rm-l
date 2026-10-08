@@ -1,0 +1,105 @@
+{
+  "navigation": [
+    {
+      "path": "/monthly-overview",
+      "elapsedMs": 478,
+      "heading": "Mánaðaryfirlit",
+      "alerts": [
+        "",
+        ""
+      ]
+    },
+    {
+      "path": "/income",
+      "elapsedMs": 459,
+      "heading": "Tekjur",
+      "alerts": [
+        "",
+        ""
+      ]
+    },
+    {
+      "path": "/expenses",
+      "elapsedMs": 450,
+      "heading": "Útgjöld",
+      "alerts": [
+        "",
+        "Mín fjármál"
+      ]
+    },
+    {
+      "path": "/bills",
+      "elapsedMs": 140,
+      "heading": "Reikningar",
+      "alerts": [
+        "",
+        "Mín fjármál"
+      ]
+    },
+    {
+      "path": "/analytics",
+      "elapsedMs": 174,
+      "heading": "Greining",
+      "alerts": [
+        "",
+        "Mín fjármál"
+      ]
+    },
+    {
+      "path": "/markets",
+      "elapsedMs": 117,
+      "heading": "Markaðir",
+      "alerts": [
+        "",
+        "Markaðir | Mín fjármál"
+      ]
+    },
+    {
+      "path": "/real-estate",
+      "elapsedMs": 205,
+      "heading": "Fasteignir",
+      "alerts": [
+        "",
+        "Fasteignir | Mín fjármál"
+      ]
+    }
+  ],
+  "mobile": [
+    {
+      "path": "/expenses",
+      "outsideControls": [],
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "path": "/income",
+      "outsideControls": [],
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "path": "/bills",
+      "outsideControls": [],
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "path": "/savings-goals",
+      "outsideControls": [],
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "path": "/settings",
+      "outsideControls": [],
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "path": "/transactions",
+      "outsideControls": [],
+      "scrollWidth": 375,
+      "width": 375
+    }
+  ]
+}

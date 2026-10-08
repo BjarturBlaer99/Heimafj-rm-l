@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-07T12:55:19.445Z",
+  "passed": 5,
+  "checks": [
+    "JSON download includes the synthetic account and all ten data tables",
+    "CSV attachment contains the same transaction count and preserved Icelandic text",
+    "unsupported export format returns 400 without a downloadable file",
+    "a partial backend read failure prevents misleading partial downloads",
+    "anonymous export does not return account data"
+  ],
+  "transactionCount": 36,
+  "account": "synthetic preview only"
+}
