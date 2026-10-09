@@ -96,7 +96,7 @@ function Overview({ onNavigate, marketContent }: { onNavigate: (view: DemoView, 
     if (path === "/markets") { onNavigate("markets"); return; }
     onNavigate("analytics");
   }
-  return <DashboardOverview data={demoDashboardData} month={demoMonth} today="2026-06-18" onNavigate={followDashboardLink} marketContent={marketContent} />;
+  return <DashboardOverview data={demoDashboardData} month={demoMonth} today="2026-06-18" title="Sýnigögn" onNavigate={followDashboardLink} marketContent={marketContent} />;
 }
 
 function Transactions({ initialHref }: { initialHref?: string }) {

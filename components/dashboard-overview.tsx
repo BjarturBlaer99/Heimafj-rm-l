@@ -30,10 +30,11 @@ function DashboardLink({ href, onNavigate, children, ...props }: Omit<ComponentP
   return <Link href={href} {...props}>{children}</Link>;
 }
 
-export function DashboardOverview({ data, month, today, onNavigate, marketContent, setupContent }: {
+export function DashboardOverview({ data, month, today, title, onNavigate, marketContent, setupContent }: {
   data: DashboardOverviewData;
   month: string;
   today: string;
+  title?: string;
   onNavigate?: (href: string) => void;
   marketContent?: ReactNode;
   setupContent?: ReactNode;
@@ -61,7 +62,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
       <header data-scroll-reveal="" className={styles.header}>
         <div>
           <p className={styles.eyebrow}>Yfirlit <span aria-hidden="true">/</span> {monthName}</p>
-          <h1>Góðan daginn{name ? `, ${name}` : ""}.</h1>
+          <h1>{title ?? `Góðan daginn${name ? `, ${name}` : ""}.`}</h1>
           <p className={styles.intro}>Yfirlit yfir skráðar tekjur, útgjöld og reikninga mánaðarins.</p>
         </div>
         <DashboardLink onNavigate={onNavigate} className={styles.primaryAction} href="/transactions#new-transaction"><PlusIcon size={18} aria-hidden="true" />Ný færsla</DashboardLink>
