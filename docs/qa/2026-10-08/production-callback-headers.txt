@@ -1,0 +1,17 @@
+HTTP/1.1 307 Temporary Redirect
+Age: 0
+Cache-Control: private, no-store, max-age=0
+Content-Length: 0
+Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; img-src 'self' data: blob: https://*.tradingview.com; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-src 'self' https://s.tradingview.com https://www.tradingview.com https://*.tradingview.com https://www.tradingview-widget.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.tradingview.com wss://*.tradingview.com
+Date: Thu, 08 Oct 2026 14:56:24 GMT
+Location: https://minfjarmal.vercel.app/login?error=invalid_auth_link
+Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+Referrer-Policy: no-referrer
+Server: Vercel
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Matched-Path: /auth/callback
+X-Vercel-Cache: MISS
+X-Vercel-Id: dub1::iad1::mmtbn-1791471383971-b391cd8eb546
+

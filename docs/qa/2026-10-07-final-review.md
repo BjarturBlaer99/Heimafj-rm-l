@@ -1,6 +1,18 @@
 # Lokayfirferð 7. október 2026
 
-Breytingarnar eru staðbundnar og hafa ekki verið birtar í production. Prófað var með tilbúnum gögnum á production-smíð vefsins, með staðbundinni eftirlíkingu af Supabase og raunverulegum tímabundnum PostgreSQL. Engum fjármálagögnum raunverulegra notenda var breytt. Nýskráning og sending endurstillingarpósts voru einnig prófuð á production með netfangi sem eigandinn valdi.
+Breytingarnar voru birtar í production 8. október 2026 eftir samþykki eigandans. Póstsniðin eru vistuð og ný endurstillingarbeiðni staðfest í vefviðmótinu 9. október. Eigandinn staðfesti sama dag að nýja lykilorðið virki og yfirlitið opnist. Prófað var með tilbúnum gögnum á production-smíð vefsins, með staðbundinni eftirlíkingu af Supabase og raunverulegum tímabundnum PostgreSQL. Engum fjármálagögnum raunverulegra notenda var breytt. Nýskráning og sending endurstillingarpósts voru einnig prófuð á production með netfangi sem eigandinn valdi.
+
+## Production-útgáfa, uppfært 9. október
+
+- Git-útgáfa: `f8ba601a472f515c4def9cb46812d063e287640a`, á grein `codex/web-release-2026-09-18`, send á GitHub.
+- Gagnagrunnsuppfærslan `supabase/import-deduplication-update.sql` var keyrð á production-verkefninu `gtgqxgddlqcvspegvxzt` áður en vefurinn var birtur. Fyrir og eftir voru 742 færslur; einkvæmi vísirinn og uppfærslukveikjan voru virk. Engum færslum var eytt eða endurskrifuð gögn þeirra.
+- Vercel smíðaði nýja útgáfu með production-stillingum. Útgáfan `dpl_82Z5PBjhgTZSzUyfFHhEKDwB3Hit` sýndi Ready og fékk lénið [minfjarmal.vercel.app](https://minfjarmal.vercel.app/). Staðbundna prófunarsmíðin var ekki notuð.
+- Allar 35 óinnskráðar HTTP-athuganir stóðust eftir birtingu, þar á meðal aðgangsvörn tólf einkasíðna og CSV-/JSON-útflutnings. Miðgildi afhendingartíma opinberra síðna var 62–280 ms í þremur mælingum á síðu; þetta er ekki mæling á birtingarhraða í vafra eða álagshraða.
+- Ógildur endurstillingarlykill á production gaf 307 á `/login?error=invalid_auth_link`, engan aðgangskökusvarhaus, `Cache-Control: private, no-store, max-age=0` og `Referrer-Policy: no-referrer`.
+- Endurstillingar- og staðfestingarpóstsniðin voru vistuð í Supabase með íslenskum titlum og einnota tenglum á production-síðuna. Vistun var staðfest með óvirkum Save changes-hnappi og engum óvistuðum breytingum.
+- Nýr endurstillingarpóstur var pantaður 9. október á prófunarnetfangið sem eigandinn samþykkti. Vefurinn sýndi staðfestingu efst. Aðstoðarmaðurinn sló ekki inn eða vistaði nýtt lykilorð.
+- Eigandinn lauk raunverulegu póstprófi 9. október og svaraði: „Nýja lykilorðið virkar og yfirlitið opnast“. Endurstillingarferlið telst því staðfest á production. Hvort hann notaði annan vafra eða tæki var ekki sérstaklega staðfest.
+- Farsímaappið var ekki tekið með í Git-útgáfuna. Prófunarskýrslur og myndir eru útilokaðar úr Vercel-upphleðslum.
 
 ## Breytingar
 
@@ -11,8 +23,8 @@ Breytingarnar eru staðbundnar og hafa ekki verið birtar í production. Prófa�
 - Staðfestingarskilaboð birtast efst og miðjuð á öllum skjástærðum, líka eftir innflutning, niðurhal og breytingar á aðgangi. Skjálesarastuðningur, lokunarhnappur og hlé á tímamæli við fókus eru varðveitt.
 - Mánuðir án heildaráætlunar sýna nú „Engin áætlun“ og strik í samanburðardálkum. Þeir eru ekki merktir yfir áætlun.
 - Jákvæðar og neikvæðar hálfar krónur námundast nú með sama hætti. Vistuðum upphæðum er ekki breytt.
-- Samtímis innflutningur úr ólíkum lotum var endurtekinn og villa staðfest: tvær lotur gátu vistað sömu færslu. Nýr einkvæmur samanburðarlykill í gagnagrunninum kemur í veg fyrir það; þjónninn endurtekur samanburð eftir árekstur og flytur inn þær nýju færslur sem eftir standa. Handvirkar eins færslur eru enn leyfðar og breyting á innfluttri færslu losar eldri lykilinn. Gagnagrunnsuppfærslan er tilbúin en ekki keyrð í production.
-- Móttaka pósttengla styður nú einnota tölvupóstslykla án þess að þurfa gögn úr upprunalega vafranum. Endurstilling fer alltaf á rétt eyðublað; ógildir og notaðir lyklar gefa villu. Fyrri tenglar eru áfram studdir. Ný póstsnið fylgja verkefninu en hafa ekki verið vistuð í Supabase.
+- Samtímis innflutningur úr ólíkum lotum var endurtekinn og villa staðfest: tvær lotur gátu vistað sömu færslu. Nýr einkvæmur samanburðarlykill í gagnagrunninum kemur í veg fyrir það; þjónninn endurtekur samanburð eftir árekstur og flytur inn þær nýju færslur sem eftir standa. Handvirkar eins færslur eru enn leyfðar og breyting á innfluttri færslu losar eldri lykilinn. Gagnagrunnsuppfærslan er virk í production.
+- Móttaka pósttengla styður nú einnota tölvupóstslykla án þess að þurfa gögn úr upprunalega vafranum. Samþættingarprófin staðfesta að endurstilling fari á rétt eyðublað og að ógildir og notaðir lyklar gefi villu. Fyrri tenglar eru áfram studdir. Ný póstsnið fylgja verkefninu og hafa verið vistuð í Supabase.
 - Nýskráningarskilaboðin skýra að fólk með fyrirliggjandi aðgang geti skráð sig inn eða endurstillt lykilorð. Þau lofa ekki lengur nýjum staðfestingarpósti fyrir aðgang sem hefur þegar verið staðfestur.
 
 ## Sjálfvirkar prófanir
@@ -53,9 +65,9 @@ Prófanir á innflutningi ná meðal annars yfir 1.000 færslur, rangar dagsetni
 
 Eigandinn valdi prófunarnetfang og reyndi nýskráningu. Enginn nýr staðfestingarpóstur kom. Lesathugun í Supabase sýndi að þetta var eldri aðgangur sem hafði þegar verið staðfestur 9. maí 2026; tilraunin prófaði því endurtekna skráningu en ekki stofnun nýs aðgangs.
 
-Endurstillingarpóstur var pantaður í gegnum production-vefinn. Supabase skráði `/recover` með 200-svari og eigandinn staðfesti móttöku. Tengillinn opnaði hins vegar innskráningu í stað endurstillingar. Núverandi snið notar `ConfirmationURL` og vefurinn aðeins PKCE-kóðaskipti, sem krefjast upprunalega vafrans. Þetta er samrýmanlegt lýstri bilun; nákvæm villuskrá úr vafra eigandans var ekki tiltæk.
+Endurstillingarpóstur var pantaður í gegnum eldri production-útgáfuna. Supabase skráði `/recover` með 200-svari og eigandinn staðfesti móttöku. Tengillinn opnaði hins vegar innskráningu í stað endurstillingar. Sniðið notaði þá `ConfirmationURL` og vefurinn aðeins PKCE-kóðaskipti, sem krefjast upprunalega vafrans. Þetta er samrýmanlegt lýstri bilun; nákvæm villuskrá úr vafra eigandans var ekki tiltæk.
 
-Nýi kóðinn og póstsniðin leysa þessa takmörkun með staðfestingu einnota póstlykils. Fimm samþættingarpróf staðfesta ferlið með tilbúnum Auth-bakenda, þar á meðal nýskráningu, endurstillingu, endurnotkun tengils, ógildan lykil og aðgang að endurstillingarsíðu án innskráningar. Raunverulegt endurpróf á Supabase verður að fara fram eftir útgáfu og uppfærslu póstsniðanna. Almennar öryggisstillingar voru einnig leiðréttar svo tilvísunarhausar af auðkenningarslóðum beri ekki með sér póstlykla.
+Nýi kóðinn og póstsniðin leysa þessa takmörkun með staðfestingu einnota póstlykils. Fimm samþættingarpróf staðfesta ferlið með tilbúnum Auth-bakenda, þar á meðal nýskráningu, endurstillingu, endurnotkun tengils, ógildan lykil og aðgang að endurstillingarsíðu án innskráningar. Raunverulegt endurpróf á Supabase tókst eftir útgáfu og uppfærslu póstsniðanna: eigandinn staðfesti 9. október að nýja lykilorðið virkaði og yfirlitið opnaðist. Almennar öryggisstillingar voru einnig leiðréttar svo tilvísunarhausar af auðkenningarslóðum beri ekki með sér póstlykla.
 
 ## Hraði og takmörk mælinga
 
@@ -67,7 +79,7 @@ Staðbundin síðuskipti tóku um 0,12–0,48 sekúndur að aðalfyrirsögn. Þe
 
 - Raunverulegur iPhone/Safari og Android, snertiskrun og innbyggðir dagsetningarvalgluggar.
 - Nýr production-aðgangur með staðfestingarpósti. Netfangið sem var prófað var þegar skráð; annar prófunaraðgangur var ekki stofnaður.
-- Endurpróf á raunverulegum endurstillingarpósti eftir að nýi callback-kóðinn og póstsniðin hafa verið birt. Sending og móttaka stóðust, en núverandi production-ferli brást við opnun tengilsins.
+- Raunverulegt póstpróf í öðrum vafra eða tæki og endurnotkun sama tengils. Heildarendursetning og aðgangur að yfirliti voru staðfest af eigandanum; vafra-/tækjaskipti voru ekki sérstaklega staðfest. Tilbúnu samþættingarprófin ná yfir tengil án fyrirliggjandi vafraköku og endurnotkun hans.
 - Álagspróf alls vefsins með mörgum samtímis notendum, raunverulegum netaðstæðum og Core Web Vitals. Samtímis gagnagrunnsinnflutningur er prófaður, en er ekki slíkt álagspróf.
 - Staðbundin vafraprófun notar eftirlíkingu af Auth/REST, ekki raunverulegt Supabase staging-verkefni. PostgreSQL-prófin keyra hins vegar raunverulegar gagnagrunnsreglur.
 
@@ -83,9 +95,15 @@ Staðbundin síðuskipti tóku um 0,12–0,48 sekúndur að aðalfyrirsögn. Þe
 - [Útflutningspróf](2026-10-07/local-exports.json)
 - [Innflutningur eftir lagfæringu](2026-10-07/final-import-success.jpg)
 - [Rétt endurstillingarsíða á local](2026-10-07/reset-link-fixed-local.jpg)
+- [Production-athuganir eftir birtingu](2026-10-08/production-http.json)
+- [Öryggissvör nýja pósttengilsins](2026-10-08/production-callback-headers.txt)
+- [Gagnagrunnsuppfærsla](2026-10-08/production-migration.jpg)
+- [Tilbúin production-útgáfa](2026-10-08/production-ready.jpg)
+- [Vistað staðfestingarpóstsnið](2026-10-09/signup-template.jpg)
+- [Staðfesting nýrrar endurstillingarbeiðni](2026-10-09/recovery-request.jpg)
 
 ## Útgáfuröð
 
-Áður en nýi innflutningskóðinn er birtur þarf að keyra `supabase/import-deduplication-update.sql`. Síðan skal birta vefinn og loks setja ný póstsnið í Supabase samkvæmt [útgáfuleiðbeiningunum](../../supabase/email-templates/README.md). Ekki uppfæra póstsnið á undan vefkóðanum: eldri vefurinn skilur ekki nýju tenglana. Engin þessara production-breytinga hefur verið framkvæmd í þessari prófunarlotu.
+Útgáfuröðinni var fylgt: fyrst `supabase/import-deduplication-update.sql`, síðan ný production-smíð í Vercel og loks póstsniðin í Supabase samkvæmt [útgáfuleiðbeiningunum](../../supabase/email-templates/README.md). Ekki má síðar rúlla vefnum aftur á útgáfu án stuðnings við nýju tenglana án þess að samræma póstsniðin; þegar sendir nýir tenglar þurfa áfram nýja móttökukóðann.
 
-Staðbundna .next-smíðin notar tilbúinn loopback-bakenda fyrir prófun. Við útgáfu skal láta Vercel smíða verkefnið með production-stillingum þess, ekki senda þessa staðbundnu prebuilt-smíð.
+Staðbundna .next-smíðin notar tilbúinn loopback-bakenda fyrir prófun. Vercel smíðaði verkefnið sérstaklega með production-stillingum þess.
