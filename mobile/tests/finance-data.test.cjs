@@ -77,7 +77,11 @@ class Query {
       }
     } else if (this.op === 'update') rows.forEach((row) => Object.assign(row, this.payload));
     else if (this.op === 'delete') {
-      if (this.table === 'transactions') tables.bill_payments.forEach((payment) => { if (rows.some((row) => row.id === payment.transaction_id)) payment.transaction_id = null; });
+      // Mirrors protect_linked_bill_expense (supabase/bill-payment-integrity-update.sql):
+      // a linked expense cannot be deleted until its bill payment is removed.
+      if (this.table === 'transactions' && tables.bill_payments.some((payment) => rows.some((row) => row.id === payment.transaction_id))) {
+        return { data: null, error: { code: 'P0001', message: 'Unlink the bill payment before deleting this expense.' } };
+      }
       if (this.table === 'savings_contributions') rows.forEach((row) => { tables.savings_goals.find((goal) => goal.id === row.savings_goal_id).current_amount -= row.amount; });
       tables[this.table] = tables[this.table].filter((row) => !rows.includes(row));
     }
@@ -218,6 +222,47 @@ test('linked expenses cannot be edited/deleted directly and undo removes their p
   await actions.deleteBillPayment(userId, tables.bill_payments[0]);
   assert.equal(tables.transactions.length, 0);
   assert.equal(tables.bill_payments.length, 0);
+});
+
+test('undo keeps an existing expense that was linked to the bill on the website', async () => {
+  reset();
+  const imported = { id: crypto.randomUUID(), user_id: userId, category_id: categoryId, amount: 1250, type: 'expense', date: `${month}-05`, note: 'Imported bank row', created_at: '2026-01-01T00:00:00Z' };
+  tables.transactions.push(imported);
+  const payment = { id: crypto.randomUUID(), user_id: userId, bill_id: billId, transaction_id: imported.id, month: `${month}-01`, amount: 1250, paid_at: imported.date };
+  tables.bill_payments.push(payment);
+  await actions.deleteBillPayment(userId, payment);
+  assert.equal(tables.bill_payments.length, 0);
+  assert.deepEqual(tables.transactions.map((row) => row.id), [imported.id]);
+});
+
+test('an interrupted undo leaves an unlinked expense with clear guidance, then a retry finishes cleanly', async () => {
+  reset();
+  await actions.markBillPaid(userId, tables.bills[0]);
+  const payment = { ...tables.bill_payments[0] };
+  failures.push({ table: 'transactions', op: 'delete', when: 'before', code: '08006' });
+  await assert.rejects(actions.deleteBillPayment(userId, payment), /enn skráð\. Eyddu henni undir Færslur/);
+  assert.equal(tables.bill_payments.length, 0);
+  assert.equal(tables.transactions.length, 1);
+  await actions.deleteBillPayment(userId, payment);
+  assert.equal(tables.transactions.length, 0);
+});
+
+test('a stale undo does not touch a bill that was paid again elsewhere', async () => {
+  reset();
+  await actions.markBillPaid(userId, tables.bills[0]);
+  const stale = { ...tables.bill_payments[0], id: crypto.randomUUID() };
+  await actions.deleteBillPayment(userId, stale);
+  assert.equal(tables.bill_payments.length, 1);
+  assert.equal(tables.transactions.length, 1);
+});
+
+test('a failed payment removal reports an error and deletes nothing', async () => {
+  reset();
+  await actions.markBillPaid(userId, tables.bills[0]);
+  failures.push({ table: 'bill_payments', op: 'delete', when: 'before', code: '08006' });
+  await assert.rejects(actions.deleteBillPayment(userId, tables.bill_payments[0]), /Ekki tókst að afturkalla greiðsluna/);
+  assert.equal(tables.bill_payments.length, 1);
+  assert.equal(tables.transactions.length, 1);
 });
 
 test('contribution retry applies the database trigger once and goal edits preserve concurrent balance', async () => {

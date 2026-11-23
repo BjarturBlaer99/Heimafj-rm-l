@@ -12,7 +12,7 @@ This handoff combines the conversation available in this workspace, inspected so
 | Production URL | Historically verified `https://minfjarmal.vercel.app/`. |
 | Local Git / GitHub | `codex/ios-app-handoff`, based on `cca0eec`; native source commit `1963654` pushed 23 November. Documentation follows on the same branch. Not merged into `main`. |
 | Working tree | Native source is now tracked on the handoff branch. Other web changes and local QA artifacts remain outside the native commit. Ignored credentials/generated files must be recreated or transferred securely. |
-| iPhone app | SDK 58 upgrade implemented. User confirms it no longer closes, but encountered Unmatched Route. A reproduced routing defect has been fixed locally; **phone retest of that fix is still outstanding**. |
+| iPhone app | SDK 58 upgrade implemented. User confirms it no longer closes, but encountered Unmatched Route. The routing fix is now also verified in a browser run of the app (the old redirect reproduces Unmatched Route; the fix lands on sign-in). Native bill-payment undo was fixed on 23 November (Claude continuation). **No phone retest yet.** |
 | Public signup | User explicitly requested opening it despite unfinished privacy work; user confirmed signup worked on 9 October. Current live switches not checked today. |
 | Privacy/public readiness | Incomplete operational work. No compliance certification, verified comprehensive load test, or complete real-device acceptance. |
 | Domain | User wants `minfjarmal.is`; purchase/domain move was deferred. No evidence of purchase or DNS setup. |
@@ -206,6 +206,7 @@ The owner asked about buying `minfjarmal.is`, then deferred it. No registrar, ow
 | Last native routing change | 33/33 tests; pre-fix reproduction and post-fix passes | Phone route fix still awaiting owner retest |
 | 19 November handoff check | Native typecheck and lint rerun successfully against the current routing-fix source; both document link checks pass | No fresh web suite, device run, live configuration check or deployment was performed |
 | 23 November GitHub handoff | Native 33/33 tests, typecheck and lint passed; candidate source scanned for common credential patterns and ignored private/generated paths checked | No fresh iOS export, phone retest, database write or production release; pending native acceptance remains pending |
+| 23 November Claude continuation | 37/37 native tests, typecheck, lint, Doctor 19/20 (network-blocked check), iOS export; 10/10 web-build acceptance against a synthetic backend; root SQL suites 33/11/12 on embedded PostgreSQL 17.10. See [mobile/docs/qa/2026-11-23-claude-continuation.md](mobile/docs/qa/2026-11-23-claude-continuation.md) | iPhone/Expo Go, SecureStore, the native picker or share sheet; development Supabase was unreachable, so no real-project write was made |
 
 October QA used an optimized Next build against an isolated synthetic Auth/REST fixture for financial writes. Separate PostgreSQL tests executed actual SQL/RLS/triggers with represented Supabase Auth claims. Anonymous production checks and some authorized signed-in read-only navigation were done separately. Do not describe fixture writes as real Supabase staging tests.
 

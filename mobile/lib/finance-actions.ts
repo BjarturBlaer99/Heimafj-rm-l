@@ -177,11 +177,23 @@ export async function deleteBillPayment(userId: string, payment: BillPayment): P
   await billOperation(userId, payment.bill_id, 'unpay', async () => {
     const result = await supabase.from('bill_payments').select('id,transaction_id').eq('user_id', userId).eq('id', payment.id).maybeSingle();
     checked(result);
-    if (!result.data) { emitFinanceChange(); return; }
-    if (result.data.transaction_id) checked(await supabase.from('transactions').delete().eq('user_id', userId).eq('id', result.data.transaction_id));
-    const removed = await supabase.from('bill_payments').delete().eq('user_id', userId).eq('id', payment.id);
+    if (result.data) {
+      // The database refuses to delete an expense while a payment links it,
+      // so the payment is removed first.
+      const removed = await supabase.from('bill_payments').delete().eq('user_id', userId).eq('id', payment.id);
+      if (removed.error) throw financeError(removed.error, 'Ekki tókst að afturkalla greiðsluna. Reyndu aftur.');
+    } else if (await paymentForBill(userId, payment.bill_id)) {
+      // The bill was paid again elsewhere; this screen was out of date.
+      emitFinanceChange();
+      return;
+    }
+    // Only the expense this app generated for the payment is removed. An
+    // existing expense linked on the website (e.g. imported from a bank file)
+    // is kept, matching the website's unlink behaviour. Retrying after an
+    // interrupted undo also lands here and finishes the cleanup.
+    const cleanup = await supabase.from('transactions').delete().eq('user_id', userId).eq('id', await billTransactionId(userId, payment.bill_id));
     emitFinanceChange();
-    if (removed.error) throw new Error('Ekki tókst að ljúka afturköllun. Reyndu aftur til að uppfæra greiðslustöðuna.');
+    if (cleanup.error) throw new Error('Greiðslan var afturkölluð en útgjaldafærsla hennar er enn skráð. Eyddu henni undir Færslur ef hún á ekki að standa.');
   });
 }
 

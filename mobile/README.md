@@ -1,6 +1,6 @@
 # Mín fjármál — mobile
 
-Native finance app built with Expo SDK 58, React Native, Expo Router, TypeScript and Supabase. This is an Expo Go testing milestone. After the SDK 58 upgrade the user reported that the app stayed open but showed Unmatched Route. Explicit protected-route destinations and the auth anchor have since been fixed locally; a physical iPhone retest is pending. On 23 November, all 33 tests, typecheck and lint passed. The earlier Doctor and iOS export results predate the final routing fix. Contribution and native export acceptance checks remain pending.
+Native finance app built with Expo SDK 58, React Native, Expo Router, TypeScript and Supabase. This is an Expo Go testing milestone. After the SDK 58 upgrade the user reported that the app stayed open but showed Unmatched Route. Explicit protected-route destinations and the auth anchor have since been fixed locally; a physical iPhone retest is pending. On 23 November (Claude continuation) 37 unit tests, typecheck, lint, Expo Doctor (19/20; the remaining check needs a blocked network host) and an iOS Hermes export passed, and a 10-step browser acceptance run of the app's web build passed against a synthetic backend. That run reproduces the old Unmatched Route with the previous redirect and passes with the fix. Native undo of a bill payment was fixed (see [the continuation note](docs/qa/2026-11-23-claude-continuation.md)). **No iPhone has run this version yet:** startup, sign-in, cold restart, the 1,000 kr. contribution and export to Files still need a device check.
 
 ## GitHub handoff — 23 November 2026
 
@@ -72,9 +72,12 @@ minfjarmal://reset-password
 npm run lint
 npm run typecheck
 npm test
+npm run test:web-acceptance
 npx expo export --platform ios --output-dir dist-ios
 node scripts/check-dev-backend.cjs
 ```
+
+`npm run test:web-acceptance` exports the web build against an in-memory fake Supabase with synthetic data and drives it with Playwright (Playwright and Chromium must be installed). It checks startup routing, sign-in, session restore after reload, a 1,000 kr. bucket contribution with a lost-response retry, bill pay/undo under the database's linked-expense rule, JSON export and sign-out. It never reads `.env.local` or contacts a real project. It is not a device test: the web build uses browser storage instead of SecureStore and a text date field instead of the native picker.
 
 The current auth/finance/readiness/routing suites cover validation, retries, account ownership, preferences, complete exports, encrypted storage migration, malformed links and protected-route fallbacks. See [the GitHub handoff check](docs/qa/2026-11-23-github-handoff.md) and [../HANDOFF.md](../HANDOFF.md) for latest status; `docs/qa/2026-11-09.md` is historical. The backend check makes read-only `select=id&limit=0` requests to ten tables. This confirms endpoint/schema availability; it does not exercise authenticated writes.
 
@@ -98,6 +101,6 @@ Also verify savings ordering and housing selections after a cold restart, a sing
 
 SDK 58's Router no longer uses `query-string`, so the `decode-uri-component` dependency and override have been removed. The historical compatibility copy and its MIT license remain in `vendor/` for reference but are not installed. The regression test now exercises the installed Router's parser with Icelandic text and malformed percent escapes.
 
-Bill payment and expense writes are recoverable across retries, but span multiple requests. Fully atomic behavior across devices requires a future database transaction/RPC.
+Bill payment and expense writes are recoverable across retries, but span multiple requests. Fully atomic behavior across devices requires a future database transaction/RPC. Undo removes the payment first (the database rejects deleting a still-linked expense) and then deletes only the expense the app generated for that bill; an existing expense linked on the website is kept, as on the website.
 
 No signed iOS build, TestFlight distribution or App Store release has been produced. The Windows workflow currently prepares the JavaScript bundle and serves Expo Go; it does not build a local native iOS binary.
