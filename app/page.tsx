@@ -6,13 +6,13 @@ import styles from "./home.module.css";
 
 export const metadata: Metadata = {
   title: "Mín fjármál | Yfirsýn yfir fjármálin þín",
-  description: "Haltu utan um tekjur, útgjöld, reikninga og sparnað. Skráðu færslur beint á síðuna eða flyttu inn útgjöld úr CSV- eða Excel-skrá."
+  description: "Haltu utan um tekjur, útgjöld, reikninga og sparnað. Skráðu færslur eða flyttu inn útgjöld úr CSV- eða Excel-skrá."
 };
 
 const features = [
-  { number: "01", title: "Sjáðu í hvað peningarnir fara.", label: "Færslur", description: "Skráðu tekjur og útgjöld eða flyttu inn útgjöld úr CSV- eða Excel-skrá. Skoðaðu síðan færslurnar eftir dagsetningu eða flokki." },
-  { number: "02", title: "Fylgstu með næstu reikningum.", label: "Reikningar", description: "Haltu utan um reikninga mánaðarins, skráðu greiðslur og sjáðu hvað er eftir að greiða." },
-  { number: "03", title: "Settu þér markmið með sparnaðinum.", label: "Sparnaður", description: "Settu þér sparnaðarmarkmið og sjáðu hvað vantar upp á. Skráðu það sem þú leggur til hliðar og fylgstu með stöðunni." }
+  { number: "01", title: "Sjáðu í hvað peningarnir fara.", label: "Færslur", description: "Skráðu færslur eða flyttu inn útgjöld úr CSV- eða Excel-skrá og skoðaðu þær eftir dagsetningu eða flokki." },
+  { number: "02", title: "Fylgstu með næstu reikningum.", label: "Reikningar", description: "Skráðu greiðslur og sjáðu hvað er eftir að greiða í mánuðinum." },
+  { number: "03", title: "Settu þér sparnaðarmarkmið.", label: "Sparnaður", description: "Skráðu það sem þú leggur til hliðar og sjáðu hvað vantar upp á." }
 ];
 
 export default function HomePage() {
@@ -32,12 +32,12 @@ export default function HomePage() {
           <div data-scroll-reveal="" className={styles.heroCopy}>
             <p className={styles.eyebrow}>Persónuleg fjármál á íslensku</p>
             <h1 id="home-title">Hafðu yfirsýn<br /><em>yfir fjármálin þín.</em></h1>
-            <p className={styles.intro}>Fáðu yfirlit yfir tekjur og útgjöld, næstu reikninga og sparnaðinn þinn.</p>
+            <p className={styles.intro}>Tekjur, útgjöld, reikningar og sparnaður á einum stað.</p>
             <div className={styles.heroActions}>
               <Link href="/signup" className={`${styles.primary} focus-ring`}>Stofna aðgang <ArrowRightIcon size={18} aria-hidden="true" /></Link>
               <Link href="/demo" className={`${styles.textLink} focus-ring`}>Skoða sýnigögn <ArrowRightIcon size={17} aria-hidden="true" /></Link>
             </div>
-            <p className={styles.tryNote}>Þú skráir færslurnar eða flytur þær inn úr skrá. Allar upphæðir eru í krónum.</p>
+            <p className={styles.tryNote}>Þú skráir færslur eða flytur þær inn úr skrá. Allt í krónum.</p>
           </div>
 
           <div data-scroll-reveal="" className={styles.productWrap}>
@@ -67,9 +67,9 @@ export default function HomePage() {
         <section data-scroll-reveal="" className={styles.gettingStarted} aria-labelledby="getting-started-title">
           <div><p className={styles.eyebrow}>Gott að vita</p><h2 id="getting-started-title">Yfirlitið byrjar<br />á færslunum þínum.</h2></div>
           <div className={styles.practicalInfo}>
-            <p><strong>Síðan tengist ekki bankanum þínum.</strong> Þú slærð inn færslur eða flytur inn útgjöld úr CSV- eða Excel-skrá. Tekjur þarf að skrá sérstaklega.</p>
-            <p><strong>Upphæðir eru í íslenskum krónum.</strong> Yfirlitið miðast við það sem þú hefur skráð og sýnir því ekki staðfesta bankainnstæðu. Ógreiddir reikningar birtast sérstaklega.</p>
-            <p>Það kostar ekkert að nota núverandi útgáfu. Þú getur skoðað síðuna með tilbúnum sýnigögnum án þess að stofna aðgang.</p>
+            <p><strong>Síðan tengist ekki bankanum.</strong> Þú slærð inn færslur eða flytur inn útgjöld úr skrá. Tekjur þarf að skrá sérstaklega.</p>
+            <p><strong>Upphæðir eru í krónum.</strong> Yfirlitið sýnir það sem þú hefur skráð, ekki staðfesta bankainnstæðu. Ógreiddir reikningar birtast sérstaklega.</p>
+            <p>Núverandi útgáfa er ókeypis og þú getur skoðað sýnigögn án aðgangs.</p>
             <div><Link href="/help" className="focus-ring">Hvernig byrja ég? <ArrowRightIcon size={15} aria-hidden="true" /></Link><Link href="/privacy" className="focus-ring">Hvernig eru gögnin mín geymd?</Link></div>
           </div>
         </section>
@@ -79,7 +79,7 @@ export default function HomePage() {
           <div className={styles.featureList}>{features.map((feature) => <article data-scroll-reveal="" className={styles.feature} key={feature.number}><span className={styles.featureNumber}>{feature.number}</span><div><p className={styles.featureLabel}>{feature.label}</p><h3>{feature.title}</h3><p>{feature.description}</p></div></article>)}</div>
         </section>
 
-        <section data-scroll-reveal="" className={styles.closing} aria-labelledby="closing-title"><div><p className={styles.eyebrow}>Prófaðu síðuna</p><h2 id="closing-title">Skoðaðu áður en þú byrjar.</h2><p>Skoðaðu hvernig síðan virkar með tilbúnum dæmum, án innskráningar.</p></div><Link href="/demo" className={`${styles.primary} focus-ring`}>Skoða sýnigögn <ArrowRightIcon size={18} aria-hidden="true" /></Link></section>
+        <section data-scroll-reveal="" className={styles.closing} aria-labelledby="closing-title"><div><p className={styles.eyebrow}>Prófaðu síðuna</p><h2 id="closing-title">Skoðaðu áður en þú byrjar.</h2><p>Sjáðu hvernig síðan virkar með tilbúnum dæmum, án innskráningar.</p></div><Link href="/demo" className={`${styles.primary} focus-ring`}>Skoða sýnigögn <ArrowRightIcon size={18} aria-hidden="true" /></Link></section>
       </main>
 
       <footer data-scroll-reveal="" className={styles.footer}><Link href="/" className={`${styles.brand} focus-ring`}><BrandMark /><span>Mín fjármál</span></Link><span>© 2026 Bjartur Blær Gunnlaugsson</span><nav aria-label="Valmynd í síðufæti"><Link href="/demo">Sýnigögn</Link><Link href="/help">Leiðbeiningar</Link><Link href="/privacy">Persónuvernd</Link><Link href="/login">Innskráning</Link></nav></footer>
