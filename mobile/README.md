@@ -1,6 +1,12 @@
 # Mín fjármál — mobile
 
-Native finance app built with Expo SDK 58, React Native, Expo Router, TypeScript and Supabase. This is an Expo Go testing milestone. On 14 November the user confirmed Expo Go 58.0.5, revealing a mismatch with the previous SDK 57 project. The app is now upgraded to SDK 58; typecheck, lint, 30 unit tests, 20 Expo Doctor checks and an iOS bundle export pass. The upgraded app still needs a physical iPhone retest before claiming the recurring launch crash is resolved. Contribution and native export checks remain pending.
+Native finance app built with Expo SDK 58, React Native, Expo Router, TypeScript and Supabase. This is an Expo Go testing milestone. After the SDK 58 upgrade the user reported that the app stayed open but showed Unmatched Route. Explicit protected-route destinations and the auth anchor have since been fixed locally; a physical iPhone retest is pending. On 23 November, all 33 tests, typecheck and lint passed. The earlier Doctor and iOS export results predate the final routing fix. Contribution and native export acceptance checks remain pending.
+
+## GitHub handoff — 23 November 2026
+
+The app's 93 source/config/test/asset/doc files are tracked and pushed on **`codex/ios-app-handoff`**, starting with commit **`1963654`**. Check out this branch, not `main`, for the native app. Read [../CLAUDE.md](../CLAUDE.md), [../PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md), [../HANDOFF.md](../HANDOFF.md) and [../INFRASTRUCTURE.md](../INFRASTRUCTURE.md) before continuing. The branch is a source handoff, not a production or App Store release.
+
+Dependencies, `.env.local`, `.expo`, generated bundles, logs and private screenshots are excluded. Install with `npm ci`, configure a development environment from `.env.example`, then start a fresh Expo preview using the instructions below. Old tunnels and QR codes are not reusable setup configuration.
 
 ## Available workflows
 
@@ -70,7 +76,7 @@ npx expo export --platform ios --output-dir dist-ios
 node scripts/check-dev-backend.cjs
 ```
 
-The current auth/finance/readiness suites cover validation, retries, account ownership, preferences, complete exports, encrypted storage migration and malformed links. See `docs/qa/2026-11-09.md` for the latest results. The backend check makes read-only `select=id&limit=0` requests to ten tables. This confirms endpoint/schema availability; it does not exercise authenticated writes.
+The current auth/finance/readiness/routing suites cover validation, retries, account ownership, preferences, complete exports, encrypted storage migration, malformed links and protected-route fallbacks. See [the GitHub handoff check](docs/qa/2026-11-23-github-handoff.md) and [../HANDOFF.md](../HANDOFF.md) for latest status; `docs/qa/2026-11-09.md` is historical. The backend check makes read-only `select=id&limit=0` requests to ten tables. This confirms endpoint/schema availability; it does not exercise authenticated writes.
 
 The older `tests/iphone-smoke.cjs` captures the previous savings UI and is not a release check for this version. Its earlier fixture-based browser results must not be reported as current device or live-database validation. The user previously confirmed that the Expo Go preview opens on their iPhone; the new workflows still require an on-device walkthrough.
 

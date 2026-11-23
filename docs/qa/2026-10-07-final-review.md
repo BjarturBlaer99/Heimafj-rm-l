@@ -12,6 +12,7 @@ Breytingarnar voru birtar í production 8. október 2026 eftir samþykki eiganda
 - Endurstillingar- og staðfestingarpóstsniðin voru vistuð í Supabase með íslenskum titlum og einnota tenglum á production-síðuna. Vistun var staðfest með óvirkum Save changes-hnappi og engum óvistuðum breytingum.
 - Nýr endurstillingarpóstur var pantaður 9. október á prófunarnetfangið sem eigandinn samþykkti. Vefurinn sýndi staðfestingu efst. Aðstoðarmaðurinn sló ekki inn eða vistaði nýtt lykilorð.
 - Eigandinn lauk raunverulegu póstprófi 9. október og svaraði: „Nýja lykilorðið virkar og yfirlitið opnast“. Endurstillingarferlið telst því staðfest á production. Hvort hann notaði annan vafra eða tæki var ekki sérstaklega staðfest.
+- Eigandinn prófaði einnig nýskráningu 9. október og staðfesti: „var að testa nýskráningu hún virkar“. Nýskráningarprófið er skráð sem staðist samkvæmt staðfestingu eigandans; aðstoðarmaðurinn fylgdist ekki sjálfur með þeirri prófun.
 - Farsímaappið var ekki tekið með í Git-útgáfuna. Prófunarskýrslur og myndir eru útilokaðar úr Vercel-upphleðslum.
 
 ## Breytingar
@@ -65,6 +66,8 @@ Prófanir á innflutningi ná meðal annars yfir 1.000 færslur, rangar dagsetni
 
 Eigandinn valdi prófunarnetfang og reyndi nýskráningu. Enginn nýr staðfestingarpóstur kom. Lesathugun í Supabase sýndi að þetta var eldri aðgangur sem hafði þegar verið staðfestur 9. maí 2026; tilraunin prófaði því endurtekna skráningu en ekki stofnun nýs aðgangs.
 
+Eftir birtingu prófaði eigandinn nýskráningu sjálfur og staðfesti 9. október að hún virkaði. Sú síðari staðfesting lokar nýskráningarprófinu sem áður var óstaðfest.
+
 Endurstillingarpóstur var pantaður í gegnum eldri production-útgáfuna. Supabase skráði `/recover` með 200-svari og eigandinn staðfesti móttöku. Tengillinn opnaði hins vegar innskráningu í stað endurstillingar. Sniðið notaði þá `ConfirmationURL` og vefurinn aðeins PKCE-kóðaskipti, sem krefjast upprunalega vafrans. Þetta er samrýmanlegt lýstri bilun; nákvæm villuskrá úr vafra eigandans var ekki tiltæk.
 
 Nýi kóðinn og póstsniðin leysa þessa takmörkun með staðfestingu einnota póstlykils. Fimm samþættingarpróf staðfesta ferlið með tilbúnum Auth-bakenda, þar á meðal nýskráningu, endurstillingu, endurnotkun tengils, ógildan lykil og aðgang að endurstillingarsíðu án innskráningar. Raunverulegt endurpróf á Supabase tókst eftir útgáfu og uppfærslu póstsniðanna: eigandinn staðfesti 9. október að nýja lykilorðið virkaði og yfirlitið opnaðist. Almennar öryggisstillingar voru einnig leiðréttar svo tilvísunarhausar af auðkenningarslóðum beri ekki með sér póstlykla.
@@ -78,7 +81,6 @@ Staðbundin síðuskipti tóku um 0,12–0,48 sekúndur að aðalfyrirsögn. Þe
 ## Enn óstaðfest
 
 - Raunverulegur iPhone/Safari og Android, snertiskrun og innbyggðir dagsetningarvalgluggar.
-- Nýr production-aðgangur með staðfestingarpósti. Netfangið sem var prófað var þegar skráð; annar prófunaraðgangur var ekki stofnaður.
 - Raunverulegt póstpróf í öðrum vafra eða tæki og endurnotkun sama tengils. Heildarendursetning og aðgangur að yfirliti voru staðfest af eigandanum; vafra-/tækjaskipti voru ekki sérstaklega staðfest. Tilbúnu samþættingarprófin ná yfir tengil án fyrirliggjandi vafraköku og endurnotkun hans.
 - Álagspróf alls vefsins með mörgum samtímis notendum, raunverulegum netaðstæðum og Core Web Vitals. Samtímis gagnagrunnsinnflutningur er prófaður, en er ekki slíkt álagspróf.
 - Staðbundin vafraprófun notar eftirlíkingu af Auth/REST, ekki raunverulegt Supabase staging-verkefni. PostgreSQL-prófin keyra hins vegar raunverulegar gagnagrunnsreglur.
