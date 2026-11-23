@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Mín Fjármál</title>
+  <rect width="1024" height="1024" rx="240" fill="#2F4FE4"/>
+  <path fill="#FFFFFF" d="M288 736V288h112l112 192 112-192h112v448H624V491L512 683 400 491v245Z"/>
+</svg>
