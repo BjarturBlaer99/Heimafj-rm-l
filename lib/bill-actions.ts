@@ -49,7 +49,7 @@ export async function recordBillPayment(formData: FormData): Promise<ActionFeedb
     if (!input.success) return failure("Skráðu gilda greiðsludagsetningu og upphæð yfir núlli.");
     if (formData.get("confirm_new_expense") !== "on") return failure("Staðfestu að greiðslan sé ekki þegar skráð í færslum.");
     const expense = await supabase.from("transactions").insert({ user_id: user.id, category_id: bill.category_id, amount: input.data.amount, type: "expense", date: input.data.paid_at, note: bill.name }).select("id, amount, date").single();
-    if (expense.error || !expense.data) return failure("Ekki tókst að staðfesta hvort útgjaldafærslan var skráð. Athugaðu færsluyfirlitið áður en þú reynir aftur.");
+    if (expense.error || !expense.data) return failure("Óvíst hvort færslan var skráð. Athugaðu færslurnar áður en þú reynir aftur.");
     transaction = expense.data;
     createdTransaction = true;
   }
@@ -63,8 +63,8 @@ export async function recordBillPayment(formData: FormData): Promise<ActionFeedb
       const links = await supabase.from("bill_payments").select("id").eq("user_id", user.id).eq("transaction_id", transaction.id).limit(1);
       if (!links.error && !links.data?.length) {
         const cleanup = await supabase.from("transactions").delete().eq("id", transaction.id).eq("user_id", user.id);
-        if (cleanup.error) { refreshBills(); return failure("Útgjaldafærslan var skráð, en ekki tókst að tengja hana við reikninginn. Opnaðu reikninginn aftur og veldu færsluna sem skráða greiðslu."); }
-      } else { refreshBills(); return failure("Ekki tókst að staðfesta hvort greiðslan var tengd við reikninginn. Skoðaðu reikninginn og færsluyfirlitið áður en þú reynir aftur."); }
+        if (cleanup.error) { refreshBills(); return failure("Færslan var skráð en ekki tengd reikningnum. Opnaðu reikninginn og veldu hana sem greiðslu."); }
+      } else { refreshBills(); return failure("Óvíst hvort greiðslan tengdist reikningnum. Athugaðu það áður en þú reynir aftur."); }
     }
     refreshBills();
     return failure(payment.error.code === "23505" ? "Reikningurinn eða færslan er þegar tengd greiðslu. Endurhlaðaðu síðuna." : "Ekki tókst að tengja greiðsluna. Athugaðu stöðuna áður en þú reynir aftur.");
@@ -73,10 +73,10 @@ export async function recordBillPayment(formData: FormData): Promise<ActionFeedb
   if (current.error || !current.data || current.data.type !== "expense" || Number(current.data.amount) !== Number(transaction.amount) || current.data.date !== transaction.date) {
     const rollback = await supabase.from("bill_payments").delete().eq("id", transaction.id).eq("user_id", user.id).eq("bill_id", bill_id);
     refreshBills();
-    return failure(rollback.error ? "Ekki tókst að staðfesta greiðslustöðu reikningsins. Endurhlaðaðu síðuna og berðu reikninginn saman við útgjaldafærsluna." : "Færslunni var breytt á meðan þú skráðir greiðsluna. Reikningurinn var ekki merktur greiddur. Yfirfarðu færsluna og reyndu aftur.");
+    return failure(rollback.error ? "Ekki tókst að staðfesta greiðslustöðuna. Endurhlaðaðu síðuna og athugaðu reikninginn." : "Færslunni var breytt á meðan, svo reikningurinn var ekki merktur greiddur. Reyndu aftur.");
   }
   refreshBills();
-  return { message: createdTransaction ? "Reikningurinn er merktur greiddur. Ný útgjaldafærsla var skráð á dagsetninguna sem þú valdir." : "Reikningurinn er merktur greiddur og tengdur við útgjaldafærsluna sem þú valdir. Engin ný færsla var skráð." };
+  return { message: createdTransaction ? "Reikningurinn er greiddur og greiðslan skráð." : "Reikningurinn er greiddur og tengdur færslunni." };
 }
 
 export async function unlinkBillPayment(formData: FormData): Promise<ActionFeedback> {
@@ -87,7 +87,7 @@ export async function unlinkBillPayment(formData: FormData): Promise<ActionFeedb
   if (error) return failure("Ekki tókst að aftengja greiðsluna. Reyndu aftur.");
   if (!data?.length) return failure("Greiðslutengingin fannst ekki. Endurhlaðaðu síðuna.");
   refreshBills();
-  return { message: "Greiðslan hefur verið aftengd reikningnum. Útgjaldafærslan er áfram í færsluyfirlitinu." };
+  return { message: "Greiðslan var aftengd. Færslan er áfram inni." };
 }
 
 export async function copyPreviousBills(formData: FormData): Promise<ActionFeedback> {
@@ -103,5 +103,5 @@ export async function copyPreviousBills(formData: FormData): Promise<ActionFeedb
   if (saved.error) return failure("Ekki tókst að afrita reikningana. Endurhlaðaðu síðuna áður en þú reynir aftur.");
   refreshBills();
   const count = saved.data?.length ?? 0;
-  return { message: count ? "Afritun lokið. Reikningum sem voru þegar skráðir í mánuðinum var sleppt." : "Valdir reikningar eru þegar skráðir í mánuðinum. Engum afritum var bætt við.", redirectTo: `/bills?month=${parsed.data.month}` };
+  return { message: count ? "Afritað. Reikningum sem voru þegar til var sleppt." : "Reikningarnir eru þegar í mánuðinum.", redirectTo: `/bills?month=${parsed.data.month}` };
 }

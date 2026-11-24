@@ -34,7 +34,7 @@ export default async function IncomePage({ searchParams }: { searchParams: Promi
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Tekjur" description="Skráðu tekjurnar þínar og berðu þær saman milli mánaða."
+      <PageHeader title="Tekjur" description="Tekjur eftir mánuðum."
         action={<a href="#new-income" className={buttonVariants()}><Plus size={17} aria-hidden="true" />Skrá tekjur</a>} />
 
       <dl className={`${styles.summary} ${styles.incomeSummary}`} data-scroll-reveal>
@@ -51,7 +51,7 @@ export default async function IncomePage({ searchParams }: { searchParams: Promi
               <strong className={styles.entryAmount} data-income="true">+{money(Number(income.amount), currency)}</strong>
               <ActionForm action={deleteMonthlyIncome}><input type="hidden" name="id" value={income.id} /><Button variant="secondary" className={styles.deleteButton} title="Eyða tekjufærslu" aria-label={`Eyða tekjufærslu: ${income.note || "Tekjufærsla"}`}><Trash2 size={16} aria-hidden="true" /></Button></ActionForm>
             </article>
-          )) : <div className={styles.empty} data-scroll-reveal><EmptyState>Engar tekjur fundust. Þú getur skráð tekjur hér fyrir neðan.</EmptyState></div>}
+          )) : <div className={styles.empty} data-scroll-reveal><EmptyState>Engar tekjur skráðar enn.</EmptyState></div>}
           {incomes.length ? <div className={styles.ledgerFooter}><span>Tekjufærslur: {incomes.length}</span><span>Upphæðir í íslenskum krónum</span></div> : null}
         </section>
 

@@ -102,7 +102,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
           </> : <div className={styles.billsEmpty}>
             <CheckIcon size={24} className={styles.success} aria-hidden="true" />
             <p>{data.activeBills.length ? "Allir skráðir reikningar mánaðarins eru greiddir." : "Engir reikningar skráðir enn."}</p>
-            <span>{data.activeBills.length ? "Engir skráðir reikningar bíða greiðslu í þessum mánuði." : "Bættu við reikningum til að fylgjast með gjalddögum."}</span>
+            <span>{data.activeBills.length ? "Ekkert ógreitt í þessum mánuði." : "Bættu við reikningum til að fylgjast með gjalddögum."}</span>
           </div>}
           <div className={styles.billsFooter}>
             {data.billsReady && data.activeBills.length > 0 && <span>{data.paidBills.length} af {data.activeBills.length} greiddir</span>}
@@ -150,7 +150,7 @@ export function DashboardOverview({ data, month, today, onNavigate, marketConten
             {primaryGoal ? <div className={styles.goal}>
               <div><h3>{primaryGoal.title}</h3><span>{percent(goalProgress)}</span></div>
               <div className={styles.goalTrack} role="progressbar" aria-label={primaryGoal.title} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(Math.max(0, Math.min(100, goalProgress)))} aria-valuetext={`${percent(goalProgress)} af ${money(Number(primaryGoal.target_amount), currency)}`}><span style={{ width: `${Math.max(0, Math.min(100, goalProgress))}%` }} /></div>
-              <p>{goalProgress >= 100 ? "Þú hefur náð markupphæðinni miðað við valda sparnaðarflokka." : `${money(Math.max(0, Number(primaryGoal.target_amount) - data.goalSavingsBalance), currency)} eftir að spara í völdum flokkum.`}</p>
+              <p>{goalProgress >= 100 ? "Markmiðinu er náð." : `${money(Math.max(0, Number(primaryGoal.target_amount) - data.goalSavingsBalance), currency)} eftir að spara í völdum flokkum.`}</p>
             </div> : <DashboardLink onNavigate={onNavigate} className={styles.textLink} href="/savings-goals">Setja sparnaðarmarkmið<ArrowRightIcon size={15} aria-hidden="true" /></DashboardLink>}
             <dl className={styles.buckets}>{data.savingsBuckets.map((bucket) => <div key={bucket.bucket_type}><dt>{bucket.label}</dt><dd>{money(Number(bucket.amount), currency)}</dd></div>)}</dl>
           </>}

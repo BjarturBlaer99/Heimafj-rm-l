@@ -33,7 +33,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Færslur" description="Skoðaðu tekjur og útgjöld, flokkaðu færslur eða bættu við nýjum."
+      <PageHeader title="Færslur" description="Allar tekjur og útgjöld."
         action={<div className={styles.headerActions}><a href="#import-transactions" className={buttonVariants({ variant: "secondary" })}><FileArrowUpIcon size={17} aria-hidden="true" />Flytja inn skrá</a><a href="#new-transaction" className={buttonVariants()}><Plus size={17} aria-hidden="true" />Ný færsla</a></div>} />
       <FlashMessage code={params.success} imported={params.imported} skipped={params.skipped} />
 
@@ -58,7 +58,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           </form>
         </section>
         {params.id ? <p className="px-6 py-3 text-sm text-ink/60">Valin færsla · <Link className="text-accent" href={`/transactions?${transactionPeriodQuery(period)}`}>Sjá allt tímabilið</Link></p> : null}
-        {transactions.length ? <TransactionLedger transactions={transactions} categories={categories} /> : <div className={styles.empty} data-scroll-reveal><EmptyState>Engar færslur fundust. Prófaðu að breyta síunum eða skrá nýja færslu.</EmptyState></div>}
+        {transactions.length ? <TransactionLedger transactions={transactions} categories={categories} /> : <div className={styles.empty} data-scroll-reveal><EmptyState>Engar færslur fundust. Breyttu síunum eða skráðu færslu.</EmptyState></div>}
       </section>
 
       <section id="new-transaction" className={styles.newEntry} aria-labelledby="new-transaction-heading" data-scroll-reveal>
@@ -75,7 +75,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
       <CsvImporter categories={categories} userId={user.id} />
 
-      {transactions.length ? <section className={styles.management} aria-labelledby="transaction-management-heading" data-scroll-reveal><h2 id="transaction-management-heading">Eyða færslum</h2><div><p>Þú getur eytt öllum færslunum þínum hér. Það nær líka yfir færslur sem síurnar fela.</p><ActionForm action={deleteAllTransactions}><ConfirmButton variant="danger" confirmMessage="Viltu eyða öllum færslunum þínum? Ekki er hægt að afturkalla eyðinguna."><Trash2 size={16} aria-hidden="true" />Eyða öllum færslum</ConfirmButton></ActionForm></div></section> : null}
+      {transactions.length ? <section className={styles.management} aria-labelledby="transaction-management-heading" data-scroll-reveal><h2 id="transaction-management-heading">Eyða færslum</h2><div><p>Eyðir öllum færslum, líka þeim sem síurnar fela.</p><ActionForm action={deleteAllTransactions}><ConfirmButton variant="danger" confirmMessage="Viltu eyða öllum færslunum þínum? Ekki er hægt að afturkalla eyðinguna."><Trash2 size={16} aria-hidden="true" />Eyða öllum færslum</ConfirmButton></ActionForm></div></section> : null}
     </div>
   );
 }

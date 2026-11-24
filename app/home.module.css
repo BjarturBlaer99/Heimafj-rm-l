@@ -12,7 +12,7 @@
 .eyebrow { font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .12em; color: var(--home-muted); }
 .hero h1 { margin-top: 24px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(44px, 4.6vw, 68px); font-weight: 400; line-height: 1.065; letter-spacing: -.045em; }
 .hero h1 em { font-weight: 400; color: rgb(var(--color-accent)); }
-.intro { margin-top: 28px; max-width: 420px; color: var(--home-muted); font-size: 17px; line-height: 1.75; }
+.intro { max-width: 520px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(30px, 2.9vw, 42px); font-weight: 400; line-height: 1.2; letter-spacing: -.03em; }
 .heroActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 31px; }
 .textLink { display: inline-flex; align-items: center; gap: 9px; min-height: 48px; border-radius: 5px; font-size: 14px; font-weight: 600; }
 .textLink:hover { color: rgb(var(--color-accent)); }
@@ -76,7 +76,7 @@
   .header, .hero, .features, .closing, .footer { width: calc(100% - 64px); }
   .hero, .features { gap: 36px; }
   .hero h1 { font-size: 49px; }
-  .intro { font-size: 16px; }
+  .intro { font-size: 32px; }
   .previewRow { gap: 12px; }
   .previewDate { display: none; }
   .previewRow { grid-template-columns: minmax(0, 1fr) auto; }
@@ -88,7 +88,7 @@
   .hero { grid-template-columns: minmax(0, 1fr); padding-block: 60px; gap: 46px; }
   .heroCopy { max-width: 580px; }
   .hero h1 { font-size: clamp(43px, 7.8vw, 65px); }
-  .intro { max-width: 470px; }
+  .intro { max-width: 560px; font-size: clamp(30px, 5.4vw, 40px); }
   .productWrap { max-width: 580px; width: 100%; justify-self: center; }
   .previewAmount { font-size: 43px; }
   .previewDate { display: block; }
@@ -109,7 +109,7 @@
   .navCta { display: none; }
   .hero { padding-top: 42px; gap: 37px; }
   .hero h1 { margin-top: 20px; font-size: clamp(38px, 10vw, 48px); }
-  .intro { margin-top: 22px; font-size: 15px; line-height: 1.7; }
+  .intro { font-size: clamp(26px, 7.4vw, 32px); }
   .eyebrow { font-size: 10px; }
   .heroActions { gap: 8px 20px; margin-top: 25px; }
   .primary { font-size: 13px; }

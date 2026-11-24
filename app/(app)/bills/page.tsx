@@ -38,7 +38,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Reikningar" description="Haltu utan um reikninga mánaðarins og merktu við það sem þú hefur greitt." action={billsResult.schemaReady ? <a href="#new-bill" className={styles.primaryLink}><Plus size={17} /> Nýr reikningur</a> : undefined} />
+      <PageHeader title="Reikningar" description="Reikningar mánaðarins og hvað er greitt." action={billsResult.schemaReady ? <a href="#new-bill" className={styles.primaryLink}><Plus size={17} /> Nýr reikningur</a> : undefined} />
       <FlashMessage code={params.success} />
 
       {!billsResult.schemaReady ? (
@@ -60,7 +60,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
           </div>
 
           <section className={styles.matchingPeriod} data-scroll-reveal aria-labelledby="matching-heading">
-            <div><h2 id="matching-heading">Tengja skráðar greiðslur</h2><p>Ef greiðslan er þegar skráð í færslum geturðu tengt hana við reikninginn. Veldu mánuðinn sem þú greiddir í; upphæð og dagsetning fylgja færslunni.</p></div>
+            <div><h2 id="matching-heading">Tengja skráðar greiðslur</h2><p>Ef greiðslan er þegar í færslunum geturðu tengt hana hér. Veldu mánuðinn sem þú greiddir í.</p></div>
             <form className={styles.periodForm}>
               <input type="hidden" name="month" value={month} />
               <Field label="Mánuður greiðslu"><DateInput type="month" name="expense_month" defaultValue={expenseMonth} /></Field>
@@ -71,7 +71,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
 
           <div className={styles.layout}>
             <section className={styles.ledger} aria-labelledby="bills-heading">
-              <div data-scroll-reveal="" className={styles.ledgerHeader}><div><h2 id="bills-heading">Reikningar mánaðarins</h2><p>Ógreiddir reikningar birtast fyrst, raðað eftir gjalddaga.</p></div><span className={styles.count}>{billsResult.bills.length}</span></div>
+              <div data-scroll-reveal="" className={styles.ledgerHeader}><div><h2 id="bills-heading">Reikningar mánaðarins</h2><p>Ógreitt fyrst, eftir gjalddaga.</p></div><span className={styles.count}>{billsResult.bills.length}</span></div>
               {orderedBills.length ? orderedBills.map((bill) => (
                 <article key={bill.id} className={styles.bill} data-inactive={!bill.is_active || undefined} data-scroll-reveal>
                   <div className={styles.billSummary}>
@@ -99,8 +99,8 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                           <input type="hidden" name="mode" value="existing" />
                           <Field label={`Ótengdar færslur: ${monthLabel(expenseMonth)}`}><select className={inputClass} name="transaction" defaultValue="" required><option value="" disabled>Veldu útgjaldafærslu</option>{candidates.expenses.map((expense) => <option key={expense.id} value={JSON.stringify({ id: expense.id, amount: Number(expense.amount), date: expense.date })}>{expense.date} · {expense.note || "Útgjöld"} · {money(Number(expense.amount), currency)}</option>)}</select></Field>
                           <Button type="submit" variant="secondary">Tengja færslu</Button>
-                        </ActionForm> : <p className={styles.formNote}>{candidates.ready ? "Engar ótengdar útgjaldafærslur fundust í þessum mánuði. Veldu annan mánuð hér fyrir ofan eða skráðu nýja greiðslu." : "Ekki tókst að sækja útgjaldafærslur. Endurhlaðaðu síðuna áður en þú skráir greiðslu."}</p>}
-                        <div className={styles.newPaymentHeading}><h4>Skrá nýja greiðslu</h4><p>Skráðu aðeins nýja greiðslu ef hún er ekki þegar í færslunum þínum.</p></div>
+                        </ActionForm> : <p className={styles.formNote}>{candidates.ready ? "Engar ótengdar útgjaldafærslur í þessum mánuði. Veldu annan mánuð eða skráðu nýja greiðslu." : "Ekki tókst að sækja útgjaldafærslur. Endurhlaðaðu síðuna."}</p>}
+                        <div className={styles.newPaymentHeading}><h4>Skrá nýja greiðslu</h4><p>Aðeins ef greiðslan er ekki þegar í færslunum.</p></div>
                         <ActionForm action={recordBillPayment} className={styles.paymentForm}>
                           <input type="hidden" name="bill_id" value={bill.id} />
                           <input type="hidden" name="month" value={month} />
@@ -132,14 +132,14 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                         </ActionForm>
                         <ActionForm action={deleteBill}>
                           <input type="hidden" name="id" value={bill.id} /><input type="hidden" name="month" value={month} /><input type="hidden" name="scope" value="all" />
-                          <ConfirmButton variant="danger" confirmMessage={`Eyða reikningnum "${bill.name}" úr öllum mánuðum? Þessa aðgerð er ekki hægt að afturkalla. Útgjaldafærslum vegna greiðslna reikningsins er ekki eytt.`}><Trash2 size={16} /> Eyða úr öllum mánuðum</ConfirmButton>
+                          <ConfirmButton variant="danger" confirmMessage={`Eyða reikningnum "${bill.name}" úr öllum mánuðum? Það er ekki hægt að afturkalla. Færslur fyrir greiðslurnar haldast inni.`}><Trash2 size={16} /> Eyða úr öllum mánuðum</ConfirmButton>
                         </ActionForm>
                       </div>
                     </section>
                   </div>
                 </article>
-              )) : <div className={styles.empty}><EmptyState>Þú hefur ekki skráð reikninga í þessum mánuði. Bættu við reikningi eða afritaðu úr fyrri mánuði.</EmptyState></div>}
-              <div className={styles.ledgerFooter}>Reikningarnir gilda fyrir þennan mánuð. Þú getur afritað þá í næsta mánuð þegar þar að kemur.</div>
+              )) : <div className={styles.empty}><EmptyState>Engir reikningar í þessum mánuði. Bættu við reikningi eða afritaðu úr fyrri mánuði.</EmptyState></div>}
+              <div className={styles.ledgerFooter}>Reikningarnir gilda fyrir þennan mánuð. Þú getur afritað þá síðar.</div>
             </section>
 
             <div className={styles.sidebar}>
@@ -156,7 +156,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                 <label className={styles.checkbox}><input name="is_active" type="checkbox" defaultChecked /> Virkur reikningur</label>
                 <Button type="submit"><Plus size={17} /> Bæta við</Button>
               </ActionForm>
-              <p className={styles.formNote}>Þegar reikningurinn er greiddur tengirðu hann við útgjaldafærslu eða skráir nýja greiðslu.</p>
+              <p className={styles.formNote}>Þegar hann er greiddur tengirðu hann við færslu eða skráir greiðslu.</p>
             </aside>
             <section className={styles.newBill} data-scroll-reveal aria-labelledby="copy-bills-heading">
               <h2 id="copy-bills-heading">Afrita fyrri mánuð</h2>
@@ -165,7 +165,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                 <input type="hidden" name="month" value={month} />
                 {copyable.bills.map((bill) => <label key={bill.id} className={styles.copyChoice}><input type="checkbox" name="bill_ids" value={bill.id} /><span>{bill.name}<small>{money(Number(bill.amount), currency)} · gjalddagi {bill.due_day}.</small></span></label>)}
                 <Button type="submit" variant="secondary">Afrita valda reikninga</Button>
-              </ActionForm> : <p className={styles.formNote}>{copyable.ready ? "Engir fleiri virkir reikningar eru tiltækir úr fyrri mánuði." : <>Ekki tókst að sækja reikninga fyrri mánaðar. <a className="text-accent underline" href={`/bills?month=${month}&expense_month=${expenseMonth}`}>Reyna aftur</a></>}</p>}
+              </ActionForm> : <p className={styles.formNote}>{copyable.ready ? "Ekkert fleira til að afrita úr fyrri mánuði." : <>Ekki tókst að sækja reikninga fyrri mánaðar. <a className="text-accent underline" href={`/bills?month=${month}&expense_month=${expenseMonth}`}>Reyna aftur</a></>}</p>}
             </section>
             </div>
           </div>

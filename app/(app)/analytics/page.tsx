@@ -15,7 +15,7 @@ export default async function AnalyticsPage() {
 
   return (
     <>
-      <PageHeader title="Greining" description="Sjáðu hvernig tekjur, útgjöld og sparnaður hafa breyst með tímanum." />
+      <PageHeader title="Greining" description="Tekjur, útgjöld og sparnaður yfir tíma." />
       <div className="grid gap-5">
         <Card>
           <SectionHeader title="Tekjur á móti útgjöldum" description="Þróun síðustu átta mánaða." />

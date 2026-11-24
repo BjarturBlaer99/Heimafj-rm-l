@@ -33,7 +33,7 @@ export async function saveTransaction(formData: FormData) {
   if (data.id) {
     const linked = await supabase.from("bill_payments").select("id,amount,paid_at").eq("transaction_id", data.id).eq("user_id", id);
     if (linked.error) throw new Error("Ekki tókst að athuga hvort færslan sé tengd reikningi. Reyndu aftur.");
-    if (linked.data.some((payment) => Number(payment.amount) !== data.amount || payment.paid_at !== data.date || data.type !== "expense")) return { message: "", error: "Færslan er tengd greiðslu reiknings. Aftengdu greiðsluna á síðunni Reikningar áður en þú breytir upphæð, dagsetningu eða tegund." };
+    if (linked.data.some((payment) => Number(payment.amount) !== data.amount || payment.paid_at !== data.date || data.type !== "expense")) return { message: "", error: "Færslan er tengd reikningi. Aftengdu hana undir Reikningar áður en þú breytir upphæð, dagsetningu eða tegund." };
   }
   const payload = { ...data, user_id: id, note: data.note || null, category_id: data.category_id || null };
   const result = data.id
@@ -59,7 +59,7 @@ export async function deleteAllTransactions() {
   const { supabase, userId: id } = await userId();
   const linked = await supabase.from("bill_payments").select("id,transaction_id").eq("user_id", id);
   if (linked.error) throw new Error("Ekki tókst að athuga hvort færslurnar séu tengdar reikningum. Reyndu aftur.");
-  if (linked.data.some((payment) => payment.transaction_id)) return { message: "", error: "Sumar færslur eru tengdar reikningum. Aftengdu greiðslurnar á síðunni Reikningar áður en þú eyðir öllum færslum." };
+  if (linked.data.some((payment) => payment.transaction_id)) return { message: "", error: "Sumar færslur eru tengdar reikningum. Aftengdu þær undir Reikningar fyrst." };
   const result = await supabase.from("transactions").delete().eq("user_id", id);
   if (result.error) throw new Error(result.error.message);
   revalidatePath("/", "layout");

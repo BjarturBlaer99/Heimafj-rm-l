@@ -29,7 +29,7 @@ export default async function SettingsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Stillingar" description="Breyttu upplýsingunum þínum, útliti síðunnar og flokkum færslna." />
+      <PageHeader title="Stillingar" description="Prófíll, útlit og flokkar." />
 
       <div className={styles.accountSummary} data-scroll-reveal="">
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
@@ -46,22 +46,22 @@ export default async function SettingsPage() {
         <div className={styles.panel}>
           <ActionForm action={saveProfile} className={styles.profileForm}>
             <Field label="Nafn eða gælunafn"><input className={inputClass} name="full_name" autoComplete="nickname" maxLength={80} defaultValue={profile?.full_name ?? ""} required /></Field>
-            <Field label="Gjaldmiðill"><input className={`${inputClass} ${styles.currencyInput}`} name="currency" aria-describedby="currency-help" value="ISK" readOnly /><span id="currency-help" className={styles.fieldHelp}>Allar upphæðir eru skráðar í íslenskum krónum. Upphæðir í öðrum gjaldmiðlum eru ekki umreiknaðar.</span></Field>
+            <Field label="Gjaldmiðill"><input className={`${inputClass} ${styles.currencyInput}`} name="currency" aria-describedby="currency-help" value="ISK" readOnly /><span id="currency-help" className={styles.fieldHelp}>Allar upphæðir eru í krónum.</span></Field>
             <div className={styles.formFooter}><Button type="submit">Vista upplýsingar</Button></div>
           </ActionForm>
         </div>
       </section>
 
       <section id="appearance-settings" className={styles.settingsSection} aria-labelledby="appearance-heading" data-scroll-reveal="">
-        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>02</span><h2 id="appearance-heading">Útlit</h2><p>Veldu ljóst eða dökkt útlit. Valið vistast á þessu tæki.</p></div>
+        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>02</span><h2 id="appearance-heading">Útlit</h2><p>Ljóst eða dökkt. Vistast á þessu tæki.</p></div>
         <div className={styles.panel}><SettingsAppearance /></div>
       </section>
 
       <section id="category-settings" className={styles.settingsSection} aria-labelledby="categories-heading">
-        <div className={styles.sectionIntro} data-scroll-reveal=""><span className={styles.sectionNumber}>03</span><h2 id="categories-heading">Flokkar færslna</h2><p>Bættu við flokkum fyrir tekjur og útgjöld eftir því sem hentar þér.</p></div>
+        <div className={styles.sectionIntro} data-scroll-reveal=""><span className={styles.sectionNumber}>03</span><h2 id="categories-heading">Flokkar færslna</h2><p>Bættu við eigin flokkum fyrir tekjur og útgjöld.</p></div>
         <div className={styles.categoryColumn}>
           <div className={styles.panel} data-scroll-reveal="">
-            <div className={styles.panelHeading}><h3>Nýr flokkur</h3><p>Gefðu flokknum heiti og veldu hvort hann sé fyrir tekjur, útgjöld eða hvort tveggja.</p></div>
+            <div className={styles.panelHeading}><h3>Nýr flokkur</h3><p>Heiti, og hvort flokkurinn er fyrir tekjur, útgjöld eða bæði.</p></div>
             <ActionForm resetOnSuccess action={saveCategory} className={styles.categoryForm}>
               <Field label="Heiti flokks"><input className={inputClass} name="name" placeholder="T.d. ferðalög" minLength={2} maxLength={60} required /></Field>
               <Field label="Tegund"><select className={inputClass} name="type"><CategoryTypes /></select></Field>
@@ -85,26 +85,26 @@ export default async function SettingsPage() {
                   <Button type="submit" variant="secondary" className={styles.deleteButton} aria-label={`Eyða flokknum ${category.name}`}><TrashIcon size={15} aria-hidden="true" />Eyða flokki</Button>
                 </ActionForm>
               </article>
-            )) : <div className={styles.emptyCategories} data-scroll-reveal=""><p>Þú hefur ekki bætt við eigin flokkum.</p><span>Notaðu sjálfgefnu flokkana eða búðu til nýjan hér fyrir ofan.</span></div>}
+            )) : <div className={styles.emptyCategories} data-scroll-reveal=""><p>Þú hefur ekki bætt við eigin flokkum.</p><span>Engir eigin flokkar enn.</span></div>}
           </div>
 
           {defaultCategories.length ? <div className={styles.defaultCategories}>
-            <div className={styles.defaultHeading} data-scroll-reveal=""><div><h3>Sjálfgefnir flokkar</h3><p>Þessir flokkar fylgja aðganginum og ekki er hægt að breyta þeim.</p></div><span>{defaultCategories.length}</span></div>
+            <div className={styles.defaultHeading} data-scroll-reveal=""><div><h3>Sjálfgefnir flokkar</h3><p>Fylgja aðganginum. Ekki er hægt að breyta þeim.</p></div><span>{defaultCategories.length}</span></div>
             <ul>{defaultCategories.map((category) => <li key={category.id} data-scroll-reveal=""><span>{category.name}</span><span className={styles.typeLabel}>{categoryTypeLabels[category.type]}</span></li>)}</ul>
           </div> : null}
         </div>
       </section>
 
       <section id="account-settings" className={styles.settingsSection} aria-labelledby="account-heading" data-scroll-reveal="">
-        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>04</span><h2 id="account-heading">Aðgangur og öryggi</h2><p>Uppfærðu lykilorðið þitt eða skráðu þig út á þessu tæki.</p></div>
+        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>04</span><h2 id="account-heading">Aðgangur og öryggi</h2><p>Lykilorð og útskráning.</p></div>
         <div className={styles.panel}>
           <div className={styles.panelHeading}><h3>Breyta lykilorði</h3><p>Staðfestu núverandi lykilorð áður en þú velur nýtt.</p></div>
           <div className={styles.passwordFields}><PasswordChangeForm /></div>
-          <div className={styles.signOut}><div><h3>Skrá út</h3><p>Þú þarft að skrá þig inn aftur næst þegar þú notar síðuna.</p></div><form action={signOut}><Button type="submit" variant="secondary"><SignOutIcon size={17} aria-hidden="true" />Skrá út</Button></form></div>
+          <div className={styles.signOut}><div><h3>Skrá út</h3><p>Þú þarft að skrá þig inn aftur næst.</p></div><form action={signOut}><Button type="submit" variant="secondary"><SignOutIcon size={17} aria-hidden="true" />Skrá út</Button></form></div>
         </div>
       </section>
       <section id="data-settings" className={styles.settingsSection} aria-labelledby="data-heading" data-scroll-reveal="">
-        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>05</span><h2 id="data-heading">Gögn og aðstoð</h2><p>Sæktu afrit af gögnunum þínum, fáðu aðstoð eða óskaðu eftir að eyða aðganginum.</p></div>
+        <div className={styles.sectionIntro}><span className={styles.sectionNumber}>05</span><h2 id="data-heading">Gögn og aðstoð</h2><p>Sæktu gögnin, fáðu aðstoð eða eyddu aðganginum.</p></div>
         <div className={styles.panel}><AccountDataControls requestedAt={requestedAt} supportEmail={process.env.SUPPORT_EMAIL || privacyContact.email} /><div className="mt-7 border-t border-line/15 pt-7"><ExternalContentControls /></div></div>
       </section>
     </div>

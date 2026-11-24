@@ -7,7 +7,7 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
     <main className="grid min-h-screen place-items-center bg-paper p-4">
       <Card className="max-w-md">
         <h1 className="text-xl font-bold">Ekki tókst að opna síðuna</h1>
-        <p className="mt-2 text-sm text-ink/60">Reyndu aftur. Ef það gengur ekki skaltu bíða aðeins og endurhlaða síðuna.</p>
+        <p className="mt-2 text-sm text-ink/60">Reyndu aftur eftir smástund.</p>
         <Button className="mt-4" onClick={reset}>
           Reyna aftur
         </Button>

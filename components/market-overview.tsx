@@ -412,7 +412,7 @@ export function MarketOverview({
               <h2 id="market-overview-title" className="text-xl font-bold sm:text-2xl">Staða markaða</h2>
               <Badge variant="neutral">Ísland og heimurinn</Badge>
             </div>
-            <p className="mt-1 text-sm text-ink/50">Fylgstu með verðbólgu, vöxtum, gengi og verðbréfum.</p>
+            <p className="mt-1 text-sm text-ink/50">Verðbólga, vextir, gengi og verðbréf.</p>
           </div>
           {detailsHref ? (
             <Button asChild variant="ghost" size="sm" className="motion-link w-fit text-accent hover:text-accent">

@@ -71,7 +71,7 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
 
 export async function signupAction(_: AuthState, formData: FormData): Promise<AuthState> {
   if (!getPrivacyDeployment().registrationOpen) {
-    return { error: "Ekki er opið fyrir nýskráningar eins og er. Þú getur skoðað prufuútgáfuna eða skráð þig inn ef þú ert þegar með aðgang." };
+    return { error: "Nýskráning er ekki opin enn. Þú getur skoðað sýnigögnin eða skráð þig inn." };
   }
   const parsed = authSchema.safeParse({
     email: String(formData.get("email") ?? ""),

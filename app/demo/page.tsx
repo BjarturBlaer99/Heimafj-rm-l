@@ -9,7 +9,7 @@ import { getRealEstateSnapshot } from "@/lib/real-estate-data";
 
 export const metadata: Metadata = {
   title: "Sýningarútgáfa | Mín fjármál",
-  description: "Prófaðu Mín fjármál með tilbúnum gögnum. Þú þarft ekki að stofna aðgang."
+  description: "Prófaðu Mín fjármál með sýnigögnum, án innskráningar."
 };
 
 async function DemoRealEstate({ data }: { data: ReturnType<typeof getRealEstateSnapshot> }) {

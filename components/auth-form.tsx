@@ -47,9 +47,9 @@ export function AuthForm({
     mode === "signup"
       ? "Sláðu inn nafnið þitt og netfang og veldu lykilorð."
       : mode === "forgot"
-        ? "Sláðu inn netfangið þitt. Við sendum þér tengil til að velja nýtt lykilorð."
+        ? "Við sendum þér tengil til að velja nýtt lykilorð."
         : mode === "reset"
-          ? "Veldu nýtt lykilorð fyrir aðganginn þinn."
+          ? "Veldu nýtt lykilorð."
           : "Skráðu þig inn til að skoða fjármálin þín.";
 
   const submitLabel = mode === "login" ? "Innskráning" : mode === "forgot" ? "Senda tengil" : mode === "reset" ? "Vista nýtt lykilorð" : "Stofna aðgang";
@@ -108,7 +108,7 @@ export function AuthForm({
             </Link>
           )}
 
-          {mode === "signup" ? <p className={styles.requirements}>Við notum upplýsingarnar til að stofna aðganginn þinn og halda utan um það sem þú skráir. Í <Link href="/privacy" className="text-accent underline underline-offset-4">persónuverndarstefnunni</Link> kemur fram hver ber ábyrgð, hvernig gögnin eru notuð og hvaða réttindi þú hefur.</p> : null}
+          {mode === "signup" ? <p className={styles.requirements}>Hvernig farið er með gögnin kemur fram í <Link href="/privacy" className="text-accent underline underline-offset-4">persónuverndarstefnunni</Link>.</p> : null}
 
           {state.error ? <p role="alert" className="rounded-md border border-coral/20 bg-coral/10 px-3 py-2 text-sm font-medium text-coral">{state.error}</p> : null}
           {state.message ? <p role="status" className="rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm font-medium text-moss">{state.message}</p> : null}

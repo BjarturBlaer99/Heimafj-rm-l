@@ -38,8 +38,8 @@ export function SavingsPreferencesEditor({ preferences, buckets }: { preferences
     <section className={styles.panel} id="savings-preferences" aria-labelledby="savings-preferences-heading" data-scroll-reveal>
       <div className={styles.heading}>
         <h2 id="savings-preferences-heading">Sparnaður á þinn hátt</h2>
-        <p>Raðaðu flokkunum og veldu hvað telst til húsnæðissparnaðar og sparnaðarmarkmiðsins þíns.</p>
-        <p>Áttu þegar húsnæði? Þú getur tekið hakið af séreignarsparnaði svo hann telji ekki lengur með í þessum upphæðum.</p>
+        <p>Röð flokka og hvað telst með í húsnæðissparnaði og markmiðinu.</p>
+        <p>Ef þú átt húsnæði geturðu tekið hakið af séreignarsparnaði.</p>
       </div>
       <ActionForm action={saveSavingsPreferences}>
         <input type="hidden" name="preferences" value={JSON.stringify(draft)} />
@@ -69,7 +69,7 @@ export function SavingsPreferencesEditor({ preferences, buckets }: { preferences
             <div><dt>Í húsnæðissparnaði</dt><dd>{money(selectedSavingsTotal(buckets, draft.housing), "ISK")}</dd></div>
             <div><dt>Í sparnaðarmarkmiði</dt><dd>{money(selectedSavingsTotal(buckets, draft.goal), "ISK")}</dd></div>
           </dl>
-          <p className={styles.note}>Þetta breytir aðeins flokkun og röðun. Heildarsparnaður og skráð framlög haldast óbreytt. Val á séreignarsparnaði segir ekki til um hvort hægt sé að ráðstafa honum; um það gilda sérstök skilyrði.</p>
+          <p className={styles.note}>Breytir aðeins flokkun og röðun, ekki upphæðum. Um ráðstöfun séreignarsparnaðar gilda sérstök skilyrði.</p>
           <div className={styles.actions}><Button type="submit" disabled={!changed}>Vista skiptingu</Button>{changed ? <span>Óvistaðar breytingar</span> : <span>Skiptingin er vistuð á aðganginum þínum.</span>}</div>
         </div>
       </ActionForm>
