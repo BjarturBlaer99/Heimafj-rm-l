@@ -38,7 +38,7 @@ function matchesSavedRow(saved: SavedImportRow, expected: SavedImportRow) {
 }
 
 function changedBatch() {
-  return { status: "conflict" as const, message: "Ein af innfluttu færslunum hefur breyst síðan hún var vistuð. Skoðaðu færsluyfirlitið áður en þú flytur skrána inn aftur. Engar eldri færslur voru yfirskrifaðar." };
+  return { status: "conflict" as const, message: "Ein innflutt færsla hefur breyst síðan hún var vistuð. Skoðaðu færslurnar áður en þú reynir aftur. Engu var skrifað yfir." };
 }
 
 async function authenticated() {
@@ -60,7 +60,7 @@ async function existingRecords(supabase: Awaited<ReturnType<typeof createClient>
     result.push(...(data ?? []));
     if (!data || data.length < 1000) return result;
   }
-  throw new Error("Of margar færslur eru skráðar á þessu tímabili til að hægt sé að athuga tvítekningar. Skiptu skránni í styttri tímabil og reyndu aftur.");
+  throw new Error("Of margar færslur á tímabilinu til að athuga tvítekningar. Skiptu skránni í styttri tímabil.");
 }
 
 function matchingKeys(records: Array<{ date: string; type: string; amount: number; note: string | null }>, rows: ImportRow[]) {

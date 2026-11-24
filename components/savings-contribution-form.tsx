@@ -38,7 +38,7 @@ export function SavingsContributionForm({ children, className }: { children: Rea
   return <ActionForm action={contribute} resetOnSuccess className={className}>
     <fieldset disabled={needsRetry} className="contents">{children}</fieldset>
     {needsRetry ? <div className="space-y-3 sm:col-span-2">
-      <p role="status" className="text-sm leading-relaxed text-ink/70">Við fengum ekki staðfestingu á að framlagið hefði vistast. Veldu „Reyna aftur“ til að klára skráninguna. Upphæðin og dagsetningin haldast óbreytt og framlagið verður ekki tvískráð.</p>
+      <p role="status" className="text-sm leading-relaxed text-ink/70">Óvíst hvort framlagið vistaðist. Veldu „Reyna aftur“; það verður ekki tvískráð.</p>
       <Button type="submit" variant="secondary">Reyna aftur</Button>
     </div> : null}
   </ActionForm>;

@@ -45,7 +45,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
 
   return (
     <>
-      <PageHeader title="Mánaðaryfirlit" description="Skoðaðu afkomu mánaðarins, stærstu útgjöldin og stöðu reikninga." action={
+      <PageHeader title="Mánaðaryfirlit" description="Afkoma, stærstu útgjöld og staða reikninga." action={
         <form className="flex min-w-0 items-center gap-2" aria-label="Velja mánuð">
             <select className={`${inputClass} sm:!w-44`} name="month" defaultValue={month} aria-label="Mánuður">
               {months.includes(month) ? null : <option value={month}>{monthLabel(month)}</option>}
@@ -72,7 +72,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
 
       <div className="mb-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
-          <SectionHeader title={monthLabel(month)} description="Tekjur og útgjöld mánaðarins ásamt því sem þú lagðir fyrir." action={<CalendarDays size={19} className="text-accent" weight="duotone" />} />
+          <SectionHeader title={monthLabel(month)} description="Tekjur, útgjöld og sparnaður mánaðarins." action={<CalendarDays size={19} className="text-accent" weight="duotone" />} />
           <div className="grid gap-3 text-sm">
             <div className="flex flex-col gap-1 min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-4">
               <span className="text-ink/55">Heildartekjur</span>
@@ -102,7 +102,7 @@ export default async function MonthlyOverviewPage({ searchParams }: { searchPara
         </Card>
 
         <Card>
-          <SectionHeader title="Áætlun mánaðarins" description="Sjáðu hvernig útgjöldin standa miðað við áætlunina." />
+          <SectionHeader title="Áætlun mánaðarins" description="Útgjöld miðað við áætlun." />
           {budgetAmount > 0 ? (
             <>
               <div className="mb-2 flex flex-col gap-1 text-sm min-[400px]:flex-row min-[400px]:justify-between min-[400px]:gap-3">

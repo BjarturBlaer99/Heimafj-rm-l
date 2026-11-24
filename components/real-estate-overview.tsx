@@ -225,7 +225,7 @@ function MortgageCalculator() {
         <CalculatorIcon size={21} className="text-accent" weight="duotone" />
         <div>
           <h2 id="mortgage-calculator-title" className="text-xl font-bold">Lánareiknivél</h2>
-          <p className="text-sm text-ink/50">Breyttu kaupverði, eigin fé og lánskjörum til að bera saman mánaðargreiðslur.</p>
+          <p className="text-sm text-ink/50">Breyttu verði, eigin fé og lánskjörum.</p>
         </div>
       </div>
 
@@ -347,7 +347,7 @@ function MortgageCalculator() {
           </Card>
         </div>
       </div>
-      <p className="mt-3 text-xs leading-relaxed text-ink/45">Þetta er áætlun miðað við jafnar mánaðargreiðslur og óbreytta vexti. Ekki er tekið tillit til verðtryggingar, lántökugjalda eða annars kostnaðar.</p>
+      <p className="mt-3 text-xs leading-relaxed text-ink/45">Áætlun með jöfnum greiðslum og óbreyttum vöxtum, án verðtryggingar og lántökukostnaðar.</p>
     </section>
   );
 }
@@ -393,7 +393,7 @@ function PropertyIdeas() {
       <div data-scroll-reveal="" className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 id="property-ideas-title" className="text-xl font-bold">Dæmi um fasteignir</h2>
-          <p className="mt-1 text-sm text-ink/50">Þessar eignir eru tilbúin dæmi. Prófaðu að sía eftir svæði og merkja við þær sem þér líst á.</p>
+          <p className="mt-1 text-sm text-ink/50">Tilbúin dæmi, ekki eignir til sölu.</p>
         </div>
         <div className="flex w-fit rounded-md border border-line/10 bg-muted/50 p-1" role="group" aria-label="Sía eftir staðsetningu">
           {([
@@ -493,7 +493,7 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
                 <p className="text-xs font-bold uppercase text-white/70">Húsnæðismarkaðurinn</p>
                 <p className="mt-1 text-xl font-bold sm:text-2xl">Hvernig hefur íbúðaverð breyst?</p>
               </div>
-              <p className="max-w-md text-xs leading-relaxed text-white/75 sm:text-right">Berðu saman verðþróun eftir svæðum og reiknaðu áætlaðar greiðslur af húsnæðisláni.</p>
+              <p className="max-w-md text-xs leading-relaxed text-white/75 sm:text-right">Verðþróun eftir svæðum og áætlaðar greiðslur af láni.</p>
             </div>
           </div>
         </div>
@@ -549,7 +549,7 @@ export function RealEstateOverview({ data }: { data: RealEstateSnapshot }) {
           <HousingChart series={data.series} />
         </div>
 
-        <p className="text-xs leading-relaxed text-ink/40">Heimildir: Hagstofa Íslands og HMS. Dæmin um fasteignir eru tilbúin og sýna ekki eignir sem eru til sölu.</p>
+        <p className="text-xs leading-relaxed text-ink/40">Heimildir: Hagstofa Íslands og HMS. Eignirnar eru tilbúin dæmi.</p>
       </div>
     </MotionConfig>
   );

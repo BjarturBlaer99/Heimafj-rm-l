@@ -41,7 +41,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Sparnaður" description="Haltu utan um sparnaðinn þinn og sjáðu hvað vantar upp á markmiðið." action={balancesReady ? <a href="#savings-balances" className={styles.primaryLink}><Plus size={17} /> Skrá framlag</a> : undefined} />
+      <PageHeader title="Sparnaður" description="Sparnaðurinn og hvað vantar upp á markmiðið." action={balancesReady ? <a href="#savings-balances" className={styles.primaryLink}><Plus size={17} /> Skrá framlag</a> : undefined} />
       <FlashMessage code={params.success} />
 
       <div className={styles.metrics}>
@@ -50,7 +50,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
         <MetricCard label="Annar sparnaður" value={balancesReady ? money(otherSavings, currency) : "—"} detail="Sparnaður utan húsnæðisflokkanna" />
       </div>
 
-      {!balancesReady ? <Card className="mb-5"><EmptyState>Ekki tókst að sækja stöðu sparnaðarins. Upphæðirnar birtast þegar tenging næst aftur. <a className="text-accent underline" href="/savings-goals">Reyna aftur</a></EmptyState></Card> : null}
+      {!balancesReady ? <Card className="mb-5"><EmptyState>Ekki tókst að sækja stöðu sparnaðarins. <a className="text-accent underline" href="/savings-goals">Reyna aftur</a></EmptyState></Card> : null}
       {!latestEntriesResult.schemaReady ? <Card className="mb-5"><EmptyState>Ekki tókst að sækja síðasta framlag í hvern flokk. <a className="text-accent underline" href="/savings-goals">Reyna aftur</a></EmptyState></Card> : null}
       {balancesReady ? <SavingsPreferencesEditor key={JSON.stringify(preferences)} preferences={preferences} buckets={savingsBucketsResult.buckets} /> : null}
 
@@ -80,7 +80,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
                   </section>
                   <section className={styles.correctionSection}>
                     <h4>Leiðrétta heildarupphæð</h4>
-                    <p className={styles.helpText}>Notaðu þetta ef þú vilt leiðrétta stöðuna í flokknum. Upphæðin kemur í stað núverandi stöðu og telst ekki nýtt framlag.</p>
+                    <p className={styles.helpText}>Til að leiðrétta stöðuna. Upphæðin kemur í stað núverandi stöðu og telst ekki framlag.</p>
                     <ActionForm action={saveSavingsBucket} className={styles.correctionForm}>
                       <input type="hidden" name="bucket_type" value={bucket.bucket_type} /><input type="hidden" name="label" value={bucket.label} />
                       <Field label="Ný heildarupphæð"><AmountInput className={inputClass} name="amount" min="0" step="1" defaultValue={Number(bucket.amount)} disabled={!savingsBucketsResult.schemaReady} /></Field>
@@ -95,7 +95,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
 
           <section id="savings-history" className={styles.panel} aria-labelledby="savings-history-heading" data-scroll-reveal>
             <div className={styles.panelHeader}><h2 id="savings-history-heading">Framlög í sparnað</h2><p>{savingsEntriesResult.schemaReady ? `Fjöldi framlaga: ${savingsEntriesResult.total}. Nýjustu framlögin birtast fyrst.` : "Framlög í alla sparnaðarflokka."}</p></div>
-            {savingsEntriesResult.schemaReady ? savingsEntriesResult.entries.length ? <div className={styles.history}>{savingsEntriesResult.entries.map((entry) => <div key={entry.id} className={styles.historyRow}><div><p className={styles.entryLabel}>{entry.label}</p><p className={styles.entryMeta}>{dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</p></div><p className={styles.entryAmount}>+{money(Number(entry.amount), currency)}</p></div>)}</div> : <div className={styles.empty}><EmptyState>Þú hefur ekki skráð framlag enn. Veldu flokk hér fyrir ofan til að byrja.</EmptyState></div> : <div className={styles.empty}><EmptyState>Ekki tókst að sækja fyrri framlög. <a className="text-accent underline" href="/savings-goals#savings-history">Reyna aftur</a></EmptyState></div>}
+            {savingsEntriesResult.schemaReady ? savingsEntriesResult.entries.length ? <div className={styles.history}>{savingsEntriesResult.entries.map((entry) => <div key={entry.id} className={styles.historyRow}><div><p className={styles.entryLabel}>{entry.label}</p><p className={styles.entryMeta}>{dateLabel(entry.date)}{entry.note ? ` · ${entry.note}` : ""}</p></div><p className={styles.entryAmount}>+{money(Number(entry.amount), currency)}</p></div>)}</div> : <div className={styles.empty}><EmptyState>Engin framlög skráð enn.</EmptyState></div> : <div className={styles.empty}><EmptyState>Ekki tókst að sækja fyrri framlög. <a className="text-accent underline" href="/savings-goals#savings-history">Reyna aftur</a></EmptyState></div>}
             {savingsEntriesResult.schemaReady && savingsEntriesResult.pageCount > 1 ? <nav className={styles.historyPagination} aria-label="Síður með framlögum í sparnað"><span>Síða {savingsEntriesResult.page} af {savingsEntriesResult.pageCount}</span><div>{savingsEntriesResult.page > 1 ? <Link href={`/savings-goals?history_page=${savingsEntriesResult.page - 1}#savings-history`}>Fyrri síða</Link> : null}{savingsEntriesResult.page < savingsEntriesResult.pageCount ? <Link href={`/savings-goals?history_page=${savingsEntriesResult.page + 1}#savings-history`}>Næsta síða</Link> : null}</div></nav> : null}
           </section>
         </div>
@@ -103,7 +103,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
         <aside className={styles.goalPanel} aria-labelledby="goal-heading" data-scroll-reveal>
           <p className={styles.eyebrow}>Það sem þú stefnir að</p>
           <h2 id="goal-heading">Sparnaðarmarkmið</h2>
-          {!balancesReady ? <p className={styles.goalIntro}>Þegar tenging næst aftur sérðu hvað vantar upp á markmiðið og hvað þarf að leggja fyrir.</p> : totalGoal ? (
+          {!balancesReady ? <p className={styles.goalIntro}>Staðan birtist þegar tenging næst aftur.</p> : totalGoal ? (
             <>
               <h3 className={styles.goalTitle}>{totalGoal.title}</h3>
               <p className={styles.goalDate}>{totalGoal.target_date ? `Markdagur ${dateLabel(totalGoal.target_date)}` : "Enginn markdagur"}</p>
@@ -111,7 +111,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
               <ProgressBar value={progress} />
               <dl className={styles.goalAmounts}><div><dt>Sparnaður í markmiði</dt><dd>{money(goalSavings, currency)}</dd></div><div><dt>Markupphæð</dt><dd>{money(Number(totalGoal.target_amount), currency)}</dd></div><div className={styles.remaining}><dt>Eftir að spara</dt><dd>{money(remaining, currency)}</dd></div></dl>
               <div className={styles.contributionPlan}>
-                {plan?.status === "active" ? <><p>Það sem þarf að leggja fyrir á mánuði</p><strong>{money(plan.monthlyAmount, currency)}</strong><span>Miðað við {plan.months} {plan.months === 1 ? "framlag" : "framlög"}, eitt í hverjum mánuði frá og með þessum mánuði til markdags. Ekki er reiknað með vöxtum eða annarri ávöxtun.</span></> : plan?.status === "met" ? <><strong>Markupphæð náð</strong><span>Þú hefur náð markupphæðinni miðað við skráðan sparnað. Þú getur sett þér nýtt markmið hér fyrir neðan.</span></> : plan?.status === "overdue" ? <><strong>Markdagur er liðinn</strong><span>Enn vantar {money(plan.remaining, currency)}. Veldu nýjan markdag til að reikna mánaðarlegt framlag.</span></> : plan?.status === "undated" ? <><strong>Hvenær viltu ná markmiðinu?</strong><span>Veldu markdag hér fyrir neðan til að sjá hvað þarf að leggja fyrir í hverjum mánuði.</span></> : <span>Ekki tókst að reikna mánaðarlegt framlag. Athugaðu upphæðina og dagsetninguna.</span>}
+                {plan?.status === "active" ? <><p>Það sem þarf að leggja fyrir á mánuði</p><strong>{money(plan.monthlyAmount, currency)}</strong><span>Miðað við {plan.months} {plan.months === 1 ? "framlag" : "framlög"}, eitt í hverjum mánuði frá og með þessum mánuði til markdags. Ekki er reiknað með vöxtum eða annarri ávöxtun.</span></> : plan?.status === "met" ? <><strong>Markupphæð náð</strong><span>Markmiðinu er náð. Þú getur sett þér nýtt hér fyrir neðan.</span></> : plan?.status === "overdue" ? <><strong>Markdagur er liðinn</strong><span>Enn vantar {money(plan.remaining, currency)}. Veldu nýjan markdag til að reikna mánaðarlegt framlag.</span></> : plan?.status === "undated" ? <><strong>Hvenær viltu ná markmiðinu?</strong><span>Veldu markdag til að sjá hvað þarf á mánuði.</span></> : <span>Ekki tókst að reikna mánaðarlegt framlag. Athugaðu upphæðina og dagsetninguna.</span>}
               </div>
               <section className={styles.goalEdit}>
                 <h3>Breyta markmiði</h3>
@@ -130,7 +130,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
             </>
           ) : (
             <>
-              <p className={styles.goalIntro}>Hvað viltu spara mikið? Skráðu markmiðið og sjáðu hvað er eftir.</p>
+              <p className={styles.goalIntro}>Upphæð og markdagur.</p>
               <ActionForm resetOnSuccess action={saveSavingsGoal} className={styles.goalForm}>
                 <Field label="Heiti markmiðs"><input className={inputClass} name="title" placeholder="T.d. útborgun í íbúð" required /></Field>
                 <Field label="Markupphæð"><AmountInput className={inputClass} name="target_amount" min="0.01" step="0.01" placeholder="0" required /></Field>
@@ -144,7 +144,7 @@ export default async function SavingsGoalsPage({ searchParams }: { searchParams:
         </aside>
       </div>
 
-      {goals.length > 1 ? <Card className="mt-5"><EmptyState>Þú átt fleiri en eitt eldra sparnaðarmarkmið. Hér birtist aðeins nýjasta markmiðið og þeir flokkar sem þú hefur valið telja með.</EmptyState></Card> : null}
+      {goals.length > 1 ? <Card className="mt-5"><EmptyState>Þú átt fleiri en eitt eldra markmið. Hér sést aðeins það nýjasta, með flokkunum sem þú valdir.</EmptyState></Card> : null}
     </div>
   );
 }
