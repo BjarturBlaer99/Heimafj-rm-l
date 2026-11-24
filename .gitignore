@@ -12,3 +12,6 @@ next-*.log
 next-*.err.log
 design-*.log
 tsconfig.tsbuildinfo
+
+# Claude Code local settings
+.claude/
